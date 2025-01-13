@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Endpoint(id = "features")
 public class FeaturesEndpoint {
 
-    private Map<String, Feature> features = new ConcurrentHashMap<>();
+    private final Map<String, Feature> features = new ConcurrentHashMap<>();
 
     @ReadOperation
     public Map<String, Feature> features() {
