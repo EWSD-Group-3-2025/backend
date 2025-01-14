@@ -1,10 +1,28 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/test_db
+      SPRING_DATASOURCE_USERNAME: group_3
+      SPRING_DATASOURCE_PASSWORD: mysql
+    ports:
+      - "8080:8080"
+
   mysql:
     image: 'mysql:latest'
     environment:
       - 'MYSQL_DATABASE=test_db'
-      - 'MYSQL_PASSWORD=mysql'
       - 'MYSQL_ROOT_PASSWORD=mysql'
+      - 'MYSQL_PASSWORD=mysql'
       - 'MYSQL_USER=group_3'
     ports:
       - '3306'
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
