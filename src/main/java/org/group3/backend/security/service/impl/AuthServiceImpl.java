@@ -8,6 +8,7 @@ package org.group3.backend.security.service.impl;
 import org.group3.backend.api.response.dto.ApiResponse;
 import org.group3.backend.security.dto.LoginRequest;
 import org.group3.backend.security.service.AuthService;
+import org.group3.backend.security.utils.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -19,30 +20,21 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
     @Override
     public ApiResponse authenticateUser(LoginRequest loginRequest) {
-
         boolean isAuthenticated = "admin@kmd.edu.mm".equals(loginRequest.getEmail())
                 && "password".equals(loginRequest.getPassword());
         if (isAuthenticated) {
-            String token = UUID.randomUUID().toString();
             Map<String, Object> userData = getUserData();
+            String accessToken = JwtUtil.generateToken(userData, "admin", 15 * 60 * 1000); // 15 minutes
+            String refreshToken = JwtUtil.generateToken(userData, "admin", 7 * 24 * 60 * 60 * 1000); // 7 days
 
             return ApiResponse.builder()
                     .success(1)
                     .code(HttpStatus.OK.value())
-                    .meta(Map.of(
-                            "method", "POST",
-                            "endpoint", "api/auth/login",
-                            "limit", 0,
-                            "offset", 0,
-                            "total", 1
-                    ))
                     .data(Map.of(
-                            "userData", userData,
-                            "role", "admin",
-                            "token", token
+                            "accessToken", accessToken,
+                            "refreshToken", refreshToken
                     ))
                     .message("User Login Successfully")
-                    .duration((double) (Instant.now().getEpochSecond() - loginRequest.getRequestTime()))
                     .build();
         } else {
             return ApiResponse.builder()
@@ -68,8 +60,8 @@ public class AuthServiceImpl implements AuthService {
                 "id", userId,
                 "name", userName,
                 "email", userEmail,
-                "role_id", roleId,
-                "gender_id", genderId,
+                "roleId", roleId,
+                "genderId", genderId,
                 "phone", password,
                 "address", address,
                 "enabled", enabled

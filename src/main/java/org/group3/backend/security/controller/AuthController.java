@@ -5,6 +5,7 @@
  */
 package org.group3.backend.security.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.group3.backend.api.response.dto.ApiResponse;
 import org.group3.backend.api.response.utils.ResponseUtil;
 import org.group3.backend.security.dto.LoginRequest;
@@ -26,8 +27,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         ApiResponse response = authService.authenticateUser(loginRequest);
-        return ResponseUtil.buildResponse(response);
+        return ResponseUtil.buildResponse(request, response, loginRequest.getRequestTime());
     }
 }

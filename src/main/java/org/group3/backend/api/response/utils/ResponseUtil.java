@@ -5,14 +5,29 @@
  */
 package org.group3.backend.api.response.utils;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.group3.backend.api.response.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.Instant;
+import java.util.HashMap;
+
 public class ResponseUtil {
 
-    public static ResponseEntity<ApiResponse> buildResponse(ApiResponse response) {
+    public static ResponseEntity<ApiResponse> buildResponse(HttpServletRequest request, ApiResponse response, double requestTime) {
         HttpStatus status = HttpStatus.valueOf(response.getCode());
+
+        String method = request.getMethod();
+        String endpoint = request.getRequestURI();
+
+        if (response.getMeta() == null) {
+            response.setMeta(new HashMap<>());
+        }
+
+        response.getMeta().put("method", method);
+        response.getMeta().put("endpoint", endpoint);
+        response.setDuration(Instant.now().getEpochSecond() - requestTime);
         return new ResponseEntity<>(response, status);
     }
 }
