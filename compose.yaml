@@ -4,25 +4,39 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/test_db
       SPRING_DATASOURCE_USERNAME: group_3
       SPRING_DATASOURCE_PASSWORD: mysql
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
-      - "8080:8080"
+      - "8081:8081"
 
   mysql:
-    image: 'mysql:latest'
+    image: "mysql:latest"
     environment:
-      - 'MYSQL_DATABASE=test_db'
-      - 'MYSQL_ROOT_PASSWORD=mysql'
-      - 'MYSQL_PASSWORD=mysql'
-      - 'MYSQL_USER=group_3'
+      - "MYSQL_DATABASE=test_db"
+      - "MYSQL_ROOT_PASSWORD=mysql"
+      - "MYSQL_PASSWORD=mysql"
+      - "MYSQL_USER=group_3"
     ports:
-      - '3306'
+      - "3306"
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "--password=mysql",
+        ]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 30s
