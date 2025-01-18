@@ -5,6 +5,7 @@
  */
 package org.group3.backend.api.user.repository;
 
+
 import org.group3.backend.api.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    @Query("SELECT u FROM User u")
+	@Query(value = "SELECT * FROM User u LIMIT :limit OFFSET :offset", nativeQuery = true)
     List<User> findUsersWithPagination(@Param("offset") int offset, @Param("limit") int limit);
 
     @Query("SELECT COUNT(u) FROM User u")
