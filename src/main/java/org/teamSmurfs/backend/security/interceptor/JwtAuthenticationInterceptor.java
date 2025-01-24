@@ -5,13 +5,14 @@
  */
 package org.teamSmurfs.backend.security.interceptor;
 
+import io.jsonwebtoken.Claims;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.teamSmurfs.backend.security.utils.JwtUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.teamSmurfs.backend.security.service.JwtService;
 
 @Component
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+    private final JwtService jwtService;
 
     @Override
     public boolean preHandle(HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull Object handler) throws Exception {
@@ -30,10 +32,11 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
 
         String token = authorizationHeader.substring(BEARER_PREFIX.length());
         try {
-            JwtUtil.decodeToken(token);
+            Claims claims = jwtService.validateToken(token);
+            request.setAttribute("claims", claims);
             return true;
-        } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token.");
+        } catch (SecurityException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
             return false;
         }
     }

@@ -6,6 +6,7 @@
 package org.teamSmurfs.backend.api.user.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.teamSmurfs.backend.api.response.dto.PaginatedResponse;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
@@ -25,6 +26,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Object retrieveUsers(int page, int limit) throws Exception {
@@ -51,9 +53,9 @@ public class UserServiceImpl implements UserService {
     public Object createUser(CreateUserRequest createUserRequest) throws Exception {
         try {
             User user = modelMapper.map(createUserRequest, User.class);
+            user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
             User savedUser = userRepository.save(user);
-            UserDto userDto = modelMapper.map(savedUser, UserDto.class);
-            return userDto;
+            return modelMapper.map(savedUser, UserDto.class);
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }

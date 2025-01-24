@@ -6,6 +6,7 @@
 package org.teamSmurfs.backend.security.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.config.Customizer;
 import org.teamSmurfs.backend.security.CustomAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**", "/api/v1/**").permitAll()
                         .anyRequest().authenticated()
@@ -34,5 +36,4 @@ public class SecurityConfig {
                 )
                 .build();
     }
-
 }
