@@ -56,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
                         "accessToken", accessToken,
                         "refreshToken", refreshToken
                 ))
-                .message("User authenticated successfully")
+                .message("You are successfully logged in!")
                 .build();
     }
 
@@ -81,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
         return ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.CREATED.value())
-                .message("User registered successfully")
+                .message("You have registered successfully.")
                 .build();
     }
 }
