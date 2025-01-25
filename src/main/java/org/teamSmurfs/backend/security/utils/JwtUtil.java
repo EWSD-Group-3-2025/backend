@@ -5,12 +5,12 @@
  */
 package org.teamSmurfs.backend.security.utils;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.security.Key;
 import java.util.Date;
@@ -18,10 +18,15 @@ import java.util.Map;
 
 public class JwtUtil {
 
-//    @Value("${jwt.secret.key}")
-//    private String secretKey;
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String SECRET = dotenv.get("JWT_SECRET_KEY");
+    private static final Key SECRET_KEY;
 
-    private static final Key SECRET_KEY = Keys.hmacShaKeyFor("bh5pYpZP4QuAlHFF4NljKIQD9QWU8HmX2wyKAiBaArk=".getBytes());
+    static {
+        assert SECRET != null;
+        SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
+    }
+
     private static final String ISSUER = "teamSmurfs-backend";
 
     public static String generateToken(Map<String, Object> claims, String role, String subject, long expirationMillis) {
