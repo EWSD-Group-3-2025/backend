@@ -73,6 +73,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     /**
+     * Handles SecurityException, typically thrown when authentication or authorization fails.
+     *
+     * @param ex      the SecurityException encountered.
+     * @param request the current HTTP request.
+     * @return a ResponseEntity containing the standardized ApiResponse.
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ApiResponse> handleSecurityException(SecurityException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), "Security violation.", request);
+    }
+
+    /**
      * Handles all uncaught exceptions, providing a generic error response.
      *
      * @param ex      the Exception encountered.
