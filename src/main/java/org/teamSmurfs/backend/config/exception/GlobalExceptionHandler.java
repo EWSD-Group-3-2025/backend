@@ -7,6 +7,7 @@ package org.teamSmurfs.backend.config.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.apache.coyote.BadRequestException;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +71,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(DuplicateEntityException.class)
     public ResponseEntity<ApiResponse> handleDuplicateEntityException(DuplicateEntityException ex, HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.CONFLICT, "Duplicate entity detected.", ex.getMessage(), request);
+    }
+
+    /**
+     * Handles BadRequestException, thrown when the client request contains invalid data.
+     *
+     * @param ex      the BadRequestException encountered.
+     * @param request the current HTTP request.
+     * @return a ResponseEntity containing the standardized ApiResponse.
+     */
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse> handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad request.", ex.getMessage(), request);
     }
 
     /**
