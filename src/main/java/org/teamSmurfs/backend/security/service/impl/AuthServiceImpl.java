@@ -143,4 +143,44 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("User successfully logged out.");
     }
+
+    @Override
+    public ApiResponse refreshToken(String refreshToken) {
+        log.info("Validating refresh token");
+
+        Claims claims;
+        try {
+            claims = jwtService.validateToken(refreshToken);
+        } catch (SecurityException ex) {
+            log.warn("Invalid refresh token: {}", ex.getMessage());
+            return ApiResponse.builder()
+                    .success(0)
+                    .code(HttpStatus.UNAUTHORIZED.value())
+                    .message("Invalid or expired refresh token")
+                    .build();
+        }
+
+        String email = claims.getSubject();
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user == null) {
+            log.warn("User not found for refresh token: {}", email);
+            return ApiResponse.builder()
+                    .success(0)
+                    .code(HttpStatus.UNAUTHORIZED.value())
+                    .message("User not found")
+                    .build();
+        }
+
+        log.info("Generating new access token for user: {}", email);
+
+        String newAccessToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), email, 15 * 60 * 1000);
+
+        return ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(Map.of("accessToken", newAccessToken))
+                .message("Access token refreshed successfully")
+                .build();
+    }
 }

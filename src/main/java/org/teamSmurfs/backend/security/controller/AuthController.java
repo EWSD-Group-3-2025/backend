@@ -100,4 +100,21 @@ public class AuthController {
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse> refresh(@Validated @RequestBody RefreshTokenData refreshTokenData, HttpServletRequest request) {
+        log.info("Received token refresh request");
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        ApiResponse response = authService.refreshToken(refreshTokenData.getRefreshToken());
+
+        if (response.getSuccess() == 1) {
+            log.info("Token refreshed successfully");
+        } else {
+            log.warn("Token refresh failed");
+        }
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
 }

@@ -14,4 +14,5 @@ public interface AuthService {
     ApiResponse authenticateUser(LoginRequest loginRequest);
     ApiResponse registerUser(RegisterRequest registerRequest);
     void logout(String accessToken, RefreshTokenData refreshTokenData);
+    ApiResponse refreshToken(String refreshToken);
 }
