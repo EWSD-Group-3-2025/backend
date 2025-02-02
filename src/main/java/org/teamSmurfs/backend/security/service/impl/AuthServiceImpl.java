@@ -8,10 +8,13 @@ package org.teamSmurfs.backend.security.service.impl;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
+import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.teamSmurfs.backend.security.dto.LoginRequest;
 import org.teamSmurfs.backend.security.dto.RefreshTokenData;
 import org.teamSmurfs.backend.security.dto.RegisterRequest;
@@ -32,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final ModelMapper modelMapper;
 
     @Override
     public ApiResponse authenticateUser(LoginRequest loginRequest) {
@@ -54,13 +58,15 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("User authenticated successfully: {}", loginRequest.getEmail());
 
+        UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
+
         Map<String, Object> tokenData = generateTokens(user);
 
         return ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
                 .data(Map.of(
-                        "user", user,
+                        "user", userDto,
                         "accessToken", tokenData.get("accessToken"),
                         "refreshToken", tokenData.get("refreshToken")
                 ))
@@ -93,11 +99,13 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("User registered successfully: {}", registerRequest.getEmail());
 
+        UserDto userDto = DtoUtil.map(newUser, UserDto.class, modelMapper);
+
         return ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.CREATED.value())
                 .data(Map.of(
-                        "user", newUser,
+                        "user", userDto,
                         "accessToken", tokenData.get("accessToken"),
                         "refreshToken", tokenData.get("refreshToken")
                 ))
@@ -156,6 +164,7 @@ public class AuthServiceImpl implements AuthService {
             return ApiResponse.builder()
                     .success(0)
                     .code(HttpStatus.UNAUTHORIZED.value())
+                    .data(ex.getMessage())
                     .message("Invalid or expired refresh token")
                     .build();
         }
@@ -168,6 +177,7 @@ public class AuthServiceImpl implements AuthService {
             return ApiResponse.builder()
                     .success(0)
                     .code(HttpStatus.UNAUTHORIZED.value())
+                    .data(false)
                     .message("User not found")
                     .build();
         }
@@ -181,6 +191,39 @@ public class AuthServiceImpl implements AuthService {
                 .code(HttpStatus.OK.value())
                 .data(Map.of("accessToken", newAccessToken))
                 .message("Access token refreshed successfully")
+                .build();
+    }
+
+    @Override
+    public ApiResponse getCurrentUser(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("Invalid Authorization header");
+            return ApiResponse.builder()
+                    .success(0)
+                    .code(HttpStatus.UNAUTHORIZED.value())
+                    .message("Unauthorized: Missing or invalid token")
+                    .build();
+        }
+
+        String token = authHeader.substring(7);
+        Claims claims = jwtService.validateToken(token);
+        String email = claims.getSubject();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.warn("User not found for email: {}", email);
+                    return new SecurityException("User not found");
+                });
+
+        UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
+
+        return ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(Map.of(
+                        "user", userDto
+                ))
+                .message("User retrieved successfully")
                 .build();
     }
 }
