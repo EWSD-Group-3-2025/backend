@@ -11,6 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
+import org.teamSmurfs.backend.api.role.model.Role;
+import org.teamSmurfs.backend.api.role.model.RoleName;
+import org.teamSmurfs.backend.api.role.repository.RoleRepository;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
@@ -24,8 +27,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.security.utils.ClaimsProvider;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +37,7 @@ import java.util.Map;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final ModelMapper modelMapper;
@@ -47,6 +52,12 @@ public class AuthServiceImpl implements AuthService {
                     return new SecurityException("Invalid email or password");
                 });
 
+        Set<Role> roleList = user.getRoles();
+        String roleName = roleList.stream()
+                .map(role -> role.getName().name())
+                .findFirst()
+                .orElse("ROLE_USER");
+
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             log.warn("Invalid password for user: {}", loginRequest.getEmail());
             return ApiResponse.builder()
@@ -60,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
 
         UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
 
-        Map<String, Object> tokenData = generateTokens(user);
+        Map<String, Object> tokenData = generateTokens(user, roleName);
 
         return ApiResponse.builder()
                 .success(1)
@@ -87,15 +98,20 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
 
+        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+                .orElseThrow(() -> new RuntimeException("Role not found in database!"));
+        log.info("Assigning role: {}", userRole.getName());
+
         User newUser = User.builder()
                 .name(registerRequest.getName())
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .roles(Set.of(userRole))
                 .build();
 
         userRepository.save(newUser);
 
-        Map<String, Object> tokenData = generateTokens(newUser);
+        Map<String, Object> tokenData = generateTokens(newUser, String.valueOf(userRole.getName()));
 
         log.info("User registered successfully: {}", registerRequest.getEmail());
 
@@ -113,11 +129,11 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    private Map<String, Object> generateTokens(User user) {
+    private Map<String, Object> generateTokens(User user, String roleName) {
         log.debug("Generating tokens for user: {}", user.getEmail());
 
-        String accessToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), user.getEmail(), 15 * 60 * 1000);
-        String refreshToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), user.getEmail(), 7 * 24 * 60 * 60 * 1000);
+        String accessToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), roleName, user.getEmail(), 15 * 60 * 1000);
+        String refreshToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), roleName, user.getEmail(), 7 * 24 * 60 * 60 * 1000);
 
         return Map.of("accessToken", accessToken, "refreshToken", refreshToken);
     }
@@ -184,7 +200,13 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("Generating new access token for user: {}", email);
 
-        String newAccessToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), email, 15 * 60 * 1000);
+        Set<Role> roleList = user.getRoles();
+        String roleName = roleList.stream()
+                .map(role -> role.getName().name())
+                .findFirst()
+                .orElse("ROLE_USER");
+
+        String newAccessToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), roleName, email, 15 * 60 * 1000);
 
         return ApiResponse.builder()
                 .success(1)
