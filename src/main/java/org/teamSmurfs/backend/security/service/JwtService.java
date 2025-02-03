@@ -14,5 +14,5 @@ public interface JwtService {
 
     void revokeToken(String token);
 
-    String generateToken(Map<String, Object> claims, String subject, long expirationMillis);
+    String generateToken(Map<String, Object> claims, String roleName, String subject, long expirationMillis);
 }

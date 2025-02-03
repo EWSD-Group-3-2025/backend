@@ -42,7 +42,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateToken(Map<String, Object> claims, String subject, long expirationMillis) {
-        return JwtUtil.generateToken(claims, "USER", subject, expirationMillis);
+    public String generateToken(Map<String, Object> claims, String roleName, String subject, long expirationMillis) {
+        return JwtUtil.generateToken(claims, roleName, subject, expirationMillis);
     }
 }

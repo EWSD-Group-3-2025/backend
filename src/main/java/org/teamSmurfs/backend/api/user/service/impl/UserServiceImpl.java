@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.teamSmurfs.backend.api.response.dto.PaginatedResponse;
+import org.teamSmurfs.backend.api.role.model.Role;
+import org.teamSmurfs.backend.api.role.model.RoleName;
+import org.teamSmurfs.backend.api.role.repository.RoleRepository;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +32,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -69,6 +74,12 @@ public class UserServiceImpl implements UserService {
 
             User user = modelMapper.map(createUserRequest, User.class);
             user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
+
+            Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+                    .orElseThrow(() -> new RuntimeException("Role not found in database!"));
+            log.info("Assigning role: {}", userRole.getName());
+            user.setRoles(Set.of(userRole));
+
             User savedUser = userRepository.save(user);
 
             log.info("User created successfully with ID: {}", savedUser.getId());
