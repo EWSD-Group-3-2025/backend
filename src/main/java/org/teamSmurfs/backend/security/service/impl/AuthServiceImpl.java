@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
+import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
@@ -23,7 +24,10 @@ import org.teamSmurfs.backend.security.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.security.utils.ClaimsProvider;
+import org.teamSmurfs.backend.token.repository.TokenRepository;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +37,7 @@ import java.util.Map;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final ModelMapper modelMapper;
@@ -61,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
         UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
 
         Map<String, Object> tokenData = generateTokens(user);
-
+        
         return ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
@@ -96,7 +101,19 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(newUser);
 
         Map<String, Object> tokenData = generateTokens(newUser);
-
+        
+        String refreshToken = (String) tokenData.get("refreshToken");
+        
+        Instant expiredAt=Instant.now().plus(7,ChronoUnit.DAYS);
+         
+        Token token =Token.builder()
+        		  .userId(newUser.getId())
+        		  .refreshtoken(refreshToken)
+        		  .expiredAt(expiredAt)
+        		  .build();
+        
+        tokenRepository.save(token);
+        
         log.info("User registered successfully: {}", registerRequest.getEmail());
 
         UserDto userDto = DtoUtil.map(newUser, UserDto.class, modelMapper);
@@ -123,7 +140,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout(String accessToken, RefreshTokenData refreshTokenData) {
+    public void logout(String accessToken) {
         if (accessToken != null && accessToken.startsWith("Bearer ")) {
             String token = accessToken.substring(7);
             Claims claims = jwtService.validateToken(token);
@@ -134,19 +151,6 @@ public class AuthServiceImpl implements AuthService {
 
             log.debug("Revoking access token for user: {}", user.getEmail());
             jwtService.revokeToken(token);
-        }
-
-        if (refreshTokenData != null && refreshTokenData.getRefreshToken() != null) {
-            String refreshToken = refreshTokenData.getRefreshToken().substring(7);
-            Claims refreshClaims = jwtService.validateToken(refreshToken);
-            String userEmail = refreshClaims.getSubject();
-
-            if (!userRepository.existsByEmail(userEmail)) {
-                throw new SecurityException("Invalid refresh token. User does not exist.");
-            }
-
-            log.debug("Revoking refresh token for user: {}", userEmail);
-            jwtService.revokeToken(refreshToken);
         }
 
         log.info("User successfully logged out.");
