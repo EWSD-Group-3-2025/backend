@@ -5,6 +5,8 @@
  */
 package org.teamSmurfs.backend.api.user.model;
 
+import org.teamSmurfs.backend.api.token.model.Token;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,4 +31,7 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+    
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Token token;
 }

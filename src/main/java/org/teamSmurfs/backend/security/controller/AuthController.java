@@ -47,8 +47,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse> logout(
-            @RequestHeader(value = "Authorization", required = false) String accessToken,
+    public ResponseEntity<ApiResponse> logout(@RequestHeader(value = "Authorization", required = false) String accessToken,
             HttpServletRequest request
     ) {
         log.info("Received logout request");

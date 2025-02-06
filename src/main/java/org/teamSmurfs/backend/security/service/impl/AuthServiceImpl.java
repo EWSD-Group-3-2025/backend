@@ -6,18 +6,19 @@
 package org.teamSmurfs.backend.security.service.impl;
 
 import io.jsonwebtoken.Claims;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
+import org.teamSmurfs.backend.api.token.dto.TokenDto;
 import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.teamSmurfs.backend.security.dto.LoginRequest;
-import org.teamSmurfs.backend.security.dto.RefreshTokenData;
 import org.teamSmurfs.backend.security.dto.RegisterRequest;
 import org.teamSmurfs.backend.security.service.AuthService;
 import org.teamSmurfs.backend.security.service.JwtService;
@@ -28,7 +29,6 @@ import org.teamSmurfs.backend.token.repository.TokenRepository;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -64,7 +64,15 @@ public class AuthServiceImpl implements AuthService {
         log.info("User authenticated successfully: {}", loginRequest.getEmail());
 
         UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
+        
+        Token refreshToken = tokenRepository.findByUser(user)
+        		.orElseThrow(() -> {
+        			log.warn("Token not found for user: {}", loginRequest.getEmail());
+        			return new SecurityException("Token not found for user");
+        		});       		
 
+        TokenDto tokenDto= DtoUtil.map(refreshToken, TokenDto.class, modelMapper);
+        
         Map<String, Object> tokenData = generateTokens(user);
         
         return ApiResponse.builder()
@@ -73,13 +81,14 @@ public class AuthServiceImpl implements AuthService {
                 .data(Map.of(
                         "user", userDto,
                         "accessToken", tokenData.get("accessToken"),
-                        "refreshToken", tokenData.get("refreshToken")
+                        "refreshToken", tokenDto.getRefreshtoken()
                 ))
                 .message("You are successfully logged in!")
                 .build();
     }
 
     @Override
+    @Transactional
     public ApiResponse registerUser(RegisterRequest registerRequest) {
         log.info("Registering new user with email: {}", registerRequest.getEmail());
 
@@ -102,12 +111,13 @@ public class AuthServiceImpl implements AuthService {
 
         Map<String, Object> tokenData = generateTokens(newUser);
         
+        String accessToken  = (String) tokenData.get("accessToken");
         String refreshToken = (String) tokenData.get("refreshToken");
         
         Instant expiredAt=Instant.now().plus(7,ChronoUnit.DAYS);
          
         Token token =Token.builder()
-        		  .userId(newUser.getId())
+        		  .user(newUser)
         		  .refreshtoken(refreshToken)
         		  .expiredAt(expiredAt)
         		  .build();
@@ -123,8 +133,8 @@ public class AuthServiceImpl implements AuthService {
                 .code(HttpStatus.CREATED.value())
                 .data(Map.of(
                         "user", userDto,
-                        "accessToken", tokenData.get("accessToken"),
-                        "refreshToken", tokenData.get("refreshToken")
+                        "accessToken", accessToken,
+                        "refreshToken", refreshToken
                 ))
                 .message("You have registered successfully.")
                 .build();
