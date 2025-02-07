@@ -24,6 +24,7 @@ import org.teamSmurfs.backend.config.exception.DuplicateEntityException;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.teamSmurfs.backend.config.utils.EntityUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -77,6 +78,9 @@ public class UserServiceImpl implements UserService {
             }
 
             User user = modelMapper.map(createUserRequest, User.class);
+            String uniqueUsername = userUtil.generateUniqueUsername(createUserRequest.getName());
+            user.setUsername(uniqueUsername);
+
             user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
 
             Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
@@ -102,7 +106,7 @@ public class UserServiceImpl implements UserService {
         log.info("Initiating password change for authenticated user.");
 
         UserDto userDto = userUtil.getCurrentUserDto(authHeader);
-        User currentUser = modelMapper.map(userDto, User.class);
+        User currentUser = EntityUtil.getEntityById(userRepository, userDto.getId());
 
         if (!passwordEncoder.matches(oldPassword, currentUser.getPassword())) {
             log.warn("Password change failed: Incorrect old password for user ID {}", currentUser.getId());
@@ -120,4 +124,8 @@ public class UserServiceImpl implements UserService {
         log.info("Password changed successfully for user ID {}", currentUser.getId());
     }
 
+    @Override
+    public boolean usernameExists(String username) {
+        return userRepository.countByUsername(username) > 0;
+    }
 }
