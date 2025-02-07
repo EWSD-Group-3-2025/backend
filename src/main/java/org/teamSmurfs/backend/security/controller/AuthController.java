@@ -47,24 +47,21 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse> logout(
-            @RequestHeader(value = "Authorization", required = false) String accessToken,
-            @RequestBody(required = false) RefreshTokenData refreshTokenData,
+    public ResponseEntity<ApiResponse> logout(@RequestHeader(value = "Authorization", required = false) String accessToken,
             HttpServletRequest request
     ) {
         log.info("Received logout request");
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        if ((accessToken == null || !accessToken.startsWith("Bearer ")) &&
-                (refreshTokenData == null || refreshTokenData.getRefreshToken() == null || !refreshTokenData.getRefreshToken().startsWith("Bearer "))) {
+        if ((accessToken == null || !accessToken.startsWith("Bearer "))) {
 
             log.warn("Invalid or missing tokens in logout request");
             throw new SecurityException("Invalid or missing authorization tokens.");
         }
 
         try {
-            authService.logout(accessToken, refreshTokenData);
+            authService.logout(accessToken);
             ApiResponse response = ApiResponse.builder()
                     .success(1)
                     .code(200)
