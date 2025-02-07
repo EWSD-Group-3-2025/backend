@@ -105,6 +105,7 @@ public class AuthServiceImpl implements AuthService {
 
         User newUser = User.builder()
                 .name(registerRequest.getName())
+                .username(userUtil.generateUniqueUsername(registerRequest.getName()))
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .roles(Set.of(userRole))

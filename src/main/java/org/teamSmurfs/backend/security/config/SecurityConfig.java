@@ -53,7 +53,7 @@ public class SecurityConfig {
     private void configureAuthorization(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/v1/public/**").permitAll()
+                .requestMatchers("/api/v1/public/**", "/api/v1/users/change-password").permitAll()
 
                 .requestMatchers("/api/v1/users/**", "/api/v1/mail/**").access(hasRole(ROLE_USER))
                 .requestMatchers("/api/v1/tutor/**").access(hasRole(ROLE_TUTOR))
