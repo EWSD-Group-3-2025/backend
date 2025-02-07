@@ -17,12 +17,12 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, columnDefinition = "TEXT")
     private String refreshtoken;
 
     @Column(nullable = false)
     private Instant expiredAt;
-    
+
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;

@@ -12,8 +12,18 @@ import org.teamSmurfs.backend.security.dto.RegisterRequest;
 
 public interface AuthService {
     ApiResponse authenticateUser(LoginRequest loginRequest);
+
     ApiResponse registerUser(RegisterRequest registerRequest);
+
     void logout(String accessToken);
+
     ApiResponse refreshToken(String refreshToken);
+
     ApiResponse getCurrentUser(String authHeader);
+
+    ApiResponse initiatePasswordReset(String email);
+
+    ApiResponse verifyOtp(String otp);
+
+    ApiResponse resetPassword(String newPassword, String confirmPassword);
 }
