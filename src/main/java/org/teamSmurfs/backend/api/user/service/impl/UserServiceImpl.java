@@ -5,15 +5,21 @@
  */
 package org.teamSmurfs.backend.api.user.service.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.teamSmurfs.backend.api.response.dto.PaginatedResponse;
+import org.teamSmurfs.backend.api.role.model.Role;
+import org.teamSmurfs.backend.api.role.model.RoleName;
+import org.teamSmurfs.backend.api.role.repository.RoleRepository;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.api.user.service.UserService;
+import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
+import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.config.exception.DuplicateEntityException;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.modelmapper.ModelMapper;
@@ -21,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +35,10 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final UserUtil userUtil;
 
     @Override
     public Object retrieveUsers(int page, int limit) throws Exception {
@@ -69,6 +78,12 @@ public class UserServiceImpl implements UserService {
 
             User user = modelMapper.map(createUserRequest, User.class);
             user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
+
+            Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+                    .orElseThrow(() -> new RuntimeException("Role not found in database!"));
+            log.info("Assigning role: {}", userRole.getName());
+            user.setRoles(Set.of(userRole));
+
             User savedUser = userRepository.save(user);
 
             log.info("User created successfully with ID: {}", savedUser.getId());
@@ -80,4 +95,29 @@ public class UserServiceImpl implements UserService {
             throw new Exception(e.getMessage());
         }
     }
+
+    @Override
+    @Transactional
+    public void changePassword(String oldPassword, String newPassword, String authHeader) throws Exception {
+        log.info("Initiating password change for authenticated user.");
+
+        UserDto userDto = userUtil.getCurrentUserDto(authHeader);
+        User currentUser = modelMapper.map(userDto, User.class);
+
+        if (!passwordEncoder.matches(oldPassword, currentUser.getPassword())) {
+            log.warn("Password change failed: Incorrect old password for user ID {}", currentUser.getId());
+            throw new IllegalArgumentException("Incorrect old password.");
+        }
+
+        if (!PasswordValidatorUtil.isValid(newPassword)) {
+            log.warn("Password change failed: Weak password provided.");
+            throw new IllegalArgumentException("Password does not meet security requirements.");
+        }
+
+        currentUser.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(currentUser);
+
+        log.info("Password changed successfully for user ID {}", currentUser.getId());
+    }
+
 }

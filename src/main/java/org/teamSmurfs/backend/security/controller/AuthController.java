@@ -14,6 +14,7 @@ import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
 import org.teamSmurfs.backend.security.dto.LoginRequest;
+import org.teamSmurfs.backend.security.dto.RefreshTokenData;
 import org.teamSmurfs.backend.security.dto.RegisterRequest;
 import org.teamSmurfs.backend.security.service.AuthService;
 import org.springframework.http.ResponseEntity;
@@ -45,23 +46,42 @@ public class AuthController {
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
 
-        @PostMapping("/logout")
-    public ResponseEntity<ApiResponse> logout(@RequestHeader("Authorization") String token) {
-        log.info("Received logout request with token: {}", token);
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse> logout(
+            @RequestHeader(value = "Authorization", required = false) String accessToken,
+            @RequestBody(required = false) RefreshTokenData refreshTokenData,
+            HttpServletRequest request
+    ) {
+        log.info("Received logout request");
 
-        if (token.startsWith("Bearer ")) {
-            log.debug("Revoking token for logout process: {}", token.substring(7));
-            jwtService.revokeToken(token.substring(7));
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        if ((accessToken == null || !accessToken.startsWith("Bearer ")) &&
+                (refreshTokenData == null || refreshTokenData.getRefreshToken() == null || !refreshTokenData.getRefreshToken().startsWith("Bearer "))) {
+
+            log.warn("Invalid or missing tokens in logout request");
+            throw new SecurityException("Invalid or missing authorization tokens.");
         }
-        ApiResponse response = ApiResponse.builder()
-                .success(1)
-                .code(200)
-                .message("Logout successful")
-                .build();
 
-        log.info("User logged out successfully");
+        try {
+            authService.logout(accessToken, refreshTokenData);
+            ApiResponse response = ApiResponse.builder()
+                    .success(1)
+                    .code(200)
+                    .data(true)
+                    .message("Logout successful")
+                    .build();
 
-        return ResponseEntity.ok(response);
+            log.info("User logged out successfully");
+
+            return ResponseUtil.buildResponse(request, response, requestStartTime);
+        } catch (SecurityException ex) {
+            log.warn("Logout failed due to security reasons: {}", ex.getMessage());
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error during logout", ex);
+            throw new RuntimeException("An error occurred during logout.");
+        }
     }
 
     @PostMapping("/register")
@@ -77,6 +97,33 @@ public class AuthController {
         } else {
             log.warn("Registration failed for email: {}", registerRequest.getEmail());
         }
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse> refresh(@Validated @RequestBody RefreshTokenData refreshTokenData, HttpServletRequest request) {
+        log.info("Received token refresh request");
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        ApiResponse response = authService.refreshToken(refreshTokenData.getRefreshToken());
+
+        if (response.getSuccess() == 1) {
+            log.info("Token refreshed successfully");
+        } else {
+            log.warn("Token refresh failed");
+        }
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse> getCurrentUser(@RequestHeader("Authorization") String authHeader, HttpServletRequest request) {
+        log.info("Fetching current authenticated user");
+
+        double requestStartTime = System.currentTimeMillis();
+        ApiResponse response = authService.getCurrentUser(authHeader);
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }

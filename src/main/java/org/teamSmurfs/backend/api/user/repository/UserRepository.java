@@ -17,11 +17,13 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-	@Query(value = "SELECT * FROM User u LIMIT :limit OFFSET :offset", nativeQuery = true)
+	@Query(value = "SELECT * FROM user u LIMIT :limit OFFSET :offset", nativeQuery = true)
     List<User> findUsersWithPagination(@Param("offset") int offset, @Param("limit") int limit);
 
     @Query("SELECT COUNT(u) FROM User u")
     long countUsers();
 
     Optional<User> findByEmail(String email);
+
+    boolean existsByEmail(String userEmail);
 }

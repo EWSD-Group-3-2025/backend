@@ -30,6 +30,7 @@ public class JwtUtil {
     private static final String ISSUER = "teamSmurfs-backend";
 
     public static String generateToken(Map<String, Object> claims, String role, String subject, long expirationMillis) {
+        System.out.println(SECRET_KEY);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)

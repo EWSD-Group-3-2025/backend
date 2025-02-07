@@ -25,6 +25,7 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull Object handler) throws Exception {
         String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER);
+        System.out.println(authorizationHeader);
         if (authorizationHeader == null || !authorizationHeader.startsWith(BEARER_PREFIX)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid Authorization header.");
             return false;
@@ -33,6 +34,7 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
         String token = authorizationHeader.substring(BEARER_PREFIX.length());
         try {
             Claims claims = jwtService.validateToken(token);
+            System.out.println("Decoded Claims: " + claims);;
             request.setAttribute("claims", claims);
             return true;
         } catch (SecurityException e) {
