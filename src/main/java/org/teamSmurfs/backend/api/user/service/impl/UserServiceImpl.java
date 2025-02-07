@@ -5,6 +5,7 @@
  */
 package org.teamSmurfs.backend.api.user.service.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +18,8 @@ import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.api.user.service.UserService;
+import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
+import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.config.exception.DuplicateEntityException;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.modelmapper.ModelMapper;
@@ -35,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final UserUtil userUtil;
 
     @Override
     public Object retrieveUsers(int page, int limit) throws Exception {
@@ -91,4 +95,29 @@ public class UserServiceImpl implements UserService {
             throw new Exception(e.getMessage());
         }
     }
+
+    @Override
+    @Transactional
+    public void changePassword(String oldPassword, String newPassword, String authHeader) throws Exception {
+        log.info("Initiating password change for authenticated user.");
+
+        UserDto userDto = userUtil.getCurrentUserDto(authHeader);
+        User currentUser = modelMapper.map(userDto, User.class);
+
+        if (!passwordEncoder.matches(oldPassword, currentUser.getPassword())) {
+            log.warn("Password change failed: Incorrect old password for user ID {}", currentUser.getId());
+            throw new IllegalArgumentException("Incorrect old password.");
+        }
+
+        if (!PasswordValidatorUtil.isValid(newPassword)) {
+            log.warn("Password change failed: Weak password provided.");
+            throw new IllegalArgumentException("Password does not meet security requirements.");
+        }
+
+        currentUser.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(currentUser);
+
+        log.info("Password changed successfully for user ID {}", currentUser.getId());
+    }
+
 }
