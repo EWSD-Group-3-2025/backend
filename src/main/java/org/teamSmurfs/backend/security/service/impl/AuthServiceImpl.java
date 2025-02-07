@@ -17,6 +17,7 @@ import org.teamSmurfs.backend.api.role.repository.RoleRepository;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.teamSmurfs.backend.security.dto.LoginRequest;
 import org.teamSmurfs.backend.security.dto.RefreshTokenData;
@@ -29,7 +30,6 @@ import org.teamSmurfs.backend.security.utils.ClaimsProvider;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final ModelMapper modelMapper;
+    private final UserUtil userUtil;
 
     @Override
     public ApiResponse authenticateUser(LoginRequest loginRequest) {
@@ -218,26 +219,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ApiResponse getCurrentUser(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Invalid Authorization header");
-            return ApiResponse.builder()
-                    .success(0)
-                    .code(HttpStatus.UNAUTHORIZED.value())
-                    .message("Unauthorized: Missing or invalid token")
-                    .build();
-        }
-
-        String token = authHeader.substring(7);
-        Claims claims = jwtService.validateToken(token);
-        String email = claims.getSubject();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> {
-                    log.warn("User not found for email: {}", email);
-                    return new SecurityException("User not found");
-                });
-
-        UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
+        UserDto userDto = userUtil.getCurrentUserDto(authHeader);
 
         return ApiResponse.builder()
                 .success(1)

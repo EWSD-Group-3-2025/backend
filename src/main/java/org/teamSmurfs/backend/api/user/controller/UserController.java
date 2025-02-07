@@ -6,14 +6,17 @@
 package org.teamSmurfs.backend.api.user.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.dto.PaginatedResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
+import org.teamSmurfs.backend.api.user.dto.ChangePasswordRequest;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
 import org.teamSmurfs.backend.api.user.service.UserService;
+import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
 import org.teamSmurfs.backend.config.utils.PaginationMetaUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -98,6 +101,38 @@ public class UserController {
                 .data(data != null ? data : Collections.emptyList())
                 .meta(meta)
                 .message("Users retrieved successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse> changePassword(
+            @Valid @RequestBody ChangePasswordRequest changePasswordRequest,
+            HttpServletRequest request,
+            @RequestHeader("Authorization") String authHeader) throws Exception {
+
+        log.info("Password change request received for authenticated user.");
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        if (!PasswordValidatorUtil.isValid(changePasswordRequest.getNewPassword())) {
+            log.warn("Password change failed: Weak password attempt.");
+            return ResponseUtil.buildResponse(request, ApiResponse.builder()
+                    .success(0)
+                    .code(HttpStatus.BAD_REQUEST.value())
+                    .message("New password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.")
+                    .build(), requestStartTime);
+        }
+
+        userService.changePassword(changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword(), authHeader);
+
+        log.info("Password changed successfully.");
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("Password changed successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
