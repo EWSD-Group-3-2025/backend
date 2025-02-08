@@ -26,4 +26,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String userEmail);
+
+    boolean existsByUsername(String username);
+
+    @Query(value = "SELECT COUNT(*) FROM user WHERE username = :username", nativeQuery = true)
+    int countByUsername(@Param("username") String username);
 }

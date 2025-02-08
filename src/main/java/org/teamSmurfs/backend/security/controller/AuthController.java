@@ -20,6 +20,8 @@ import org.teamSmurfs.backend.security.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.teamSmurfs.backend.security.service.JwtService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/${api.base.path}/auth")
 @RequiredArgsConstructor
@@ -49,22 +51,19 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse> logout(
             @RequestHeader(value = "Authorization", required = false) String accessToken,
-            @RequestBody(required = false) RefreshTokenData refreshTokenData,
-            HttpServletRequest request
-    ) {
+            HttpServletRequest request) {
         log.info("Received logout request");
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        if ((accessToken == null || !accessToken.startsWith("Bearer ")) &&
-                (refreshTokenData == null || refreshTokenData.getRefreshToken() == null || !refreshTokenData.getRefreshToken().startsWith("Bearer "))) {
+        if ((accessToken == null || !accessToken.startsWith("Bearer "))) {
 
             log.warn("Invalid or missing tokens in logout request");
             throw new SecurityException("Invalid or missing authorization tokens.");
         }
 
         try {
-            authService.logout(accessToken, refreshTokenData);
+            authService.logout(accessToken);
             ApiResponse response = ApiResponse.builder()
                     .success(1)
                     .code(200)
@@ -85,7 +84,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse> register(@Validated @RequestBody RegisterRequest registerRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> register(@Validated @RequestBody RegisterRequest registerRequest,
+            HttpServletRequest request) {
         log.info("Received registration request for email: {}", registerRequest.getEmail());
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
@@ -102,7 +102,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse> refresh(@Validated @RequestBody RefreshTokenData refreshTokenData, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> refresh(@Validated @RequestBody RefreshTokenData refreshTokenData,
+            HttpServletRequest request) {
         log.info("Received token refresh request");
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
@@ -119,12 +120,48 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse> getCurrentUser(@RequestHeader("Authorization") String authHeader, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> getCurrentUser(@RequestHeader("Authorization") String authHeader,
+            HttpServletRequest request) {
         log.info("Fetching current authenticated user");
 
         double requestStartTime = System.currentTimeMillis();
         ApiResponse response = authService.getCurrentUser(authHeader);
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse> forgotPassword(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+        log.info("Received forgot password request");
+        double requestStartTime = RequestUtils.extractRequestStartTime(httpRequest);
+
+        ApiResponse response = authService.initiatePasswordReset(request.get("email"));
+        return ResponseUtil.buildResponse(httpRequest, response, requestStartTime);
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<ApiResponse> verifyOtp(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+        log.info("Received OTP verification request");
+        double requestStartTime = RequestUtils.extractRequestStartTime(httpRequest);
+
+        ApiResponse response = authService.verifyOtp(request.get("otp"));
+        return ResponseUtil.buildResponse(httpRequest, response, requestStartTime);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse> resetPassword(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+        log.info("Received password reset request");
+        double requestStartTime = RequestUtils.extractRequestStartTime(httpRequest);
+
+        ApiResponse response = authService.resetPassword(
+                request.get("newPassword"),
+                request.get("confirmPassword"));
+        return ResponseUtil.buildResponse(httpRequest, response, requestStartTime);
     }
 }
