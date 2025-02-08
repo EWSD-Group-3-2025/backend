@@ -24,6 +24,7 @@ import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.teamSmurfs.backend.security.dto.LoginRequest;
 import org.teamSmurfs.backend.security.dto.RegisterRequest;
+import org.teamSmurfs.backend.security.dto.UpdateUserResponseDto;
 import org.teamSmurfs.backend.security.service.AuthService;
 import org.teamSmurfs.backend.security.service.JwtService;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,7 @@ import org.teamSmurfs.backend.security.utils.OtpUtils;
 import org.teamSmurfs.backend.security.utils.OtpUtils.OtpData;
 
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Set;
@@ -331,4 +333,64 @@ public class AuthServiceImpl implements AuthService {
                                 .message("Password reset successfully")
                                 .build();
         }
+
+        @Override
+        public ApiResponse updateUser(String authHeader, UserDto userDto) {
+                // Extract the user ID from the JWT token instead of email
+                Long userId = userUtil.extractUserIdFromToken(authHeader);
+
+                // Find the actual User entity from the database using ID
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> {
+                                log.warn("User not found for ID: {}", userId);
+                                return new SecurityException("User not found");
+                        });
+
+                log.info("User retrieved: {}", user);
+
+                // Update only the provided fields
+                if (userDto.getName() != null) {
+                        user.setName(userDto.getName());
+                }
+                if (userDto.getEmail() != null) {
+                        user.setEmail(userDto.getEmail());
+                }
+                if (userDto.getUsername() != null) {
+                        user.setUsername(userDto.getUsername());
+                }
+
+                // Log the updated user object before saving
+                log.info("Updated user details: {}", user);
+
+                // Save updated user entity
+                User savedUser = userRepository.save(user);
+
+                // DateTimeFormatter to format LocalDateTime as string
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+                // Format the createdAt and updatedAt fields as strings
+                String createdAtStr = savedUser.getCreatedAt().format(formatter);
+                String updatedAtStr = savedUser.getUpdatedAt().format(formatter);
+
+                // Log the saved user object
+                log.info("User saved successfully: {}", savedUser);
+
+                // Map User entity to UserDto for response
+                UpdateUserResponseDto updatedUserDto = UpdateUserResponseDto.builder()
+                        .id(savedUser.getId())
+                        .email(savedUser.getEmail())
+                        .username(savedUser.getUsername())
+                        .createdAt(createdAtStr)
+                        .updatedAt(updatedAtStr)
+                        .build();
+
+                // Return UserDto in the response
+                return ApiResponse.builder()
+                        .success(1)
+                        .code(HttpStatus.OK.value())
+                        .message("UserInfo updated successfully")
+                        .data(updatedUserDto)
+                        .build();
+        }
+
 }
