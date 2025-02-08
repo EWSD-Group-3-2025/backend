@@ -32,7 +32,7 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = true, unique = true)
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false, unique = true)
@@ -52,9 +52,9 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Token token;
 
-    @CreationTimestamp // Auto-sets on insert
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp // Auto-updates on modification
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

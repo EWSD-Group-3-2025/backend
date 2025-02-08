@@ -28,5 +28,5 @@ public interface AuthService {
 
     ApiResponse resetPassword(String newPassword, String confirmPassword);
 
-    public ApiResponse updateUser(String authHeader, UserDto userDto);
+    ApiResponse updateUser(String authHeader, UserDto userDto);
 }
