@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
+import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.security.dto.LoginRequest;
 import org.teamSmurfs.backend.security.dto.RefreshTokenData;
 import org.teamSmurfs.backend.security.dto.RegisterRequest;
@@ -164,4 +165,19 @@ public class AuthController {
                 request.get("confirmPassword"));
         return ResponseUtil.buildResponse(httpRequest, response, requestStartTime);
     }
+
+    @PatchMapping("/updateMe")
+    public ResponseEntity<ApiResponse> updateUser(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody UserDto userDto,
+            HttpServletRequest request) {
+
+        log.info("Updating user information");
+
+        double requestStartTime = System.currentTimeMillis();
+        ApiResponse response = authService.updateUser(authHeader, userDto);
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
 }

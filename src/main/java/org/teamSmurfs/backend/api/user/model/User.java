@@ -5,6 +5,8 @@
  */
 package org.teamSmurfs.backend.api.user.model;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.teamSmurfs.backend.api.token.model.Token;
 
 import jakarta.persistence.*;
@@ -14,6 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.teamSmurfs.backend.api.role.model.Role;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -29,7 +32,7 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true, unique = true)
     private String username;
 
     @Column(nullable = false, unique = true)
@@ -48,4 +51,10 @@ public class User {
     
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Token token;
+
+    @CreationTimestamp // Auto-sets on insert
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp // Auto-updates on modification
+    private LocalDateTime updatedAt;
 }

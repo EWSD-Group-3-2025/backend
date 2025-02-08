@@ -49,6 +49,19 @@ public class UserUtil {
         return claims.getSubject();
     }
 
+    public Long extractUserIdFromToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("Invalid Authorization header received");
+            throw new SecurityException("Unauthorized: Missing or invalid token");
+        }
+
+        String token = authHeader.substring(7);
+        Claims claims = jwtService.validateToken(token);
+
+        return claims.get("id", Long.class); // Ensure the JWT contains the user ID!
+    }
+
+
     public User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> {
