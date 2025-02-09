@@ -13,4 +13,6 @@ public interface UserService {
     Object createUser(CreateUserRequest createUserRequest) throws Exception;
 
     void changePassword(String oldPassword, String newPassword, String authHeader) throws Exception;
+
+    boolean usernameExists(String username);
 }

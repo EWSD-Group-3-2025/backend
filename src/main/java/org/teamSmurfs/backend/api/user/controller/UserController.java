@@ -121,6 +121,7 @@ public class UserController {
             return ResponseUtil.buildResponse(request, ApiResponse.builder()
                     .success(0)
                     .code(HttpStatus.BAD_REQUEST.value())
+                    .data(false)
                     .message("New password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.")
                     .build(), requestStartTime);
         }
@@ -132,9 +133,29 @@ public class UserController {
         ApiResponse successResponse = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
+                .data(true)
                 .message("Password changed successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+    }
+
+    @GetMapping("/exists")
+    public ResponseEntity<ApiResponse> checkUsernameExists(
+            @RequestParam("username") String username, HttpServletRequest request) {
+
+        log.info("Checking existence of username: {}", username);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+        boolean exists = userService.usernameExists(username);
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(Map.of("username", username, "exists", exists))
+                .message(exists ? "Username already taken" : "Username available")
+                .build();
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
 }

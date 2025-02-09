@@ -15,6 +15,9 @@ import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.teamSmurfs.backend.security.service.JwtService;
 
+import java.text.Normalizer;
+import java.util.Locale;
+
 @Component
 @Slf4j
 public class UserUtil {
@@ -46,11 +49,52 @@ public class UserUtil {
         return claims.getSubject();
     }
 
+    public Long extractUserIdFromToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("Invalid Authorization header received");
+            throw new SecurityException("Unauthorized: Missing or invalid token");
+        }
+
+        String token = authHeader.substring(7);
+        Claims claims = jwtService.validateToken(token);
+
+        return claims.get("id", Long.class); // Ensure the JWT contains the user ID!
+    }
+
+
     public User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     log.warn("User not found for email: {}", email);
                     return new SecurityException("User not found");
                 });
+    }
+
+    public String generateUniqueUsername(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Full name cannot be empty.");
+        }
+
+        String baseUsername = normalizeUsername(fullName);
+        String generatedUsername = baseUsername;
+
+        int count = 1;
+        while (userRepository.existsByUsername(generatedUsername)) {
+            generatedUsername = baseUsername + count;
+            count++;
+        }
+
+        return generatedUsername;
+    }
+
+    private String normalizeUsername(String fullName) {
+        String normalized = Normalizer.normalize(fullName, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ENGLISH)
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("\\.+", "-")
+                .replaceAll("^\\.|\\.$", "");
+
+        return normalized.length() > 20 ? normalized.substring(0, 20) : normalized;
     }
 }
