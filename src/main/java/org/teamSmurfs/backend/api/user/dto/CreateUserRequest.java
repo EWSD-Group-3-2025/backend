@@ -5,9 +5,7 @@
  */
 package org.teamSmurfs.backend.api.user.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 /**
@@ -29,4 +27,8 @@ public class CreateUserRequest {
     private String password;
 
     private long requestTime;
+
+    @NotNull(message = "Role ID is required.")
+    @Min(value = 1, message = "Role ID must be a positive number.")
+    private Long roleId;
 }
