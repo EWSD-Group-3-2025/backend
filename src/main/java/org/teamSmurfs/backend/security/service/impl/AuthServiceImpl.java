@@ -30,7 +30,7 @@ import org.teamSmurfs.backend.security.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.security.utils.ClaimsProvider;
-import org.teamSmurfs.backend.token.repository.TokenRepository;
+import org.teamSmurfs.backend.api.token.repository.TokenRepository;
 import org.teamSmurfs.backend.config.service.MailService;
 import org.teamSmurfs.backend.security.utils.OtpUtils;
 import org.teamSmurfs.backend.security.utils.OtpUtils.OtpData;
