@@ -21,4 +21,5 @@ public class UserDto {
     private String username;
     private String createdAt;
     private String updatedAt;
+    private String roleName;
 }

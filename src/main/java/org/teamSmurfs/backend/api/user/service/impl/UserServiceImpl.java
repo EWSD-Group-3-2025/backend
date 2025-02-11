@@ -13,6 +13,8 @@ import org.teamSmurfs.backend.api.response.dto.PaginatedResponse;
 import org.teamSmurfs.backend.api.role.model.Role;
 import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.role.repository.RoleRepository;
+import org.teamSmurfs.backend.api.token.model.Token;
+import org.teamSmurfs.backend.api.token.repository.TokenRepository;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
@@ -25,10 +27,16 @@ import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
+import org.teamSmurfs.backend.security.service.JwtService;
+import org.teamSmurfs.backend.security.utils.AuthUtil;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +48,8 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserUtil userUtil;
+    private final TokenRepository tokenRepository;
+    private final AuthUtil authUtil;
 
     @Override
     public Object retrieveUsers(int page, int limit) throws Exception {
@@ -52,12 +62,21 @@ public class UserServiceImpl implements UserService {
             long totalItems = userRepository.countUsers();
             int lastPage = (int) Math.ceil((double) totalItems / limit);
 
-            List<UserDto> userList = DtoUtil.mapList(users, UserDto.class, modelMapper);
+            List<UserDto> userList = (users == null) ? Collections.emptyList() : users.stream()
+                    .map(user -> {
+                        UserDto userDto = modelMapper.map(user, UserDto.class);
+                        userDto.setRoleName(user.getRoles().stream()
+                                .findFirst()
+                                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                                .orElse(null));
+                        return userDto;
+                    })
+                    .collect(Collectors.toList());
 
             log.info("Fetched {} users, total users in system: {}", users.size(), totalItems);
 
             return PaginatedResponse.<UserDto>builder()
-                    .items(userList != null ? userList : Collections.emptyList())
+                    .items(userList)
                     .totalItems(totalItems)
                     .lastPage(lastPage)
                     .build();
@@ -74,25 +93,44 @@ public class UserServiceImpl implements UserService {
 
             if (userRepository.findByEmail(createUserRequest.getEmail()).isPresent()) {
                 log.warn("Email already exists: {}", createUserRequest.getEmail());
-                throw new DuplicateEntityException("Email already exists: " + createUserRequest.getEmail());
+                throw new DuplicateEntityException("Email: " + createUserRequest.getEmail() + " is already in use");
             }
 
-            User user = modelMapper.map(createUserRequest, User.class);
-            String uniqueUsername = userUtil.generateUniqueUsername(createUserRequest.getName());
-            user.setUsername(uniqueUsername);
-
-            user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
-
-            Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Role not found in database!"));
+            Role userRole = EntityUtil.getEntityById(roleRepository, createUserRequest.getRoleId());
             log.info("Assigning role: {}", userRole.getName());
-            user.setRoles(Set.of(userRole));
 
-            User savedUser = userRepository.save(user);
+            User newUser = User.builder()
+                    .name(createUserRequest.getName())
+                    .username(userUtil.generateUniqueUsername(createUserRequest.getName()))
+                    .email(createUserRequest.getEmail())
+                    .password(passwordEncoder.encode(createUserRequest.getPassword()))
+                    .roles(Set.of(userRole))
+                    .build();
 
-            log.info("User created successfully with ID: {}", savedUser.getId());
+            userRepository.save(newUser);
 
-            return modelMapper.map(savedUser, UserDto.class);
+            Map<String, Object> tokenData = authUtil.generateTokens(newUser, String.valueOf(userRole.getName()));
+
+            String refreshToken = (String) tokenData.get("refreshToken");
+
+            Instant expiredAt = Instant.now().plus(7, ChronoUnit.DAYS);
+
+            Token token = Token.builder()
+                    .user(newUser)
+                    .refreshtoken(refreshToken)
+                    .expiredAt(expiredAt)
+                    .build();
+
+            tokenRepository.save(token);
+
+            log.info("User created successfully with ID: {}", newUser.getId());
+
+            UserDto userDto = modelMapper.map(newUser, UserDto.class);
+            userDto.setRoleName(newUser.getRoles().stream()
+                    .findFirst()
+                    .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                    .orElse(null));
+            return userDto;
         } catch (DuplicateEntityException e) {
             throw e;
         } catch (Exception e) {

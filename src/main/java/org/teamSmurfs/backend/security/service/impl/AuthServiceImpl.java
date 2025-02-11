@@ -29,6 +29,7 @@ import org.teamSmurfs.backend.security.service.AuthService;
 import org.teamSmurfs.backend.security.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.teamSmurfs.backend.security.utils.AuthUtil;
 import org.teamSmurfs.backend.security.utils.ClaimsProvider;
 import org.teamSmurfs.backend.api.token.repository.TokenRepository;
 import org.teamSmurfs.backend.config.service.MailService;
@@ -55,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper modelMapper;
     private final UserUtil userUtil;
     private final MailService mailService;
+    private final AuthUtil authUtil;
 
     private final Map<String, OtpData> otpStore = new ConcurrentHashMap<>();
     private String emailInProcess;
@@ -69,11 +71,10 @@ public class AuthServiceImpl implements AuthService {
                     return new SecurityException("Invalid email or password");
                 });
 
-        Set<Role> roleList = user.getRoles();
-        String roleName = roleList.stream()
-                .map(role -> role.getName().name())
+        String roleName = user.getRoles().stream()
                 .findFirst()
-                .orElse("ROLE_USER");
+                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                .orElse(null);
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             log.warn("Invalid password for user: {}", loginRequest.getEmail());
@@ -88,13 +89,15 @@ public class AuthServiceImpl implements AuthService {
 
         UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
 
+        userDto.setRoleName(roleName);
+
         Token refreshToken = tokenRepository.findByUser(user)
                 .orElseThrow(() -> {
                     log.warn("Token not found for user: {}", loginRequest.getEmail());
                     return new SecurityException("Token not found for user");
                 });
 
-        Map<String, Object> tokenData = generateTokens(user, roleName);
+        Map<String, Object> tokenData = authUtil.generateTokens(user, roleName);
 
         TokenDto tokenDto = DtoUtil.map(refreshToken, TokenDto.class, modelMapper);
 
@@ -137,7 +140,7 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(newUser);
 
-        Map<String, Object> tokenData = generateTokens(newUser, String.valueOf(userRole.getName()));
+        Map<String, Object> tokenData = authUtil.generateTokens(newUser, String.valueOf(userRole.getName()));
 
         String accessToken = (String) tokenData.get("accessToken");
         String refreshToken = (String) tokenData.get("refreshToken");
@@ -165,17 +168,6 @@ public class AuthServiceImpl implements AuthService {
                         "refreshToken", refreshToken))
                 .message("You have registered successfully.")
                 .build();
-    }
-
-    private Map<String, Object> generateTokens(User user, String roleName) {
-        log.debug("Generating tokens for user: {}", user.getEmail());
-
-        String accessToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), roleName,
-                user.getEmail(), 15 * 60 * 1000);
-        String refreshToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), roleName,
-                user.getEmail(), 7 * 24 * 60 * 60 * 1000);
-
-        return Map.of("accessToken", accessToken, "refreshToken", refreshToken);
     }
 
     @Override
