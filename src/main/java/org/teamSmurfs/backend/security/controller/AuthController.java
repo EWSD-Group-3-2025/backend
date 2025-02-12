@@ -84,23 +84,23 @@ public class AuthController {
         }
     }
 
-//    @PostMapping("/register")
-//    public ResponseEntity<ApiResponse> register(@Validated @RequestBody RegisterRequest registerRequest,
-//            HttpServletRequest request) {
-//        log.info("Received registration request for email: {}", registerRequest.getEmail());
-//
-//        double requestStartTime = RequestUtils.extractRequestStartTime(request);
-//
-//        ApiResponse response = authService.registerUser(registerRequest);
-//
-//        if (response.getSuccess() == 1) {
-//            log.info("User registered successfully: {}", registerRequest.getEmail());
-//        } else {
-//            log.warn("Registration failed for email: {}", registerRequest.getEmail());
-//        }
-//
-//        return ResponseUtil.buildResponse(request, response, requestStartTime);
-//    }
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse> register(@Validated @RequestBody RegisterRequest registerRequest,
+            HttpServletRequest request) {
+        log.info("Received registration request for email: {}", registerRequest.getEmail());
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        ApiResponse response = authService.registerUser(registerRequest);
+
+        if (response.getSuccess() == 1) {
+            log.info("User registered successfully: {}", registerRequest.getEmail());
+        } else {
+            log.warn("Registration failed for email: {}", registerRequest.getEmail());
+        }
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse> refresh(@Validated @RequestBody RefreshTokenData refreshTokenData,
