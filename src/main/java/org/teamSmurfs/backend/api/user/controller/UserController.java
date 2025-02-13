@@ -15,6 +15,7 @@ import org.teamSmurfs.backend.api.response.dto.PaginatedResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
 import org.teamSmurfs.backend.api.user.dto.ChangePasswordRequest;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
+import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.service.UserService;
 import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
 import org.teamSmurfs.backend.config.utils.PaginationMetaUtil;
@@ -157,5 +158,26 @@ public class UserController {
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> retrieveUserById(
+            @PathVariable("id") final Long id, HttpServletRequest request) {
+
+        log.info("Retrieving user with id: {}", id);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+        UserDto userDto = userService.retrieveOne(id);
+
+        log.info("User retrieved successfully: {}", userDto.getUsername());
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(userDto)
+                .message("User retrieved successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
     }
 }

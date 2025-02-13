@@ -166,4 +166,23 @@ public class UserServiceImpl implements UserService {
     public boolean usernameExists(String username) {
         return userRepository.countByUsername(username) > 0;
     }
+
+    @Override
+    public UserDto retrieveOne(Long id) {
+        log.info("Fetching user details for ID: {}", id);
+
+        User user = EntityUtil.getEntityById(userRepository, id);
+
+        UserDto userDto = modelMapper.map(user, UserDto.class);
+
+        userDto.setRoleName(user.getRoles().stream()
+                .findFirst()
+                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                .orElse(null));
+
+        log.info("Successfully retrieved user with ID: {}", id);
+
+        return userDto;
+    }
+
 }

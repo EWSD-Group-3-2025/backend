@@ -6,6 +6,7 @@
 package org.teamSmurfs.backend.api.user.service;
 
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
+import org.teamSmurfs.backend.api.user.dto.UserDto;
 
 public interface UserService {
     Object retrieveUsers(int page, int limit) throws Exception;
@@ -15,4 +16,6 @@ public interface UserService {
     void changePassword(String oldPassword, String newPassword, String authHeader) throws Exception;
 
     boolean usernameExists(String username);
+
+    UserDto retrieveOne(Long id);
 }
