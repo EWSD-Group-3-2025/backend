@@ -15,6 +15,7 @@ import org.teamSmurfs.backend.api.response.dto.PaginatedResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
 import org.teamSmurfs.backend.api.user.dto.ChangePasswordRequest;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
+import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.service.UserService;
 import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
 import org.teamSmurfs.backend.config.utils.PaginationMetaUtil;
@@ -158,4 +159,30 @@ public class UserController {
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteUserById(
+    		@PathVariable Long id ,HttpServletRequest request) {
+
+        	double requestStartTime = RequestUtils.extractRequestStartTime(request);
+            boolean statusUpdated = userService.deleteUserById(id);
+            
+            if (statusUpdated) {
+            	ApiResponse response = ApiResponse.builder()
+                        .success(1)
+                        .code(HttpStatus.OK.value())
+                        .data(true)
+                        .message("User Status Updated Successfully")
+                        .build();
+            	return ResponseUtil.buildResponse(request, response, requestStartTime);
+            } else {
+            	ApiResponse response = ApiResponse.builder()
+                        .success(0)
+                        .code(HttpStatus.BAD_REQUEST.value())
+                        .data(false)
+                        .message("User Status Update Fail")
+                        .build();
+            	return ResponseUtil.buildResponse(request, response, requestStartTime);
+            }
+        } 
 }
