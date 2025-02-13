@@ -166,4 +166,29 @@ public class UserServiceImpl implements UserService {
     public boolean usernameExists(String username) {
         return userRepository.countByUsername(username) > 0;
     }
+
+    @Override
+    public boolean deleteUserById(Long id){
+        try {
+            log.info("Attempting to delete (deactivate) user with ID: {}", id);
+
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> {
+                        log.warn("User not found: {}", id);
+                        return new RuntimeException("User not found");
+                    });
+            if(user==null) {
+            	log.warn("User with ID: {} does not exist in the system.", id);
+                return false;
+            }
+            user.setStatus(false);
+            userRepository.save(user);
+            log.info("User with ID: {} status updated to DELETED", id);
+            return true;
+        } catch (Exception e) {
+            log.error("Error updating user status for user ID: {} - {}", id, e.getMessage());
+            throw new RuntimeException("Error updating user status: " + e.getMessage());
+        }
+    }
+    
 }
