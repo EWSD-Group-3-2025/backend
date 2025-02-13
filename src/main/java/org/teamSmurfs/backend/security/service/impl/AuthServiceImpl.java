@@ -35,6 +35,7 @@ import org.teamSmurfs.backend.api.token.repository.TokenRepository;
 import org.teamSmurfs.backend.config.service.MailService;
 import org.teamSmurfs.backend.security.utils.OtpUtils;
 import org.teamSmurfs.backend.security.utils.OtpUtils.OtpData;
+import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -311,6 +312,10 @@ public class AuthServiceImpl implements AuthService {
 
         if (!newPassword.equals(confirmPassword)) {
             throw new SecurityException("Passwords do not match");
+        }
+
+        if (!PasswordValidatorUtil.isValid(newPassword)) {
+            throw new SecurityException("Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character");
         }
 
         User user = userRepository.findByEmail(emailInProcess)
