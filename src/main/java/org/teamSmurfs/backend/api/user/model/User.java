@@ -72,4 +72,12 @@ public class User {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (!status) {
+            status = true;
+        }
+    }
+
 }
