@@ -22,4 +22,5 @@ public class UserDto {
     private String createdAt;
     private String updatedAt;
     private String roleName;
+    private boolean status;
 }
