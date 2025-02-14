@@ -22,4 +22,12 @@ public class UserDto {
     private String createdAt;
     private String updatedAt;
     private String roleName;
+
+    private String permissions;
+
+    private String department;
+
+    private String specialization;
+
+    private String course;
 }
