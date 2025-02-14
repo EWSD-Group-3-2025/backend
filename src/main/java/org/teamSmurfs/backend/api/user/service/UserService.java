@@ -15,4 +15,6 @@ public interface UserService {
     void changePassword(String oldPassword, String newPassword, String authHeader) throws Exception;
 
     boolean usernameExists(String username);
+
+	boolean deleteUserById(Long id);
 }
