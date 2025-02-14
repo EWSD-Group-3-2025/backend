@@ -8,8 +8,10 @@ package org.teamSmurfs.backend.api.user.service;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 
+import java.util.List;
+
 public interface UserService {
-    Object retrieveUsers(int page, int limit) throws Exception;
+    List<UserDto> retrieveUsers() throws Exception;
 
     Object createUser(CreateUserRequest createUserRequest) throws Exception;
 
