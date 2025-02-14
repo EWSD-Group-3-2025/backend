@@ -18,4 +18,6 @@ public interface UserService {
     boolean usernameExists(String username);
 
     UserDto retrieveOne(Long id);
+
+	boolean deleteUserById(Long id);
 }
