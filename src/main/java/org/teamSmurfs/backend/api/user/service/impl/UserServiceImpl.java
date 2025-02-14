@@ -168,6 +168,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto retrieveOne(Long id) {
+        log.info("Fetching user details for ID: {}", id);
+
+        User user = EntityUtil.getEntityById(userRepository, id);
+
+        UserDto userDto = modelMapper.map(user, UserDto.class);
+
+        userDto.setRoleName(user.getRoles().stream()
+                .findFirst()
+                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                .orElse(null));
+
+        log.info("Successfully retrieved user with ID: {}", id);
+
+        return userDto;
+    }
+
     public boolean deleteUserById(Long id){
         try {
             log.info("Attempting to delete (deactivate) user with ID: {}", id);
@@ -190,5 +207,4 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Error updating user status: " + e.getMessage());
         }
     }
-    
 }
