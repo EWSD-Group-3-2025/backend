@@ -30,4 +30,5 @@ public class UserDto {
     private String specialization;
 
     private String course;
+    private boolean status;
 }

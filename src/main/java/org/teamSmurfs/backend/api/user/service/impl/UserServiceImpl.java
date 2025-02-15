@@ -9,9 +9,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.teamSmurfs.backend.api.response.dto.PaginatedResponse;
 import org.teamSmurfs.backend.api.role.model.Role;
-import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.role.repository.RoleRepository;
 import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.token.repository.TokenRepository;
@@ -23,11 +21,9 @@ import org.teamSmurfs.backend.api.user.service.UserService;
 import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
 import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.config.exception.DuplicateEntityException;
-import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
-import org.teamSmurfs.backend.security.service.JwtService;
 import org.teamSmurfs.backend.security.utils.AuthUtil;
 
 import java.time.Instant;
@@ -56,17 +52,18 @@ public class UserServiceImpl implements UserService {
     private final AuthUtil authUtil;
 
     @Override
-    public Object retrieveUsers(int page, int limit) throws Exception {
+    public List<UserDto> retrieveUsers() throws Exception {
         try {
-            log.info("Fetching users from database with page: {}, limit: {}", page, limit);
+            log.info("Fetching all users from the database");
 
-            int offset = (page - 1) * limit;
-            List<User> users = userRepository.findUsersWithPagination(offset, limit);
+            List<User> users = userRepository.findAll();
 
-            long totalItems = userRepository.countUsers();
-            int lastPage = (int) Math.ceil((double) totalItems / limit);
+            if (users.isEmpty()) {
+                log.warn("No users found in the database");
+                return Collections.emptyList();
+            }
 
-            List<UserDto> userList = (users == null) ? Collections.emptyList() : users.stream()
+            List<UserDto> userList = users.stream()
                     .map(user -> {
                         UserDto userDto = modelMapper.map(user, UserDto.class);
                         userDto.setRoleName(user.getRoles().stream()
@@ -77,16 +74,12 @@ public class UserServiceImpl implements UserService {
                     })
                     .collect(Collectors.toList());
 
-            log.info("Fetched {} users, total users in system: {}", users.size(), totalItems);
+            log.info("Successfully retrieved {} users", userList.size());
+            return userList;
 
-            return PaginatedResponse.<UserDto>builder()
-                    .items(userList)
-                    .totalItems(totalItems)
-                    .lastPage(lastPage)
-                    .build();
         } catch (Exception e) {
-            log.error("Error retrieving users: {}", e.getMessage());
-            throw new Exception("Error retrieving users: " + e.getMessage());
+            log.error("Error retrieving users", e);
+            throw new Exception("Error retrieving users", e);
         }
     }
 
@@ -200,5 +193,46 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean usernameExists(String username) {
         return userRepository.countByUsername(username) > 0;
+    }
+
+    @Override
+    public UserDto retrieveOne(Long id) {
+        log.info("Fetching user details for ID: {}", id);
+
+        User user = EntityUtil.getEntityById(userRepository, id);
+
+        UserDto userDto = modelMapper.map(user, UserDto.class);
+
+        userDto.setRoleName(user.getRoles().stream()
+                .findFirst()
+                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                .orElse(null));
+
+        log.info("Successfully retrieved user with ID: {}", id);
+
+        return userDto;
+    }
+
+    public boolean deleteUserById(Long id){
+        try {
+            log.info("Attempting to delete (deactivate) user with ID: {}", id);
+
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> {
+                        log.warn("User not found: {}", id);
+                        return new RuntimeException("User not found");
+                    });
+            if(user==null) {
+            	log.warn("User with ID: {} does not exist in the system.", id);
+                return false;
+            }
+            user.setStatus(false);
+            userRepository.save(user);
+            log.info("User with ID: {} status updated to DELETED", id);
+            return true;
+        } catch (Exception e) {
+            log.error("Error updating user status for user ID: {} - {}", id, e.getMessage());
+            throw new RuntimeException("Error updating user status: " + e.getMessage());
+        }
     }
 }

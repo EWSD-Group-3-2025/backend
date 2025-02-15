@@ -11,13 +11,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
-import org.teamSmurfs.backend.api.response.dto.PaginatedResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
 import org.teamSmurfs.backend.api.user.dto.ChangePasswordRequest;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
+import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.service.UserService;
 import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
-import org.teamSmurfs.backend.config.utils.PaginationMetaUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -70,36 +69,25 @@ public class UserController {
      * Retrieves all users.
      *
      * @param request the HTTP servlet request for additional context.
-     * @param page    the current page number (default is 1).
-     * @param limit   the number of items per page (default is 10).
      * @return a ResponseEntity containing the list of users.
      */
     @GetMapping
     public ResponseEntity<ApiResponse> retrieveUsers(
-            HttpServletRequest request,
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "limit", defaultValue = "10") int limit
+            HttpServletRequest request
     ) throws Exception {
 
-        log.info("Retrieving users - Page: {}, Limit: {}", page, limit);
+        log.info("Retrieving all users.");
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        Object paginatedUsers = userService.retrieveUsers(page, limit);
+        List<UserDto> users = userService.retrieveUsers();
 
-        Map<String, Object> meta = PaginationMetaUtil.buildPaginationMeta(request, page, limit, paginatedUsers);
-
-        Object data = (paginatedUsers instanceof PaginatedResponse)
-                ? ((PaginatedResponse<?>) paginatedUsers).getItems()
-                : Collections.emptyList();
-
-        log.info("Retrieved {} users successfully", (data != null) ? ((List<?>) data).size() : 0);
+        log.info("Retrieved {} users successfully", (users != null) ? users.size() : 0);
 
         ApiResponse successResponse = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(data != null ? data : Collections.emptyList())
-                .meta(meta)
+                .data(users != null ? users : Collections.emptyList())
                 .message("Users retrieved successfully")
                 .build();
 
@@ -158,4 +146,50 @@ public class UserController {
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> retrieveUserById(
+            @PathVariable("id") final Long id, HttpServletRequest request) {
+
+        log.info("Retrieving user with id: {}", id);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+        UserDto userDto = userService.retrieveOne(id);
+
+        log.info("User retrieved successfully: {}", userDto.getUsername());
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(userDto)
+                .message("User retrieved successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteUserById(
+    		@PathVariable Long id ,HttpServletRequest request) {
+
+        	double requestStartTime = RequestUtils.extractRequestStartTime(request);
+            boolean statusUpdated = userService.deleteUserById(id);
+            
+            if (statusUpdated) {
+            	ApiResponse response = ApiResponse.builder()
+                        .success(1)
+                        .code(HttpStatus.OK.value())
+                        .data(true)
+                        .message("User Status Updated Successfully")
+                        .build();
+            	return ResponseUtil.buildResponse(request, response, requestStartTime);
+            } else {
+            	ApiResponse response = ApiResponse.builder()
+                        .success(0)
+                        .code(HttpStatus.BAD_REQUEST.value())
+                        .data(false)
+                        .message("User Status Update Fail")
+                        .build();
+            	return ResponseUtil.buildResponse(request, response, requestStartTime);
+            }
+        }
 }
