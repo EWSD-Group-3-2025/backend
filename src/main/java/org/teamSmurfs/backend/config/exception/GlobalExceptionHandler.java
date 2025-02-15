@@ -26,6 +26,18 @@ import java.util.Map;
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     /**
+     * Handles UnauthorizedException, typically thrown when a request is made by an unauthenticated or unauthorized user.
+     *
+     * @param ex      the UnauthorizedException encountered.
+     * @param request the current HTTP request.
+     * @return a ResponseEntity containing the standardized ApiResponse with an HTTP 401 (Unauthorized) status.
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse> handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", ex.getMessage(), request);
+    }
+
+    /**
      * Handles IllegalArgumentExceptions, typically thrown when method arguments are invalid or inappropriate.
      *
      * @param ex      the IllegalArgumentException encountered.

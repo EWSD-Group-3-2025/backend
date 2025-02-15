@@ -352,7 +352,7 @@ The API provides a centralized exception handling mechanism using `GlobalExcepti
 | EntityNotFoundException        | 404             | Entity not found. |
 | DuplicateEntityException       | 409             | Duplicate entity detected. |
 | BadRequestException            | 400             | Bad request. |
-| SecurityException              | 401             | Security violation. |
+| UnauthorizedException          | 401             | Security violation. |
 | Exception (fallback)           | 500             | An unexpected error occurred. |
 
 ---
