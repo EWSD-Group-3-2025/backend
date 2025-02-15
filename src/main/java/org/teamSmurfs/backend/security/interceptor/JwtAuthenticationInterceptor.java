@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.teamSmurfs.backend.config.exception.UnauthorizedException;
 import org.teamSmurfs.backend.security.service.JwtService;
 
 @Component
@@ -36,7 +37,7 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
             Claims claims = jwtService.validateToken(token);
             request.setAttribute("claims", claims);
             return true;
-        } catch (SecurityException e) {
+        } catch (UnauthorizedException e) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
             return false;
         }

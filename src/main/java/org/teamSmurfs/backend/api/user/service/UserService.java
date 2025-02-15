@@ -11,7 +11,7 @@ import org.teamSmurfs.backend.api.user.dto.UserDto;
 import java.util.List;
 
 public interface UserService {
-    List<UserDto> retrieveUsers() throws Exception;
+    List<UserDto> retrieveUsers(final String role) throws Exception;
 
     Object createUser(CreateUserRequest createUserRequest) throws Exception;
 

@@ -6,6 +6,7 @@
 package org.teamSmurfs.backend.api.user.repository;
 
 
+import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,4 +35,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "SELECT COUNT(*) FROM user WHERE name = :name", nativeQuery = true)
     int countByName(@Param("name") String username);
+
+    @Query(value = "SELECT u.* FROM user u " +
+            "JOIN user_roles ur ON u.id = ur.user_id " +
+            "JOIN role r ON ur.role_id = r.id " +
+            "WHERE r.name = :roleName", nativeQuery = true)
+    List<User> findByRoleName(String roleName);
 }
