@@ -14,6 +14,7 @@ import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
+import org.teamSmurfs.backend.config.deprecated.DeprecatedRoute;
 import org.teamSmurfs.backend.config.exception.UnauthorizedException;
 import org.teamSmurfs.backend.security.dto.LoginRequest;
 import org.teamSmurfs.backend.security.dto.RefreshTokenData;
@@ -86,6 +87,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @DeprecatedRoute(message = "This endpoint is deprecated. Use /new-endpoint instead.")
     public ResponseEntity<ApiResponse> register(@Validated @RequestBody RegisterRequest registerRequest,
             HttpServletRequest request) {
         log.info("Received registration request for email: {}", registerRequest.getEmail());
