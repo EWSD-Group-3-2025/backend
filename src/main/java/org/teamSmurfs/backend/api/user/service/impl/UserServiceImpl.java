@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.teamSmurfs.backend.api.role.model.Role;
+import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.role.repository.RoleRepository;
 import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.token.repository.TokenRepository;
@@ -234,5 +235,10 @@ public class UserServiceImpl implements UserService {
             log.error("Error updating user status for user ID: {} - {}", id, e.getMessage());
             throw new RuntimeException("Error updating user status: " + e.getMessage());
         }
+    }
+
+    @Override
+    public int retrieveUserNameCount(String name) {
+        return userRepository.countByName(name);
     }
 }

@@ -22,4 +22,6 @@ public interface UserService {
     UserDto retrieveOne(Long id);
 
 	boolean deleteUserById(Long id);
+
+    int retrieveUserNameCount(String name);
 }

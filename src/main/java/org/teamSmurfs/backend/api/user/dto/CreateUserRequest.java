@@ -32,8 +32,6 @@ public class CreateUserRequest {
     @Min(value = 1, message = "Role ID must be a positive number.")
     private Long roleId;
 
-    private String roleName;
-
     private String permissions;
 
     private String department;
