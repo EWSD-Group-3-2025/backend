@@ -15,8 +15,8 @@ import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.token.repository.TokenRepository;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
-import org.teamSmurfs.backend.api.user.model.User;
-import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.api.user.model.*;
+import org.teamSmurfs.backend.api.user.repository.*;
 import org.teamSmurfs.backend.api.user.service.UserService;
 import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
 import org.teamSmurfs.backend.api.user.utils.UserUtil;
@@ -40,6 +40,10 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
+    private final StaffRepository staffRepository;
+    private final TutorRepository tutorRepository;
+    private final StudentRepository studentRepository;
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
@@ -101,6 +105,38 @@ public class UserServiceImpl implements UserService {
                     .build();
 
             userRepository.save(newUser);
+            UserDto userDto = modelMapper.map(newUser, UserDto.class);
+
+            if (userRole.getName().equals(RoleName.ROLE_ADMIN)) {
+                Admin newAdmin = new Admin();
+                newAdmin.setUser(newUser);
+                newAdmin.setPermissions(createUserRequest.getPermissions());
+                adminRepository.save(newAdmin);
+                userDto.setPermissions(newAdmin.getPermissions());
+            }
+            else if (userRole.getName().equals(RoleName.ROLE_STAFF)) {
+                Staff newStaff = new Staff();
+                newStaff.setUser(newUser);
+                newStaff.setDepartment(createUserRequest.getDepartment());
+                staffRepository.save(newStaff);
+                userDto.setDepartment(newStaff.getDepartment());
+            }
+
+            else if (userRole.getName().equals(RoleName.ROLE_TUTOR)) {
+                Tutor newTutor = new Tutor();
+                newTutor.setUser(newUser);
+                newTutor.setSpecialization(createUserRequest.getSpecialization());
+                tutorRepository.save(newTutor);
+                userDto.setSpecialization(newTutor.getSpecialization());
+
+            }
+            else {
+                Student newStudent = new Student();
+                newStudent.setUser(newUser);
+                newStudent.setCourse(createUserRequest.getCourse());
+                studentRepository.save(newStudent);
+                userDto.setCourse(newStudent.getCourse());
+            }
 
             Map<String, Object> tokenData = authUtil.generateTokens(newUser, String.valueOf(userRole.getName()));
 
@@ -118,7 +154,6 @@ public class UserServiceImpl implements UserService {
 
             log.info("User created successfully with ID: {}", newUser.getId());
 
-            UserDto userDto = modelMapper.map(newUser, UserDto.class);
             userDto.setRoleName(newUser.getRoles().stream()
                     .findFirst()
                     .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
