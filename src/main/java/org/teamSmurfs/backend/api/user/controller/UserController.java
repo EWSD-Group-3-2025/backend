@@ -73,14 +73,15 @@ public class UserController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse> retrieveUsers(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam(value = "role", defaultValue = "all") final String role
     ) throws Exception {
 
-        log.info("Retrieving all users.");
+        log.info("Retrieving all users with role: {}.", role);
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        List<UserDto> users = userService.retrieveUsers();
+        List<UserDto> users = userService.retrieveUsers(role);
 
         log.info("Retrieved {} users successfully", (users != null) ? users.size() : 0);
 

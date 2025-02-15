@@ -29,10 +29,7 @@ import org.teamSmurfs.backend.security.utils.AuthUtil;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,11 +50,18 @@ public class UserServiceImpl implements UserService {
     private final AuthUtil authUtil;
 
     @Override
-    public List<UserDto> retrieveUsers() throws Exception {
+    public List<UserDto> retrieveUsers(final String role) throws Exception {
         try {
-            log.info("Fetching all users from the database");
+            log.info("Fetching all users from the database with role {}", role);
 
-            List<User> users = userRepository.findAll();
+            List<User> users;
+
+            if (role.equalsIgnoreCase("all")) {
+                users = userRepository.findAll();
+            } else {
+                String roleNameString = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                users = userRepository.findByRoleName(roleNameString.toUpperCase());
+            }
 
             if (users.isEmpty()) {
                 log.warn("No users found in the database");
@@ -69,7 +73,7 @@ public class UserServiceImpl implements UserService {
                         UserDto userDto = modelMapper.map(user, UserDto.class);
                         userDto.setRoleName(user.getRoles().stream()
                                 .findFirst()
-                                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                                .map(roleEntity -> roleEntity.getName().name().replaceFirst("^ROLE_", ""))
                                 .orElse(null));
                         return userDto;
                     })
