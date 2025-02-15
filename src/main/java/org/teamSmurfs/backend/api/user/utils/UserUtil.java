@@ -35,7 +35,12 @@ public class UserUtil {
     public UserDto getCurrentUserDto(String authHeader) {
         String email = extractEmailFromToken(authHeader);
         User user = findUserByEmail(email);
-        return DtoUtil.map(user, UserDto.class, modelMapper);
+        UserDto userDto = modelMapper.map(user, UserDto.class);
+        userDto.setRoleName(user.getRoles().stream()
+                .findFirst()
+                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                .orElse(null));
+        return userDto;
     }
 
     public String extractEmailFromToken(String authHeader) {

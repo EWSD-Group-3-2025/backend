@@ -167,29 +167,54 @@ public class UserController {
 
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deleteUserById(
-    		@PathVariable Long id ,HttpServletRequest request) {
+        @PathVariable Long id ,HttpServletRequest request) {
 
-        	double requestStartTime = RequestUtils.extractRequestStartTime(request);
-            boolean statusUpdated = userService.deleteUserById(id);
-            
-            if (statusUpdated) {
-            	ApiResponse response = ApiResponse.builder()
-                        .success(1)
-                        .code(HttpStatus.OK.value())
-                        .data(true)
-                        .message("User Status Updated Successfully")
-                        .build();
-            	return ResponseUtil.buildResponse(request, response, requestStartTime);
-            } else {
-            	ApiResponse response = ApiResponse.builder()
-                        .success(0)
-                        .code(HttpStatus.BAD_REQUEST.value())
-                        .data(false)
-                        .message("User Status Update Fail")
-                        .build();
-            	return ResponseUtil.buildResponse(request, response, requestStartTime);
-            }
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+        boolean statusUpdated = userService.deleteUserById(id);
+
+        if (statusUpdated) {
+            ApiResponse response = ApiResponse.builder()
+                    .success(1)
+                    .code(HttpStatus.OK.value())
+                    .data(true)
+                    .message("User Status Updated Successfully")
+                    .build();
+            return ResponseUtil.buildResponse(request, response, requestStartTime);
+        } else {
+            ApiResponse response = ApiResponse.builder()
+                    .success(0)
+                    .code(HttpStatus.BAD_REQUEST.value())
+                    .data(false)
+                    .message("User Status Update Fail")
+                    .build();
+            return ResponseUtil.buildResponse(request, response, requestStartTime);
         }
+    }
+
+    @GetMapping("/name-exists")
+    public ResponseEntity<ApiResponse> retrieveUserNameCount(
+            HttpServletRequest request,
+            @RequestParam(value = "name") final String name
+    ) {
+        log.info("Retrieving user name count for : {}", name);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        int userCount = userService.retrieveUserNameCount(name);
+
+        log.info("User count retrieved successfully: {}", userCount);
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(
+                    Map.of("count", userCount)
+                )
+                .message("User count retrieved Successfully")
+                .build();
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
 }

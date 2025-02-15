@@ -31,4 +31,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "SELECT COUNT(*) FROM user WHERE username = :username", nativeQuery = true)
     int countByUsername(@Param("username") String username);
+
+    @Query(value = "SELECT COUNT(*) FROM user WHERE name = :name", nativeQuery = true)
+    int countByName(@Param("name") String username);
 }
