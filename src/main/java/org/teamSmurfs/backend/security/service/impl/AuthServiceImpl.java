@@ -126,7 +126,7 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
 
-        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+        Role userRole = roleRepository.findByName(RoleName.ROLE_ADMIN)
                 .orElseThrow(() -> new RuntimeException("Role not found in database!"));
         log.info("Assigning role: {}", userRole.getName());
 
@@ -158,6 +158,10 @@ public class AuthServiceImpl implements AuthService {
         log.info("User registered successfully: {}", registerRequest.getEmail());
 
         UserDto userDto = DtoUtil.map(newUser, UserDto.class, modelMapper);
+        userDto.setRoleName(newUser.getRoles().stream()
+                .findFirst()
+                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                .orElse(null));
 
         return ApiResponse.builder()
                 .success(1)
