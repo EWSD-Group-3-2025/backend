@@ -87,7 +87,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @DeprecatedRoute(message = "This endpoint is deprecated. Use /new-endpoint instead.")
+//    @DeprecatedRoute(message = "This endpoint is deprecated. Use /new-endpoint instead.")
     public ResponseEntity<ApiResponse> register(@Validated @RequestBody RegisterRequest registerRequest,
             HttpServletRequest request) {
         log.info("Received registration request for email: {}", registerRequest.getEmail());
