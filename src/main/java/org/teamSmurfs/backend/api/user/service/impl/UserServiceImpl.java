@@ -19,6 +19,7 @@ import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.*;
 import org.teamSmurfs.backend.api.user.repository.*;
 import org.teamSmurfs.backend.api.user.service.UserService;
+import org.teamSmurfs.backend.api.user.utils.PasswordGeneratorUtil;
 import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
 import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.config.exception.DuplicateEntityException;
@@ -103,9 +104,9 @@ public class UserServiceImpl implements UserService {
 
             User newUser = User.builder()
                     .name(createUserRequest.getName())
-                    .username(userUtil.generateUniqueUsername(createUserRequest.getName()))
+                    .username(createUserRequest.getUsername())
                     .email(createUserRequest.getEmail())
-                    .password(passwordEncoder.encode(createUserRequest.getPassword()))
+                    .password(passwordEncoder.encode(PasswordGeneratorUtil.generatePassword()))
                     .roles(Set.of(userRole))
                     .build();
 
@@ -126,14 +127,12 @@ public class UserServiceImpl implements UserService {
                 staffRepository.save(newStaff);
                 userDto.setDepartment(newStaff.getDepartment());
             }
-
             else if (userRole.getName().equals(RoleName.ROLE_TUTOR)) {
                 Tutor newTutor = new Tutor();
                 newTutor.setUser(newUser);
                 newTutor.setSpecialization(createUserRequest.getSpecialization());
                 tutorRepository.save(newTutor);
                 userDto.setSpecialization(newTutor.getSpecialization());
-
             }
             else {
                 Student newStudent = new Student();
