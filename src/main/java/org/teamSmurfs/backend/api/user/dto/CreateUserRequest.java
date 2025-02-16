@@ -22,11 +22,8 @@ public class CreateUserRequest {
     @Email(message = "Email should be valid.")
     private String email;
 
-    @NotBlank(message = "Password is required.")
-    @Size(min = 8, message = "Password must be at least 8 characters.")
-    private String password;
-
-    private long requestTime;
+    @NotBlank(message = "Username is required.")
+    private String username;
 
     @NotNull(message = "Role ID is required.")
     @Min(value = 1, message = "Role ID must be a positive number.")
