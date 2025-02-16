@@ -69,7 +69,6 @@ public class AllocationServiceImpl implements AllocationService {
         Allocation allocation = new Allocation();
         allocation.setStudent(student);
         allocation.setTutor(tutor);
-        allocation.setSubject(request.getSubject());
         allocation.setActive(true);
 
         return allocation;
@@ -80,7 +79,6 @@ public class AllocationServiceImpl implements AllocationService {
                 .id(allocation.getId())
                 .studentName(allocation.getStudent().getUser().getName())
                 .tutorName(allocation.getTutor().getUser().getName())
-                .subject(allocation.getSubject())
                 .active(allocation.isActive())
                 .build();
     }
