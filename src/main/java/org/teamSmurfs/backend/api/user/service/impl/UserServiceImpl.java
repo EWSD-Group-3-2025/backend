@@ -9,7 +9,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.teamSmurfs.backend.api.response.dto.PaginatedResponse;
 import org.teamSmurfs.backend.api.role.model.Role;
 import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.role.repository.RoleRepository;
@@ -17,25 +16,21 @@ import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.token.repository.TokenRepository;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
-import org.teamSmurfs.backend.api.user.model.User;
-import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.api.user.model.*;
+import org.teamSmurfs.backend.api.user.repository.*;
 import org.teamSmurfs.backend.api.user.service.UserService;
+import org.teamSmurfs.backend.api.user.utils.PasswordGeneratorUtil;
 import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
 import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.config.exception.DuplicateEntityException;
-import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
-import org.teamSmurfs.backend.security.service.JwtService;
 import org.teamSmurfs.backend.security.utils.AuthUtil;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +39,10 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
+    private final StaffRepository staffRepository;
+    private final TutorRepository tutorRepository;
+    private final StudentRepository studentRepository;
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
@@ -52,37 +51,41 @@ public class UserServiceImpl implements UserService {
     private final AuthUtil authUtil;
 
     @Override
-    public Object retrieveUsers(int page, int limit) throws Exception {
+    public List<UserDto> retrieveUsers(final String role) throws Exception {
         try {
-            log.info("Fetching users from database with page: {}, limit: {}", page, limit);
+            log.info("Fetching all users from the database with role {}", role);
 
-            int offset = (page - 1) * limit;
-            List<User> users = userRepository.findUsersWithPagination(offset, limit);
+            List<User> users;
 
-            long totalItems = userRepository.countUsers();
-            int lastPage = (int) Math.ceil((double) totalItems / limit);
+            if (role.equalsIgnoreCase("all")) {
+                users = userRepository.findAll();
+            } else {
+                String roleNameString = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                users = userRepository.findByRoleName(roleNameString.toUpperCase());
+            }
 
-            List<UserDto> userList = (users == null) ? Collections.emptyList() : users.stream()
+            if (users.isEmpty()) {
+                log.warn("No users found in the database");
+                return Collections.emptyList();
+            }
+
+            List<UserDto> userList = users.stream()
                     .map(user -> {
                         UserDto userDto = modelMapper.map(user, UserDto.class);
                         userDto.setRoleName(user.getRoles().stream()
                                 .findFirst()
-                                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                                .map(roleEntity -> roleEntity.getName().name().replaceFirst("^ROLE_", ""))
                                 .orElse(null));
                         return userDto;
                     })
                     .collect(Collectors.toList());
 
-            log.info("Fetched {} users, total users in system: {}", users.size(), totalItems);
+            log.info("Successfully retrieved {} users", userList.size());
+            return userList;
 
-            return PaginatedResponse.<UserDto>builder()
-                    .items(userList)
-                    .totalItems(totalItems)
-                    .lastPage(lastPage)
-                    .build();
         } catch (Exception e) {
-            log.error("Error retrieving users: {}", e.getMessage());
-            throw new Exception("Error retrieving users: " + e.getMessage());
+            log.error("Error retrieving users", e);
+            throw new Exception("Error retrieving users", e);
         }
     }
 
@@ -101,13 +104,43 @@ public class UserServiceImpl implements UserService {
 
             User newUser = User.builder()
                     .name(createUserRequest.getName())
-                    .username(userUtil.generateUniqueUsername(createUserRequest.getName()))
+                    .username(createUserRequest.getUsername())
                     .email(createUserRequest.getEmail())
-                    .password(passwordEncoder.encode(createUserRequest.getPassword()))
+                    .password(passwordEncoder.encode(PasswordGeneratorUtil.generatePassword()))
                     .roles(Set.of(userRole))
                     .build();
 
             userRepository.save(newUser);
+            UserDto userDto = modelMapper.map(newUser, UserDto.class);
+
+            if (userRole.getName().equals(RoleName.ROLE_ADMIN)) {
+                Admin newAdmin = new Admin();
+                newAdmin.setUser(newUser);
+                newAdmin.setPermissions(createUserRequest.getPermissions());
+                adminRepository.save(newAdmin);
+                userDto.setPermissions(newAdmin.getPermissions());
+            }
+            else if (userRole.getName().equals(RoleName.ROLE_STAFF)) {
+                Staff newStaff = new Staff();
+                newStaff.setUser(newUser);
+                newStaff.setDepartment(createUserRequest.getDepartment());
+                staffRepository.save(newStaff);
+                userDto.setDepartment(newStaff.getDepartment());
+            }
+            else if (userRole.getName().equals(RoleName.ROLE_TUTOR)) {
+                Tutor newTutor = new Tutor();
+                newTutor.setUser(newUser);
+                newTutor.setSpecialization(createUserRequest.getSpecialization());
+                tutorRepository.save(newTutor);
+                userDto.setSpecialization(newTutor.getSpecialization());
+            }
+            else {
+                Student newStudent = new Student();
+                newStudent.setUser(newUser);
+                newStudent.setCourse(createUserRequest.getCourse());
+                studentRepository.save(newStudent);
+                userDto.setCourse(newStudent.getCourse());
+            }
 
             Map<String, Object> tokenData = authUtil.generateTokens(newUser, String.valueOf(userRole.getName()));
 
@@ -125,7 +158,6 @@ public class UserServiceImpl implements UserService {
 
             log.info("User created successfully with ID: {}", newUser.getId());
 
-            UserDto userDto = modelMapper.map(newUser, UserDto.class);
             userDto.setRoleName(newUser.getRoles().stream()
                     .findFirst()
                     .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
@@ -206,5 +238,10 @@ public class UserServiceImpl implements UserService {
             log.error("Error updating user status for user ID: {} - {}", id, e.getMessage());
             throw new RuntimeException("Error updating user status: " + e.getMessage());
         }
+    }
+
+    @Override
+    public int retrieveUserNameCount(String name) {
+        return userRepository.countByName(name);
     }
 }

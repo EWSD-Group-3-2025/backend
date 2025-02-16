@@ -19,7 +19,15 @@ public class UserDto {
     private String name;
     private String email;
     private String username;
-    private String createdAt;
-    private String updatedAt;
+
     private String roleName;
+
+    private String permissions;
+
+    private String department;
+
+    private String specialization;
+
+    private String course;
+    private boolean status;
 }

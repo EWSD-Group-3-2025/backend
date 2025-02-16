@@ -7,6 +7,7 @@ package org.teamSmurfs.backend.security.service.impl;
 
 import io.jsonwebtoken.Claims;
 import org.springframework.stereotype.Service;
+import org.teamSmurfs.backend.config.exception.UnauthorizedException;
 import org.teamSmurfs.backend.security.service.JwtService;
 import org.teamSmurfs.backend.security.utils.JwtUtil;
 
@@ -22,11 +23,11 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public Claims validateToken(String token) {
         if (!JwtUtil.isTokenValid(token)) {
-            throw new SecurityException("Invalid or expired token.");
+            throw new UnauthorizedException("Invalid or expired token.");
         }
 
         if (isTokenRevoked(token)) {
-            throw new SecurityException("Token has been revoked.");
+            throw new UnauthorizedException("Token has been revoked.");
         }
 
         return JwtUtil.decodeToken(token);
