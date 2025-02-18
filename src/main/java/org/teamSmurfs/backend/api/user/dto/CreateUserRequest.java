@@ -37,5 +37,5 @@ public class CreateUserRequest {
 
     private String course;
 
-
+    private Long departmentId;
 }

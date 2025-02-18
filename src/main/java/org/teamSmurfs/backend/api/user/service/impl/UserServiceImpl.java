@@ -9,6 +9,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.teamSmurfs.backend.api.department.model.Department;
+import org.teamSmurfs.backend.api.department.repository.DepartmentRepository;
 import org.teamSmurfs.backend.api.role.model.Role;
 import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.role.repository.RoleRepository;
@@ -49,6 +51,7 @@ public class UserServiceImpl implements UserService {
     private final UserUtil userUtil;
     private final TokenRepository tokenRepository;
     private final AuthUtil authUtil;
+    private final DepartmentRepository departmentRepository;
 
     @Override
     public List<UserDto> retrieveUsers(final String role) throws Exception {
@@ -123,9 +126,10 @@ public class UserServiceImpl implements UserService {
             else if (userRole.getName().equals(RoleName.ROLE_STAFF)) {
                 Staff newStaff = new Staff();
                 newStaff.setUser(newUser);
-                newStaff.setDepartment(createUserRequest.getDepartment());
+                Department department = EntityUtil.getEntityById(this.departmentRepository, createUserRequest.getDepartmentId());
+                newStaff.setDepartment(department);
                 staffRepository.save(newStaff);
-                userDto.setDepartment(newStaff.getDepartment());
+                userDto.setDepartment(department.getName());
             }
             else if (userRole.getName().equals(RoleName.ROLE_TUTOR)) {
                 Tutor newTutor = new Tutor();

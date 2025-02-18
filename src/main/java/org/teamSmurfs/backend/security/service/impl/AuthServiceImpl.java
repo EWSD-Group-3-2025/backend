@@ -347,12 +347,12 @@ public class AuthServiceImpl implements AuthService {
         if (userDto.getName() != null) {
             user.setName(userDto.getName());
         }
-        if (userDto.getEmail() != null) {
-            user.setEmail(userDto.getEmail());
-        }
-//        if (userDto.getUsername() != null) {
-//            user.setUsername(userDto.getUsername());
+//        if (userDto.getEmail() != null) {
+//            user.setEmail(userDto.getEmail());
 //        }
+        if (userDto.getUsername() != null) {
+            user.setUsername(userDto.getUsername());
+        }
 
         log.info("Updated user details: {}", user);
 
