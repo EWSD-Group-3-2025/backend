@@ -14,7 +14,6 @@ import org.teamSmurfs.backend.api.course.dto.CourseRequest;
 import org.teamSmurfs.backend.api.course.dto.UpdateCourseRequest;
 import org.teamSmurfs.backend.api.course.service.CourseService;
 import org.teamSmurfs.backend.api.request.RequestUtils;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
