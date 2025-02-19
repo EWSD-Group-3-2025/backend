@@ -22,12 +22,11 @@ public class UserDto {
 
     private String roleName;
 
-    private String permissions;
-
     private String department;
 
     private String specialization;
 
-    private String course;
+    private Long courseId;
+
     private boolean status;
 }

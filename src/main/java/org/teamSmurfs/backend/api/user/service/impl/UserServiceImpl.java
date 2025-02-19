@@ -14,6 +14,8 @@ import org.teamSmurfs.backend.api.department.repository.DepartmentRepository;
 import org.teamSmurfs.backend.api.role.model.Role;
 import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.role.repository.RoleRepository;
+import org.teamSmurfs.backend.api.specialization.model.Specialization;
+import org.teamSmurfs.backend.api.specialization.repository.SpecializationRepository;
 import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.token.repository.TokenRepository;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
@@ -41,7 +43,6 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final AdminRepository adminRepository;
     private final StaffRepository staffRepository;
     private final TutorRepository tutorRepository;
     private final StudentRepository studentRepository;
@@ -52,6 +53,7 @@ public class UserServiceImpl implements UserService {
     private final TokenRepository tokenRepository;
     private final AuthUtil authUtil;
     private final DepartmentRepository departmentRepository;
+    private final SpecializationRepository specializationRepository;
 
     @Override
     public List<UserDto> retrieveUsers(final String role) throws Exception {
@@ -117,11 +119,14 @@ public class UserServiceImpl implements UserService {
             UserDto userDto = modelMapper.map(newUser, UserDto.class);
 
             if (userRole.getName().equals(RoleName.ROLE_ADMIN)) {
-                Admin newAdmin = new Admin();
-                newAdmin.setUser(newUser);
-                newAdmin.setPermissions(createUserRequest.getPermissions());
-                adminRepository.save(newAdmin);
-                userDto.setPermissions(newAdmin.getPermissions());
+                Staff newStaff = new Staff();
+                newStaff.setUser(newUser);
+                Department department = EntityUtil.getEntityById(this.departmentRepository, createUserRequest.getDepartmentId());
+                newStaff.setDepartment(department);
+                newStaff.setAdmin(true);
+                staffRepository.save(newStaff);
+                userDto.setDepartment(department.getName());
+
             }
             else if (userRole.getName().equals(RoleName.ROLE_STAFF)) {
                 Staff newStaff = new Staff();
@@ -134,16 +139,22 @@ public class UserServiceImpl implements UserService {
             else if (userRole.getName().equals(RoleName.ROLE_TUTOR)) {
                 Tutor newTutor = new Tutor();
                 newTutor.setUser(newUser);
-                newTutor.setSpecialization(createUserRequest.getSpecialization());
+                Specialization specialization = specializationRepository.findById(createUserRequest.getSpecializationId())
+                        .orElseThrow(() -> new RuntimeException("Specialization not found"));
+
+                newTutor.setSpecializations(Set.of(specialization)); // If you want to map the Specialization as an entity.
+
                 tutorRepository.save(newTutor);
-                userDto.setSpecialization(newTutor.getSpecialization());
+
+                userDto.setSpecialization(specialization.getName());
+
             }
             else {
                 Student newStudent = new Student();
                 newStudent.setUser(newUser);
                 newStudent.setCourse(createUserRequest.getCourse());
                 studentRepository.save(newStudent);
-                userDto.setCourse(newStudent.getCourse());
+                //userDto.setCourse(newStudent.getCourse());
             }
 
             Map<String, Object> tokenData = authUtil.generateTokens(newUser, String.valueOf(userRole.getName()));

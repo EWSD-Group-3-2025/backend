@@ -35,7 +35,7 @@ public class SecurityConfig {
     private static final String ROLE_PREFIX = "ROLE_";
     private static final String ROLE_ADMIN = ROLE_PREFIX + "ADMIN";
     private static final String ROLE_STAFF = ROLE_PREFIX + "STAFF";
-    private static final String ROLE_USER = ROLE_PREFIX + "USER";
+    private static final String ROLE_STUDENT = ROLE_PREFIX + "STUDENT";
     private static final String ROLE_TUTOR = ROLE_PREFIX + "TUTOR";
 
     @Bean
