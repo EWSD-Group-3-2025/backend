@@ -15,7 +15,6 @@ import org.teamSmurfs.backend.api.user.model.Student;
 import org.teamSmurfs.backend.api.user.model.Tutor;
 import org.teamSmurfs.backend.api.user.repository.StudentRepository;
 import org.teamSmurfs.backend.api.user.repository.TutorRepository;
-import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 
 import java.util.List;
@@ -29,51 +28,81 @@ public class AllocationServiceImpl implements AllocationService {
     private final AllocationRepository allocationRepository;
     private final StudentRepository studentRepository;
     private final TutorRepository tutorRepository;
-    private final ModelMapper modelMapper;
 
     @Override
     @Transactional
-    public AllocationDto allocate(CreateAllocationRequest request) {
+    public AllocationDto allocate(final CreateAllocationRequest request) {
         log.info("Allocating student {} to tutor {}", request.getStudentId(), request.getTutorId());
-        return convertToDto(createAllocation(request));
+        Allocation allocation = prepareAllocation(request);
+        return saveAndConvertToDto(allocation);
     }
 
     @Override
     @Transactional
-    public AllocationDto reallocate(CreateAllocationRequest request) {
+    public AllocationDto reallocate(final CreateAllocationRequest request) {
         log.info("Reallocating student {} to tutor {}", request.getStudentId(), request.getTutorId());
         return allocate(request);
     }
 
     @Override
     @Transactional
-    public List<AllocationDto> bulkAllocate(BulkCreateAllocationRequest request) {
-        log.info("Processing bulk allocation for {} requests", request.getAllocations().size());
+    public List<AllocationDto> bulkAllocate(final BulkCreateAllocationRequest request) {
+        log.info("Processing bulk allocation for {} students with tutor {}",
+                request.getStudentIds().size(), request.getTutorId());
 
-        List<Allocation> allocations = request.getAllocations().stream()
-                .map(this::createAllocation)
+        Tutor tutor = EntityUtil.getEntityById(tutorRepository, request.getTutorId());
+
+        List<Allocation> allocations = request.getStudentIds().stream()
+                .map(studentId -> prepareAllocation(studentId, tutor))
                 .collect(Collectors.toList());
 
         List<Allocation> savedAllocations = allocationRepository.saveAll(allocations);
+        log.info("Successfully allocated {} students to tutor {}", savedAllocations.size(), tutor.getId());
 
-        return DtoUtil.mapList(savedAllocations, AllocationDto.class, modelMapper);
+        return savedAllocations.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
     /**
-     * Extracted method to create an allocation entity.
+     * Prepares an allocation entity from a CreateAllocationRequest.
      */
-    private Allocation createAllocation(CreateAllocationRequest request) {
+    private Allocation prepareAllocation(final CreateAllocationRequest request) {
         Student student = EntityUtil.getEntityById(studentRepository, request.getStudentId());
         Tutor tutor = EntityUtil.getEntityById(tutorRepository, request.getTutorId());
+        return buildAllocation(student, tutor);
+    }
 
+    /**
+     * Overloaded method for bulk allocation to avoid repetitive fetching of Tutor entity.
+     */
+    private Allocation prepareAllocation(Long studentId, Tutor tutor) {
+        Student student = EntityUtil.getEntityById(studentRepository, studentId);
+        return buildAllocation(student, tutor);
+    }
+
+    /**
+     * Constructs an Allocation entity with all required parameters.
+     */
+    private Allocation buildAllocation(Student student, Tutor tutor) {
         Allocation allocation = new Allocation();
         allocation.setStudent(student);
         allocation.setTutor(tutor);
         allocation.setActive(true);
-
         return allocation;
     }
 
+    /**
+     * Persists the allocation and returns its DTO representation.
+     */
+    private AllocationDto saveAndConvertToDto(Allocation allocation) {
+        Allocation savedAllocation = allocationRepository.save(allocation);
+        return convertToDto(savedAllocation);
+    }
+
+    /**
+     * Converts an Allocation entity into its DTO representation.
+     */
     private AllocationDto convertToDto(Allocation allocation) {
         return AllocationDto.builder()
                 .id(allocation.getId())

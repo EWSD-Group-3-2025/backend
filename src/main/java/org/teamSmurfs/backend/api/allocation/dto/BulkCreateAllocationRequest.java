@@ -1,7 +1,7 @@
 package org.teamSmurfs.backend.api.allocation.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,7 +11,9 @@ import java.util.List;
 @Builder
 public class BulkCreateAllocationRequest {
 
-    @NotEmpty(message = "Allocations list cannot be empty")
-    @Valid
-    private List<CreateAllocationRequest> allocations;
+    @NotEmpty(message = "Student IDs list cannot be empty")
+    private List<Long> studentIds;
+
+    @NotNull(message = "Tutor ID is required")
+    private Long tutorId;
 }
