@@ -12,7 +12,5 @@ public class AllocationDto {
 
     private String tutorName;
 
-    private String subject;
-
     private boolean active;
 }

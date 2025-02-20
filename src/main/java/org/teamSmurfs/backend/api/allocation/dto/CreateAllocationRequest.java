@@ -13,7 +13,4 @@ public class CreateAllocationRequest {
 
     @NotNull(message = "Tutor ID is required")
     private Long tutorId;
-
-    @NotNull(message = "Subject is required")
-    private String subject;
 }
