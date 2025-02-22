@@ -31,7 +31,8 @@ public class CreateUserRequest {
 
     private Long specializationId;
 
-    private String course;
+    private Long courseId;
+    private Long studentId;
 
     private Long departmentId;
 }
