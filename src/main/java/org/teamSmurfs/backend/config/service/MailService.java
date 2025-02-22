@@ -7,4 +7,6 @@ package org.teamSmurfs.backend.config.service;
 
 public interface MailService {
     void sendMail(String to, String subject, String body);
+
+    void sendUserCredentialsEmail(String email, String rawPassword);
 }
