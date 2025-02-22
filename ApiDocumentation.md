@@ -38,46 +38,23 @@ POST /auth/login
   },
   "data": {
     "accessToken": "eyJhbGciOiJI...",
-    "refreshToken": "eyJhbGciOiJI..."
+    "refreshToken": "eyJhbGciOiJI...",
+    "user": {
+      "id": 1,
+      "name": "User 1",
+      "email": "user@example.com",
+      "username": "user-1",
+      "createdAt": "2025-02-11T18:59:14.750630",
+      "updatedAt": "2025-02-11T18:59:14.750630",
+      "roleName": "STUDENT"
+    }
   },
   "message": "Login successful",
   "duration": 0.45
 }
 ```
 
-## 2. User Registration
-**Endpoint:**
-```
-POST /auth/register
-```
-**Request Body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "SecurePassword123"
-}
-```
-**Response:**
-```json
-{
-  "success": 1,
-  "code": 201,
-  "meta": {
-    "method": "POST",
-    "endpoint": "/auth/register"
-  },
-  "data": {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john@example.com"
-  },
-  "message": "User registered successfully",
-  "duration": 0.45
-}
-```
-
-## 3. Refresh Token
+## 2. Refresh Token
 **Endpoint:**
 ```
 POST /auth/refresh
@@ -101,7 +78,7 @@ POST /auth/refresh
 }
 ```
 
-## 4. Get Current User
+## 3. Get Current User
 **Endpoint:**
 ```
 GET /auth/me
@@ -118,7 +95,9 @@ Authorization: Bearer <access_token>
   "data": {
     "id": 1,
     "name": "John Doe",
-    "email": "john@example.com"
+    "username": "john-doe-1",
+    "email": "john@example.com",
+    "roleName": "STAFF"
   },
   "message": "User details retrieved successfully",
   "duration": 0.32
@@ -129,7 +108,7 @@ Authorization: Bearer <access_token>
 
 # Chat API
 
-## 5. Create or Get Chat Room
+## 4. Create or Get Chat Room
 **Endpoint:**
 ```
 POST /chat/room
@@ -156,7 +135,7 @@ senderId=1&receiverId=2
 }
 ```
 
-## 6. Send Message
+## 5. Send Message
 **Endpoint:**
 ```
 POST /chat/{roomId}/message
@@ -185,7 +164,7 @@ senderId=1&content=Hello
 }
 ```
 
-## 7. Get Messages By Room
+## 6. Get Messages By Room
 **Endpoint:**
 ```
 GET /chat/{roomId}/messages
@@ -216,7 +195,7 @@ Authorization: Bearer <access_token>
 
 # User API
 
-## 8. Retrieve All Users
+## 7. Retrieve All Users
 **Endpoint:**
 ```
 GET /users
@@ -238,11 +217,55 @@ Authorization: Bearer <access_token>
     {
       "id": 1,
       "name": "John Doe",
-      "email": "john@example.com"
+      "username": "john-doe-1",
+      "email": "john@example.com",
+      "roleName": "STAFF"
     }
   ],
   "message": "Users retrieved successfully",
   "duration": 0.32
+}
+```
+
+## 8. Create User
+**Endpoint:**
+```
+POST /users
+```
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+**Request Body:**
+```json
+{
+  "name": "User 5",
+  "email": "user5@kmd.edu.mm",
+  "username": "user-5",
+  "password": "SecurePass123",
+  "roleId": "STAFF"
+}
+```
+**Response:**
+```json
+{
+  "success": 1,
+  "code": 201,
+  "meta": {
+    "endpoint": "/api/v1/users",
+    "method": "POST"
+  },
+  "data": {
+    "id": 5,
+    "name": "User 1",
+    "email": "user1@kmd.edu.mm",
+    "username": "user-1",
+    "createdAt": "2025-02-11T20:11:28.288876",
+    "updatedAt": "2025-02-11T20:11:28.288876",
+    "roleName": "STAFF"
+  },
+  "message": "User created successfully",
+  "duration": 1.0
 }
 ```
 
@@ -313,7 +336,7 @@ The API provides a centralized exception handling mechanism using `GlobalExcepti
   "code": 400,
   "meta": {
     "method": "POST",
-    "endpoint": "/auth/register"
+    "endpoint": "/auth/login"
   },
   "data": "Invalid argument provided.",
   "message": "Validation failed.",
@@ -329,7 +352,7 @@ The API provides a centralized exception handling mechanism using `GlobalExcepti
 | EntityNotFoundException        | 404             | Entity not found. |
 | DuplicateEntityException       | 409             | Duplicate entity detected. |
 | BadRequestException            | 400             | Bad request. |
-| SecurityException              | 401             | Security violation. |
+| UnauthorizedException          | 401             | Security violation. |
 | Exception (fallback)           | 500             | An unexpected error occurred. |
 
 ---

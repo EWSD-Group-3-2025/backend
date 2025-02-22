@@ -35,14 +35,15 @@ public class SecurityConfig {
     private static final String ROLE_PREFIX = "ROLE_";
     private static final String ROLE_ADMIN = ROLE_PREFIX + "ADMIN";
     private static final String ROLE_STAFF = ROLE_PREFIX + "STAFF";
-    private static final String ROLE_USER = ROLE_PREFIX + "USER";
+    private static final String ROLE_STUDENT = ROLE_PREFIX + "STUDENT";
     private static final String ROLE_TUTOR = ROLE_PREFIX + "TUTOR";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(this::configureAuthorization)
+//                .authorizeHttpRequests(this::configureAuthorization)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint)
@@ -55,7 +56,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/public/**", "/api/v1/users/change-password").permitAll()
 
-                .requestMatchers("/api/v1/users/**").access(hasRole(ROLE_USER))
+                .requestMatchers("/api/v1/users/**").access(hasRole(ROLE_ADMIN))
                 .requestMatchers("/api/v1/tutor/**").access(hasRole(ROLE_TUTOR))
                 .requestMatchers("/api/v1/staff/**").access(hasRole(ROLE_STAFF))
                 .requestMatchers("/api/v1/admin/**").access(hasRole(ROLE_ADMIN))

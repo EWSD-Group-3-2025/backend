@@ -5,9 +5,7 @@
  */
 package org.teamSmurfs.backend.api.user.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 /**
@@ -24,9 +22,17 @@ public class CreateUserRequest {
     @Email(message = "Email should be valid.")
     private String email;
 
-    @NotBlank(message = "Password is required.")
-    @Size(min = 8, message = "Password must be at least 8 characters.")
-    private String password;
+    @NotBlank(message = "Username is required.")
+    private String username;
 
-    private long requestTime;
+    @NotNull(message = "Role ID is required.")
+    @Min(value = 1, message = "Role ID must be a positive number.")
+    private Long roleId;
+
+    private Long specializationId;
+
+    private Long courseId;
+    private Long studentId;
+
+    private Long departmentId;
 }

@@ -21,6 +21,7 @@ import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.api.user.utils.UserUtil;
+import org.teamSmurfs.backend.config.exception.UnauthorizedException;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.teamSmurfs.backend.security.dto.LoginRequest;
 import org.teamSmurfs.backend.security.dto.RegisterRequest;
@@ -29,8 +30,9 @@ import org.teamSmurfs.backend.security.service.AuthService;
 import org.teamSmurfs.backend.security.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.teamSmurfs.backend.security.utils.AuthUtil;
 import org.teamSmurfs.backend.security.utils.ClaimsProvider;
-import org.teamSmurfs.backend.token.repository.TokenRepository;
+import org.teamSmurfs.backend.api.token.repository.TokenRepository;
 import org.teamSmurfs.backend.config.service.MailService;
 import org.teamSmurfs.backend.security.utils.OtpUtils;
 import org.teamSmurfs.backend.security.utils.OtpUtils.OtpData;
@@ -55,6 +57,7 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper modelMapper;
     private final UserUtil userUtil;
     private final MailService mailService;
+    private final AuthUtil authUtil;
 
     private final Map<String, OtpData> otpStore = new ConcurrentHashMap<>();
     private String emailInProcess;
@@ -66,14 +69,13 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> {
                     log.warn("User not found: {}", loginRequest.getEmail());
-                    return new SecurityException("Invalid email or password");
+                    return new UnauthorizedException("Invalid email or password");
                 });
 
-        Set<Role> roleList = user.getRoles();
-        String roleName = roleList.stream()
-                .map(role -> role.getName().name())
+        String roleName = user.getRoles().stream()
                 .findFirst()
-                .orElse("ROLE_USER");
+                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                .orElse(null);
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             log.warn("Invalid password for user: {}", loginRequest.getEmail());
@@ -88,13 +90,15 @@ public class AuthServiceImpl implements AuthService {
 
         UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
 
+        userDto.setRoleName(roleName);
+
         Token refreshToken = tokenRepository.findByUser(user)
                 .orElseThrow(() -> {
                     log.warn("Token not found for user: {}", loginRequest.getEmail());
-                    return new SecurityException("Token not found for user");
+                    return new UnauthorizedException("Token not found for user");
                 });
 
-        Map<String, Object> tokenData = generateTokens(user, roleName);
+        Map<String, Object> tokenData = authUtil.generateTokens(user, roleName);
 
         TokenDto tokenDto = DtoUtil.map(refreshToken, TokenDto.class, modelMapper);
 
@@ -123,7 +127,7 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
 
-        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+        Role userRole = roleRepository.findByName(RoleName.ROLE_ADMIN)
                 .orElseThrow(() -> new RuntimeException("Role not found in database!"));
         log.info("Assigning role: {}", userRole.getName());
 
@@ -137,7 +141,7 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(newUser);
 
-        Map<String, Object> tokenData = generateTokens(newUser, String.valueOf(userRole.getName()));
+        Map<String, Object> tokenData = authUtil.generateTokens(newUser, String.valueOf(userRole.getName()));
 
         String accessToken = (String) tokenData.get("accessToken");
         String refreshToken = (String) tokenData.get("refreshToken");
@@ -155,6 +159,10 @@ public class AuthServiceImpl implements AuthService {
         log.info("User registered successfully: {}", registerRequest.getEmail());
 
         UserDto userDto = DtoUtil.map(newUser, UserDto.class, modelMapper);
+        userDto.setRoleName(newUser.getRoles().stream()
+                .findFirst()
+                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                .orElse(null));
 
         return ApiResponse.builder()
                 .success(1)
@@ -167,17 +175,6 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    private Map<String, Object> generateTokens(User user, String roleName) {
-        log.debug("Generating tokens for user: {}", user.getEmail());
-
-        String accessToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), roleName,
-                user.getEmail(), 15 * 60 * 1000);
-        String refreshToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), roleName,
-                user.getEmail(), 7 * 24 * 60 * 60 * 1000);
-
-        return Map.of("accessToken", accessToken, "refreshToken", refreshToken);
-    }
-
     @Override
     public void logout(String accessToken) {
         if (accessToken != null && accessToken.startsWith("Bearer ")) {
@@ -186,7 +183,7 @@ public class AuthServiceImpl implements AuthService {
             String userEmail = claims.getSubject();
 
             User user = userRepository.findByEmail(userEmail)
-                    .orElseThrow(() -> new SecurityException(
+                    .orElseThrow(() -> new UnauthorizedException(
                             "User not found. Cannot proceed with logout."));
 
             log.debug("Revoking access token for user: {}", user.getEmail());
@@ -203,7 +200,7 @@ public class AuthServiceImpl implements AuthService {
         Claims claims;
         try {
             claims = jwtService.validateToken(refreshToken);
-        } catch (SecurityException ex) {
+        } catch (UnauthorizedException ex) {
             log.warn("Invalid refresh token: {}", ex.getMessage());
             return ApiResponse.builder()
                     .success(0)
@@ -265,7 +262,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     log.warn("No user found with email: {}", email);
-                    return new SecurityException("No user found with this email");
+                    return new UnauthorizedException("No user found with this email");
                 });
 
         String otp = OtpUtils.generateOtp();
@@ -298,7 +295,7 @@ public class AuthServiceImpl implements AuthService {
         OtpData otpData = otpStore.get(otp);
         if (otpData == null || otpData.isExpired()) {
             log.warn("Invalid or expired OTP");
-            throw new SecurityException("Invalid or expired OTP");
+            throw new UnauthorizedException("Invalid or expired OTP");
         }
 
         emailInProcess = otpData.getEmail();
@@ -314,15 +311,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ApiResponse resetPassword(String newPassword, String confirmPassword) {
         if (emailInProcess == null) {
-            throw new SecurityException("Please verify OTP first");
+            throw new UnauthorizedException("Please verify OTP first");
         }
 
         if (!newPassword.equals(confirmPassword)) {
-            throw new SecurityException("Passwords do not match");
+            throw new UnauthorizedException("Passwords do not match");
         }
 
         User user = userRepository.findByEmail(emailInProcess)
-                .orElseThrow(() -> new SecurityException("User not found"));
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
@@ -342,7 +339,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.warn("User not found for ID: {}", userId);
-                    return new SecurityException("User not found");
+                    return new UnauthorizedException("User not found");
                 });
 
         log.info("User retrieved: {}", user);
@@ -350,12 +347,12 @@ public class AuthServiceImpl implements AuthService {
         if (userDto.getName() != null) {
             user.setName(userDto.getName());
         }
-        if (userDto.getEmail() != null) {
-            user.setEmail(userDto.getEmail());
-        }
-//        if (userDto.getUsername() != null) {
-//            user.setUsername(userDto.getUsername());
+//        if (userDto.getEmail() != null) {
+//            user.setEmail(userDto.getEmail());
 //        }
+        if (userDto.getUsername() != null) {
+            user.setUsername(userDto.getUsername());
+        }
 
         log.info("Updated user details: {}", user);
 

@@ -6,13 +6,22 @@
 package org.teamSmurfs.backend.api.user.service;
 
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
+import org.teamSmurfs.backend.api.user.dto.UserDto;
+
+import java.util.List;
 
 public interface UserService {
-    Object retrieveUsers(int page, int limit) throws Exception;
+    List<UserDto> retrieveUsers(final String role) throws Exception;
 
     Object createUser(CreateUserRequest createUserRequest) throws Exception;
 
     void changePassword(String oldPassword, String newPassword, String authHeader) throws Exception;
 
     boolean usernameExists(String username);
+
+    UserDto retrieveOne(Long id);
+
+	boolean deleteUserById(Long id);
+
+    int retrieveUserNameCount(String name);
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.config.exception.UnauthorizedException;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.teamSmurfs.backend.security.service.JwtService;
 
@@ -35,13 +36,18 @@ public class UserUtil {
     public UserDto getCurrentUserDto(String authHeader) {
         String email = extractEmailFromToken(authHeader);
         User user = findUserByEmail(email);
-        return DtoUtil.map(user, UserDto.class, modelMapper);
+        UserDto userDto = modelMapper.map(user, UserDto.class);
+        userDto.setRoleName(user.getRoles().stream()
+                .findFirst()
+                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
+                .orElse(null));
+        return userDto;
     }
 
     public String extractEmailFromToken(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.warn("Invalid Authorization header received");
-            throw new SecurityException("Unauthorized: Missing or invalid token");
+            throw new UnauthorizedException("Unauthorized: Missing or invalid token");
         }
 
         String token = authHeader.substring(7);
@@ -52,7 +58,7 @@ public class UserUtil {
     public Long extractUserIdFromToken(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.warn("Invalid Authorization header received");
-            throw new SecurityException("Unauthorized: Missing or invalid token");
+            throw new UnauthorizedException("Unauthorized: Missing or invalid token");
         }
 
         String token = authHeader.substring(7);
@@ -66,7 +72,7 @@ public class UserUtil {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     log.warn("User not found for email: {}", email);
-                    return new SecurityException("User not found");
+                    return new UnauthorizedException("User not found");
                 });
     }
 

@@ -6,6 +6,7 @@
 package org.teamSmurfs.backend.config.beans;
 
 import lombok.RequiredArgsConstructor;
+import org.teamSmurfs.backend.config.deprecated.DeprecatedRouteInterceptor;
 import org.teamSmurfs.backend.security.interceptor.JwtAuthenticationInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -16,9 +17,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private final JwtAuthenticationInterceptor jwtAuthenticationInterceptor;
+    private final DeprecatedRouteInterceptor deprecatedRouteInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(deprecatedRouteInterceptor)
+                .addPathPatterns("/api/v1/**");
+
         registry.addInterceptor(jwtAuthenticationInterceptor)
                 .addPathPatterns("/api/v1/**")
                 .excludePathPatterns("/api/v1/auth/**");

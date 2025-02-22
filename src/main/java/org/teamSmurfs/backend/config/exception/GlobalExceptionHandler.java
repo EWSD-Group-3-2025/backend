@@ -7,7 +7,11 @@ package org.teamSmurfs.backend.config.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
-import org.apache.coyote.BadRequestException;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.context.request.WebRequest;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +20,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,18 +42,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid argument provided.", ex.getMessage(), request);
-    }
-
-    /**
-     * Handles ConstraintViolationException, typically occurring during input validation.
-     *
-     * @param ex      the ConstraintViolationException encountered.
-     * @param request the current HTTP request.
-     * @return a ResponseEntity containing the standardized ApiResponse.
-     */
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, "Validation failed.", ex.getMessage(), request);
     }
 
     /**
@@ -74,27 +69,78 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     /**
-     * Handles BadRequestException, thrown when the client request contains invalid data.
+     * Handles ConstraintViolationException, which is typically thrown when validation of input data fails.
+     * This method gathers detailed information about the specific validation violations, including the fields
+     * and the associated error messages, and constructs a tailored error response.
      *
-     * @param ex      the BadRequestException encountered.
-     * @param request the current HTTP request.
-     * @return a ResponseEntity containing the standardized ApiResponse.
+     * @param ex      the ConstraintViolationException encountered, containing details about the validation errors.
+     * @param request the current HTTP request that triggered the exception, used for logging and response context.
+     * @return a ResponseEntity containing a standardized ApiResponse with an HTTP status of UNPROCESSABLE_ENTITY
+     *         (422) and a message containing the detailed validation error information.
      */
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiResponse> handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad request.", ex.getMessage(), request);
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
+        StringBuilder violationMessages = new StringBuilder();
+
+        ex.getConstraintViolations().forEach(violation -> {
+            violationMessages.append(violation.getPropertyPath().toString())
+                    .append(": ")
+                    .append(violation.getMessage())
+                    .append("; ");
+        });
+
+        if (violationMessages.isEmpty()) {
+            violationMessages.append("Validation failed with no specific violations.");
+        }
+
+        return buildErrorResponse(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "Validation failed",
+                violationMessages.toString(),
+                request
+        );
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+                                                                  @NotNull HttpHeaders headers,
+                                                                  HttpStatusCode status,
+                                                                  WebRequest request) {
+        List<Map<String, String>> errors = new ArrayList<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("field", error.getField());
+            errorMap.put("message", error.getDefaultMessage());
+            errors.add(errorMap);
+        });
+
+        HttpServletRequest httpServletRequest = ((HttpServletRequest) request.resolveReference(WebRequest.REFERENCE_REQUEST));
+        assert httpServletRequest != null;
+        ApiResponse errorResponse = ApiResponse.builder()
+                .success(0)
+                .code(status.value())
+                .message("Validation failed")
+                .data(errors)
+                .meta(Map.of(
+                    "method", httpServletRequest.getMethod(),
+                    "endpoint", httpServletRequest.getRequestURI()
+                ))
+                .duration(Instant.now().getEpochSecond())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, headers, status);
     }
 
     /**
-     * Handles SecurityException, typically thrown when authentication or authorization fails.
+     * Handles UnauthorizedException, typically thrown when a request is made by an unauthenticated or unauthorized user.
      *
-     * @param ex      the SecurityException encountered.
+     * @param ex      the UnauthorizedException encountered.
      * @param request the current HTTP request.
-     * @return a ResponseEntity containing the standardized ApiResponse.
+     * @return a ResponseEntity containing the standardized ApiResponse with an HTTP 401 (Unauthorized) status.
      */
-    @ExceptionHandler(SecurityException.class)
-    public ResponseEntity<ApiResponse> handleSecurityException(SecurityException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), "Security violation.", request);
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse> handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", ex.getMessage(), request);
     }
 
     /**

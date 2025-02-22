@@ -25,7 +25,7 @@ public class CorsConfig {
         List<String> allowedFrontendUrls = parseFrontendUrls(frontendUrlsCsv);
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedFrontendUrls);
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -1,4 +1,4 @@
-package org.teamSmurfs.backend.token.repository;
+package org.teamSmurfs.backend.api.token.repository;
 
 import java.util.Optional;
 
