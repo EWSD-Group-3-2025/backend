@@ -34,6 +34,7 @@ import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.config.exception.DuplicateEntityException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.teamSmurfs.backend.config.service.MailService;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 import org.teamSmurfs.backend.security.utils.AuthUtil;
 
@@ -61,6 +62,7 @@ public class UserServiceImpl implements UserService {
     private final SpecializationRepository specializationRepository;
     private final StudentCourseRepository studentCourseRepository;
     private final CourseRepository courseRepository;
+    private final MailService mailService;
 
     @Override
     public List<UserDto> retrieveUsers(final String role) throws Exception {
@@ -114,11 +116,13 @@ public class UserServiceImpl implements UserService {
             Role userRole = EntityUtil.getEntityById(roleRepository, createUserRequest.getRoleId());
             log.info("Assigning role: {}", userRole.getName());
 
+            String rawPassword = PasswordGeneratorUtil.generatePassword();
+
             User newUser = User.builder()
                     .name(createUserRequest.getName())
                     .username(createUserRequest.getUsername())
                     .email(createUserRequest.getEmail())
-                    .password(passwordEncoder.encode(PasswordGeneratorUtil.generatePassword()))
+                    .password(passwordEncoder.encode(rawPassword))
                     .roles(Set.of(userRole))
                     .build();
 
@@ -183,6 +187,8 @@ public class UserServiceImpl implements UserService {
                     .build();
 
             tokenRepository.save(token);
+
+            this.mailService.sendUserCredentialsEmail(newUser.getEmail(), rawPassword);
 
             log.info("User created successfully with ID: {}", newUser.getId());
 
