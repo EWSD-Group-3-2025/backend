@@ -18,39 +18,30 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-	@EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
 	@Query(value = "SELECT * FROM user u LIMIT :limit OFFSET :offset", nativeQuery = true)
     List<User> findUsersWithPagination(@Param("offset") int offset, @Param("limit") int limit);
 	
-	@EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
     @Query("SELECT COUNT(u) FROM User u")
     long countUsers();
 	
-	@EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
     Optional<User> findByEmail(String email);
     
-    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
     boolean existsByEmail(String userEmail);
     
-    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
     boolean existsByUsername(String username);
     
-    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
     @Query(value = "SELECT COUNT(*) FROM user WHERE username = :username", nativeQuery = true)
     int countByUsername(@Param("username") String username);
     
-    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
     @Query(value = "SELECT COUNT(*) FROM user WHERE name = :name", nativeQuery = true)
     int countByName(@Param("name") String username);
 
-    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
     @Query(value = "SELECT u.* FROM user u " +
             "JOIN user_roles ur ON u.id = ur.user_id " +
             "JOIN role r ON ur.role_id = r.id " +
             "WHERE r.name = :roleName", nativeQuery = true)
     List<User> findByRoleName(String roleName);
     
-    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
     List<User> findByUsername(String staff1);
     
     @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
