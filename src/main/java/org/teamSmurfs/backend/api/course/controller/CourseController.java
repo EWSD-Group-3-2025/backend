@@ -73,7 +73,7 @@ public class CourseController {
     }
     
     @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse> updateUser(
+    public ResponseEntity<ApiResponse> updateCourse(
     		@PathVariable(value = "id") final Long id,
     		@RequestBody UpdateCourseRequest updateCourseRequest,
             HttpServletRequest request) throws Exception {
@@ -85,7 +85,7 @@ public class CourseController {
 
         ApiResponse successResponse = ApiResponse.builder()
                 .success(1)
-                .code(HttpStatus.OK.value())
+                .code(HttpStatus.NO_CONTENT.value())
                 .data(updatedCourse)
                 .message("Course updated successfully")
                 .build();
