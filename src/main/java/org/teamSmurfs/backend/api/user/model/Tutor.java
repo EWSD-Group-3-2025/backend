@@ -26,13 +26,13 @@ public class Tutor {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "tutor_specialization",
-            joinColumns = @JoinColumn(name = "tutor_id"),
-            inverseJoinColumns = @JoinColumn(name = "specialization_id")
-    )
-    private Set<Specialization> specializations;
+//    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+//    @JoinTable(
+//            name = "tutor_specialization",
+//            joinColumns = @JoinColumn(name = "tutor_id"),
+//            inverseJoinColumns = @JoinColumn(name = "specialization_id")
+//    )
+//    private Set<Specialization> specializations;
 
     @OneToMany(mappedBy = "tutor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Allocation> allocations;
@@ -43,9 +43,13 @@ public class Tutor {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public Tutor(final User user, final Specialization Specializations, final boolean admin) {
+    public Tutor(final User user, final Specialization specialization, final boolean admin) {
         this.user = user;
-        this.specializations = specializations;
+        this.specialization = specialization;
     }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "specialization_id", nullable = false)
+    private Specialization specialization;
 
 }
