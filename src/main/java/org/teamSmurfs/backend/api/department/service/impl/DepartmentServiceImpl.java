@@ -9,9 +9,11 @@ import org.teamSmurfs.backend.api.department.dto.UpdateDepartmentRequest;
 import org.teamSmurfs.backend.api.department.model.Department;
 import org.teamSmurfs.backend.api.department.repository.DepartmentRepository;
 import org.teamSmurfs.backend.api.department.service.DepartmentService;
+import org.teamSmurfs.backend.api.user.model.Staff;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.StaffRepository;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.config.exception.EntityDeletionException;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 
@@ -63,6 +65,13 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public void delete(final Long id) {
+        Department department = EntityUtil.getEntityById(this.repository, id);
+
+        List<Staff> staffList = this.staffRepository.findByDepartmentId(department.getId());
+        if (!staffList.isEmpty())
+            throw new EntityDeletionException(
+                    "Cannot delete Department because it is associated with " + staffList.size() + " Staff(s).");
+
         EntityUtil.deleteEntity(this.repository, id, "Department");
     }
 

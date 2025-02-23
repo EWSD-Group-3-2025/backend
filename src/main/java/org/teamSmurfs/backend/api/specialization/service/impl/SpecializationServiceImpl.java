@@ -9,8 +9,11 @@ import org.teamSmurfs.backend.api.specialization.dto.UpdateSpecializationRequest
 import org.teamSmurfs.backend.api.specialization.model.Specialization;
 import org.teamSmurfs.backend.api.specialization.repository.SpecializationRepository;
 import org.teamSmurfs.backend.api.specialization.service.SpecializationService;
+import org.teamSmurfs.backend.api.user.model.Tutor;
 import org.teamSmurfs.backend.api.user.model.User;
+import org.teamSmurfs.backend.api.user.repository.TutorRepository;
 import org.teamSmurfs.backend.api.user.repository.UserRepository; // Ensure this repository exists
+import org.teamSmurfs.backend.config.exception.EntityDeletionException;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 
@@ -24,6 +27,7 @@ public class SpecializationServiceImpl implements SpecializationService {
 
     private final SpecializationRepository repository;
     private final UserRepository userRepository; // Added UserRepository to fetch staff names
+    private final TutorRepository tutorRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -69,6 +73,13 @@ public class SpecializationServiceImpl implements SpecializationService {
 
     @Override
     public void delete(final Long id) {
+        Specialization specialization = EntityUtil.getEntityById(this.repository, id);
+
+        List<Tutor> tutors = this.tutorRepository.findBySpecializationId(specialization.getId());
+        if (!tutors.isEmpty())
+            throw new EntityDeletionException(
+                    "Cannot delete Specialization because it is associated with " + tutors.size() + " Tutor(s).");
+
         EntityUtil.deleteEntity(this.repository, id, "Specialization");
     }
 

@@ -1,5 +1,6 @@
 package org.teamSmurfs.backend.api.student_course.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,6 @@ import org.teamSmurfs.backend.api.user.model.User;
 public interface StudentCourseRepository extends JpaRepository<StudentCourse, Long> {
 	
 	Optional<StudentCourse> findByStudentId(Long id);
+
+    List<StudentCourse> findByCourseId(Long courseId);
 }
