@@ -1,4 +1,4 @@
-package org.teamSmurfs.backend.api.department.model;
+package org.teamSmurfs.backend.api.blog.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,24 +7,29 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.teamSmurfs.backend.api.user.model.User;
 
 import java.time.LocalDateTime;
 
+@Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-public class Department {
+public class Blog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
 
-    @Column(nullable = false)
-    private Long staffId;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    @Column(nullable = false, length = 50)
+    private String title;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -32,8 +37,9 @@ public class Department {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public Department(final String name, final Long staffId) {
-        this.name = name;
-        this.staffId = staffId;
+    private Blog(final User author, final String content, final String title) {
+        this.author = author;
+        this.content = content;
+        this.title = title;
     }
 }
