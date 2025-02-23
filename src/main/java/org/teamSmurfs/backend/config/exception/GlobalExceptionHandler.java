@@ -144,6 +144,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     /**
+     * Handles UnauthorizedException, typically thrown when a request is made by an unauthenticated or unauthorized user.
+     *
+     * @param ex      the TokenExpiredException encountered.
+     * @param request the current HTTP request.
+     * @return a ResponseEntity containing the standardized ApiResponse with an HTTP 401 (Unauthorized) status.
+     */
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ApiResponse> handleTokenExpiredException(TokenExpiredException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.GONE, "Token Expired", ex.getMessage(), request);
+    }
+
+    /**
      * Handles all uncaught exceptions, providing a generic error response.
      *
      * @param ex      the Exception encountered.

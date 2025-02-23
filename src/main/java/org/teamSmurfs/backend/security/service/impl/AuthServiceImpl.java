@@ -21,6 +21,7 @@ import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.api.user.utils.UserUtil;
+import org.teamSmurfs.backend.config.exception.TokenExpiredException;
 import org.teamSmurfs.backend.config.exception.UnauthorizedException;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
 import org.teamSmurfs.backend.security.dto.LoginRequest;
@@ -200,11 +201,11 @@ public class AuthServiceImpl implements AuthService {
         Claims claims;
         try {
             claims = jwtService.validateToken(refreshToken);
-        } catch (UnauthorizedException ex) {
+        } catch (TokenExpiredException ex) {
             log.warn("Invalid refresh token: {}", ex.getMessage());
             return ApiResponse.builder()
                     .success(0)
-                    .code(HttpStatus.UNAUTHORIZED.value())
+                    .code(HttpStatus.FORBIDDEN.value())
                     .data(ex.getMessage())
                     .message("Invalid or expired refresh token")
                     .build();
@@ -231,13 +232,26 @@ public class AuthServiceImpl implements AuthService {
                 .findFirst()
                 .orElse("ROLE_USER");
 
-        String newAccessToken = jwtService.generateToken(ClaimsProvider.generateClaims(user), roleName, email,
-                15 * 60 * 1000);
+        Map<String, Object> newTokens = authUtil.generateTokens(user, roleName);
+        String newAccessToken = newTokens.get("accessToken").toString();
+        String newRefreshToken = newTokens.get("refreshToken").toString();
+
+        Token existingToken = tokenRepository.findByUser(user)
+                .orElseThrow(() -> new SecurityException("Token not found for user"));
+
+        existingToken.setRefreshtoken(newRefreshToken);
+        existingToken.setExpiredAt(Instant.now().plus(7, ChronoUnit.DAYS));
+        tokenRepository.save(existingToken);
 
         return ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(Map.of("accessToken", newAccessToken))
+                .data(
+                    Map.of(
+                        "accessToken", newAccessToken,
+                        "refreshToken", newRefreshToken
+                    )
+                )
                 .message("Access token refreshed successfully")
                 .build();
     }
