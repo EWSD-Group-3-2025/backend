@@ -118,7 +118,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         assert httpServletRequest != null;
         ApiResponse errorResponse = ApiResponse.builder()
                 .success(0)
-                .code(status.value())
+                .code(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .message("Validation failed")
                 .data(errors)
                 .meta(Map.of(
@@ -141,6 +141,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ApiResponse> handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", ex.getMessage(), request);
+    }
+
+    /**
+     * Handles UnauthorizedException, typically thrown when a request is made by an unauthenticated or unauthorized user.
+     *
+     * @param ex      the TokenExpiredException encountered.
+     * @param request the current HTTP request.
+     * @return a ResponseEntity containing the standardized ApiResponse with an HTTP 401 (Unauthorized) status.
+     */
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ApiResponse> handleTokenExpiredException(TokenExpiredException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.GONE, "Token Expired", ex.getMessage(), request);
     }
 
     /**

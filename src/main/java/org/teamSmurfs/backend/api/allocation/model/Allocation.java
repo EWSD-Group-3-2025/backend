@@ -4,8 +4,12 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.teamSmurfs.backend.api.user.model.Student;
 import org.teamSmurfs.backend.api.user.model.Tutor;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -27,4 +31,10 @@ public class Allocation {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

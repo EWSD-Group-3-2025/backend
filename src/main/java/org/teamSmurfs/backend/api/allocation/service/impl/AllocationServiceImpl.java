@@ -2,23 +2,24 @@ package org.teamSmurfs.backend.api.allocation.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.teamSmurfs.backend.api.allocation.dto.AllocationDto;
-import org.teamSmurfs.backend.api.allocation.dto.BulkCreateAllocationRequest;
 import org.teamSmurfs.backend.api.allocation.dto.CreateAllocationRequest;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
 import org.teamSmurfs.backend.api.allocation.service.AllocationService;
 import org.teamSmurfs.backend.api.user.model.Student;
 import org.teamSmurfs.backend.api.user.model.Tutor;
+import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.StudentRepository;
 import org.teamSmurfs.backend.api.user.repository.TutorRepository;
-import org.teamSmurfs.backend.config.utils.DtoUtil;
+import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,57 +30,58 @@ public class AllocationServiceImpl implements AllocationService {
     private final AllocationRepository allocationRepository;
     private final StudentRepository studentRepository;
     private final TutorRepository tutorRepository;
-    private final ModelMapper modelMapper;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
-    public AllocationDto allocate(CreateAllocationRequest request) {
-        log.info("Allocating student {} to tutor {}", request.getStudentId(), request.getTutorId());
-        return convertToDto(createAllocation(request));
-    }
+    public void allocate(final CreateAllocationRequest request) {
+        if (request.getStudentIds().size() > 10) {
+            throw new IllegalArgumentException("Cannot allocate more than 10 students at once.");
+        }
 
-    @Override
-    @Transactional
-    public AllocationDto reallocate(CreateAllocationRequest request) {
-        log.info("Reallocating student {} to tutor {}", request.getStudentId(), request.getTutorId());
-        return allocate(request);
-    }
+        log.info("Processing allocation for {} students with tutor {}",
+                request.getStudentIds().size(), request.getTutorId());
 
-    @Override
-    @Transactional
-    public List<AllocationDto> bulkAllocate(BulkCreateAllocationRequest request) {
-        log.info("Processing bulk allocation for {} requests", request.getAllocations().size());
+        User user = EntityUtil.getEntityById(this.userRepository, request.getTutorId());
 
-        List<Allocation> allocations = request.getAllocations().stream()
-                .map(this::createAllocation)
+        Tutor tutor = tutorRepository.findByUser(user)
+                .orElseThrow(() -> new EntityNotFoundException("Tutor not found for user ID: " + user.getId()));
+
+        List<Allocation> allocations = request.getStudentIds().stream()
+                .map(studentId -> prepareAllocation(studentId, tutor))
                 .collect(Collectors.toList());
 
         List<Allocation> savedAllocations = allocationRepository.saveAll(allocations);
-
-        return DtoUtil.mapList(savedAllocations, AllocationDto.class, modelMapper);
+        log.info("Successfully allocated {} students to tutor {}", savedAllocations.size(), tutor.getId());
     }
 
     /**
-     * Extracted method to create an allocation entity.
+     * Prepares an allocation entity from a CreateAllocationRequest.
      */
-    private Allocation createAllocation(CreateAllocationRequest request) {
-        Student student = EntityUtil.getEntityById(studentRepository, request.getStudentId());
-        Tutor tutor = EntityUtil.getEntityById(tutorRepository, request.getTutorId());
+    private Allocation prepareAllocation(Long studentId, Tutor tutor) {
+        User user = EntityUtil.getEntityById(this.userRepository, studentId);
+        Student student = studentRepository.findByUser(user)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found for user ID: " + user.getId()));
 
+        Optional<Allocation> existingAllocationOpt = allocationRepository.findByStudentAndActiveTrue(student);
+        if (existingAllocationOpt.isPresent()) {
+            Allocation existingAllocation = existingAllocationOpt.get();
+            existingAllocation.setTutor(tutor);
+            existingAllocation.setUpdatedAt(LocalDateTime.now());
+            return existingAllocation;
+        }
+
+        return buildAllocation(student, tutor);
+    }
+
+    /**
+     * Constructs an Allocation entity with all required parameters.
+     */
+    private Allocation buildAllocation(Student student, Tutor tutor) {
         Allocation allocation = new Allocation();
         allocation.setStudent(student);
         allocation.setTutor(tutor);
         allocation.setActive(true);
-
         return allocation;
-    }
-
-    private AllocationDto convertToDto(Allocation allocation) {
-        return AllocationDto.builder()
-                .id(allocation.getId())
-                .studentName(allocation.getStudent().getUser().getName())
-                .tutorName(allocation.getTutor().getUser().getName())
-                .active(allocation.isActive())
-                .build();
     }
 }

@@ -4,8 +4,12 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
+import org.teamSmurfs.backend.api.specialization.model.Specialization;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -22,10 +26,26 @@ public class Tutor {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = true)
-    private String specialization;
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "tutor_specialization",
+            joinColumns = @JoinColumn(name = "tutor_id"),
+            inverseJoinColumns = @JoinColumn(name = "specialization_id")
+    )
+    private Set<Specialization> specializations;
 
     @OneToMany(mappedBy = "tutor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Allocation> allocations;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    public Tutor(final User user, final Specialization Specializations, final boolean admin) {
+        this.user = user;
+        this.specializations = specializations;
+    }
 
 }

@@ -21,13 +21,16 @@ public class UserDto {
     private String username;
 
     private String roleName;
-
-    private String permissions;
+    private Long roleId;
 
     private String department;
+    private Long departmentId;
 
     private String specialization;
+    private Long specializationId;
 
+    private Long courseId;
     private String course;
+
     private boolean status;
 }

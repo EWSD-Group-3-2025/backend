@@ -3,6 +3,7 @@ package org.teamSmurfs.backend.api.chat.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.teamSmurfs.backend.api.user.model.User;
 
 import java.time.LocalDateTime;
@@ -32,4 +33,10 @@ public class ChatMessage {
 
     @CreationTimestamp
     private LocalDateTime timestamp;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

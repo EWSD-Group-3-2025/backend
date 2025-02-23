@@ -5,9 +5,8 @@
  */
 package org.teamSmurfs.backend.api.user.repository;
 
-
-import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.user.model.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,21 +17,22 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+
 	@Query(value = "SELECT * FROM user u LIMIT :limit OFFSET :offset", nativeQuery = true)
     List<User> findUsersWithPagination(@Param("offset") int offset, @Param("limit") int limit);
-
+	
     @Query("SELECT COUNT(u) FROM User u")
     long countUsers();
-
+	
     Optional<User> findByEmail(String email);
-
+    
     boolean existsByEmail(String userEmail);
-
+    
     boolean existsByUsername(String username);
-
+    
     @Query(value = "SELECT COUNT(*) FROM user WHERE username = :username", nativeQuery = true)
     int countByUsername(@Param("username") String username);
-
+    
     @Query(value = "SELECT COUNT(*) FROM user WHERE name = :name", nativeQuery = true)
     int countByName(@Param("name") String username);
 
@@ -41,4 +41,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "JOIN role r ON ur.role_id = r.id " +
             "WHERE r.name = :roleName", nativeQuery = true)
     List<User> findByRoleName(String roleName);
+    
+    List<User> findByUsername(String staff1);
+    
+    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
+    List<User> findAll();
+    
+    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
+    Optional<User> findById(Long id);
 }

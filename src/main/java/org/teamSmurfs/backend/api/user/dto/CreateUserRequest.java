@@ -29,13 +29,10 @@ public class CreateUserRequest {
     @Min(value = 1, message = "Role ID must be a positive number.")
     private Long roleId;
 
-    private String permissions;
+    private Long specializationId;
 
-    private String department;
+    private Long courseId;
+    private Long studentId;
 
-    private String specialization;
-
-    private String course;
-
-
+    private Long departmentId;
 }

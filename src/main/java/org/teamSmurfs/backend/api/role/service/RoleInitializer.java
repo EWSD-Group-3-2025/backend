@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.teamSmurfs.backend.api.role.model.Role;
 import org.teamSmurfs.backend.api.role.model.RoleName;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Order(2)
 public class RoleInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;

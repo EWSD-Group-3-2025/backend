@@ -1,7 +1,10 @@
 package org.teamSmurfs.backend.api.token.model;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.teamSmurfs.backend.api.user.model.User;
 
 import jakarta.persistence.*;
@@ -26,4 +29,10 @@ public class Token {
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

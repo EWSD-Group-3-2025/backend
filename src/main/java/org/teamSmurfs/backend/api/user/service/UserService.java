@@ -11,7 +11,7 @@ import org.teamSmurfs.backend.api.user.dto.UserDto;
 import java.util.List;
 
 public interface UserService {
-    List<UserDto> retrieveUsers(final String role) throws Exception;
+    List<Object> retrieveUsers(final String role) throws Exception;
 
     Object createUser(CreateUserRequest createUserRequest) throws Exception;
 
@@ -19,7 +19,7 @@ public interface UserService {
 
     boolean usernameExists(String username);
 
-    UserDto retrieveOne(Long id);
+    Object retrieveOne(Long id);
 
 	boolean deleteUserById(Long id);
 
