@@ -81,7 +81,7 @@ public class UserController {
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        List<UserDto> users = userService.retrieveUsers(role);
+        List<Object> users = userService.retrieveUsers(role);
 
         log.info("Retrieved {} users successfully", (users != null) ? users.size() : 0);
 
@@ -155,9 +155,11 @@ public class UserController {
         log.info("Retrieving user with id: {}", id);
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
-        UserDto userDto = userService.retrieveOne(id);
+        Object userDto = userService.retrieveOne(id);
 
-        log.info("User retrieved successfully: {}", userDto.getUsername());
+        if (userDto instanceof UserDto user) {
+            log.info("User retrieved successfully: {}", user.getUsername());
+        } 
 
         ApiResponse successResponse = ApiResponse.builder()
                 .success(1)
