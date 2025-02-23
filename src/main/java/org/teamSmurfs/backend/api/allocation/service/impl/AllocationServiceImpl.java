@@ -35,6 +35,10 @@ public class AllocationServiceImpl implements AllocationService {
     @Override
     @Transactional
     public void allocate(final CreateAllocationRequest request) {
+        if (request.getStudentIds().size() > 10) {
+            throw new IllegalArgumentException("Cannot allocate more than 10 students at once.");
+        }
+
         log.info("Processing allocation for {} students with tutor {}",
                 request.getStudentIds().size(), request.getTutorId());
 
