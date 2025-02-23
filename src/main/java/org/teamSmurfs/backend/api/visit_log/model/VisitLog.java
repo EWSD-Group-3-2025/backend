@@ -1,4 +1,4 @@
-package org.teamSmurfs.backend.api.activity_log.model;
+package org.teamSmurfs.backend.api.visit_log.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ActivityLog {
+public class VisitLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,10 +26,10 @@ public class ActivityLog {
     private User user;
 
     @Column(nullable = false)
-    private Integer activityType;
+    private String routeName;
 
     @Column(nullable = false)
-    private Boolean isInteraction;
+    private String browserName;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -37,11 +37,7 @@ public class ActivityLog {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public ActivityLog(
-            final User user, final Integer activityType, final Boolean isInteraction
-    ) {
+    public VisitLog(final User user) {
         this.user = user;
-        this.activityType = activityType;
-        this.isInteraction = isInteraction;
     }
 }
