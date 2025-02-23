@@ -9,9 +9,13 @@ import org.teamSmurfs.backend.api.course.dto.CourseDto;
 import org.teamSmurfs.backend.api.course.model.Course;
 import org.teamSmurfs.backend.api.course.repository.CourseRepository;
 import org.teamSmurfs.backend.api.course.service.CourseService;
+import org.teamSmurfs.backend.api.student_course.model.StudentCourse;
+import org.teamSmurfs.backend.api.student_course.repository.StudentCourseRepository;
+import org.teamSmurfs.backend.api.user.model.Student;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.StaffRepository;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.config.exception.EntityDeletionException;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 
@@ -25,6 +29,7 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository repository;
     private final UserRepository userRepository;
     private final StaffRepository staffRepository;
+    private final StudentCourseRepository studentCourseRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -63,6 +68,14 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public void delete(final Long id) {
+        Course course = EntityUtil.getEntityById(this.repository, id);
+
+        List<StudentCourse> studentCourses = this.studentCourseRepository.findByCourseId(id);
+        if (!studentCourses.isEmpty()) {
+            throw new EntityDeletionException(
+                    "Cannot delete Student because it is associated with " + studentCourses.size() + " Student(s).");
+        }
+
         EntityUtil.deleteEntity(this.repository, id, "Course");
     }
 
