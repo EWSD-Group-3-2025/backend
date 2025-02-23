@@ -8,4 +8,6 @@ import java.util.Optional;
 
 public interface AllocationRepository extends JpaRepository<Allocation, Long> {
     Optional<Allocation> findByStudentAndActiveTrue(Student student);
+
+    Optional<Allocation> findByStudentId(Long studentId);
 }

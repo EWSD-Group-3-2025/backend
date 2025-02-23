@@ -3,6 +3,8 @@ package org.teamSmurfs.backend.api.student.dto;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
+import org.teamSmurfs.backend.api.allocation.model.Allocation;
+import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
 import org.teamSmurfs.backend.api.course.model.Course;
 import org.teamSmurfs.backend.api.course.repository.CourseRepository;
 import org.teamSmurfs.backend.api.student_course.model.StudentCourse;
@@ -15,10 +17,12 @@ public class StudentMapper {
 	
 	private final StudentCourseRepository studentCourseRepository;
     private final CourseRepository courseRepository;
+    private final AllocationRepository allocationRepository;
 
-    public StudentMapper(StudentCourseRepository studentCourseRepository, CourseRepository courseRepository) {
+    public StudentMapper(StudentCourseRepository studentCourseRepository, CourseRepository courseRepository, AllocationRepository allocationRepository) {
         this.studentCourseRepository = studentCourseRepository;
         this.courseRepository = courseRepository;
+        this.allocationRepository = allocationRepository;
     }
 
     public StudentDto mapToDto(User user) {
@@ -53,6 +57,9 @@ public class StudentMapper {
             studentDto.setCourseId(null);
             studentDto.setCourse(null);
         }
+
+        Optional<Allocation> allocationOptional = allocationRepository.findByStudentId(student.getId());
+        allocationOptional.ifPresent(allocation -> studentDto.setAllocateTutorId(allocation.getTutor().getId()));
 
         return studentDto;
     }
