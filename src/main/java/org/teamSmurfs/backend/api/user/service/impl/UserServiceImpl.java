@@ -4,8 +4,6 @@
  * @Time : 11:41 PM
  */
 package org.teamSmurfs.backend.api.user.service.impl;
-
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +17,19 @@ import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.role.repository.RoleRepository;
 import org.teamSmurfs.backend.api.specialization.model.Specialization;
 import org.teamSmurfs.backend.api.specialization.repository.SpecializationRepository;
+import org.teamSmurfs.backend.api.staff.dto.StaffDto;
+import org.teamSmurfs.backend.api.staff.dto.StaffMapper;
+import org.teamSmurfs.backend.api.student.dto.StudentDto;
+import org.teamSmurfs.backend.api.student.dto.StudentMapper;
 import org.teamSmurfs.backend.api.student_course.model.StudentCourse;
 import org.teamSmurfs.backend.api.student_course.repository.StudentCourseRepository;
 import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.token.repository.TokenRepository;
+import org.teamSmurfs.backend.api.tutor.Dto.TutorDto;
+import org.teamSmurfs.backend.api.tutor.Dto.TutorMapper;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
+import org.teamSmurfs.backend.api.user.dto.UserMapper;
 import org.teamSmurfs.backend.api.user.model.*;
 import org.teamSmurfs.backend.api.user.repository.*;
 import org.teamSmurfs.backend.api.user.service.UserService;
@@ -54,6 +59,7 @@ public class UserServiceImpl implements UserService {
     private final StudentRepository studentRepository;
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserUtil userUtil;
     private final TokenRepository tokenRepository;
@@ -65,7 +71,7 @@ public class UserServiceImpl implements UserService {
     private final MailService mailService;
 
     @Override
-    public List<UserDto> retrieveUsers(final String role) throws Exception {
+    public List<Object> retrieveUsers(final String role) throws Exception {
         try {
             log.info("Fetching all users from the database with role {}", role);
 
@@ -83,19 +89,10 @@ public class UserServiceImpl implements UserService {
                 return Collections.emptyList();
             }
 
-            List<UserDto> userList = users.stream()
-                    .map(user -> {
-                        UserDto userDto = modelMapper.map(user, UserDto.class);
-                        userDto.setRoleName(user.getRoles().stream()
-                                .findFirst()
-                                .map(roleEntity -> roleEntity.getName().name().replaceFirst("^ROLE_", ""))
-                                .orElse(null));
-                        return userDto;
-                    })
-                    .collect(Collectors.toList());
+            List<Object> userDtos = users.stream().map(userMapper::mapToDto).collect(Collectors.toList());
 
-            log.info("Successfully retrieved {} users", userList.size());
-            return userList;
+            log.info("Successfully retrieved {} users", userDtos.size());
+            return userDtos;
 
         } catch (Exception e) {
             log.error("Error retrieving users", e);
@@ -330,17 +327,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto retrieveOne(Long id) {
+    public Object retrieveOne(Long id) {
         log.info("Fetching user details for ID: {}", id);
 
         User user = EntityUtil.getEntityById(userRepository, id);
 
-        UserDto userDto = modelMapper.map(user, UserDto.class);
-
-        userDto.setRoleName(user.getRoles().stream()
-                .findFirst()
-                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
-                .orElse(null));
+        Object userDto = userMapper.mapToDto(user);
 
         log.info("Successfully retrieved user with ID: {}", id);
 
