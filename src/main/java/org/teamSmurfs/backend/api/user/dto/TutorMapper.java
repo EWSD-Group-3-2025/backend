@@ -32,19 +32,15 @@ public class TutorMapper {
             tutorDto.setRoleId(roleEntity.getId());
         });
 
-        if (tutor.getSpecializations() != null && !tutor.getSpecializations().isEmpty()) {
-            List<String> specializationNames = tutor.getSpecializations().stream()
-                    .map(Specialization::getName)
-                    .collect(Collectors.toList());
+         if (tutor.getSpecialization() != null) {
+             String specializationName = tutor.getSpecialization().getName();
+             Long specializationId = tutor.getSpecialization().getId();
 
-            List<Long> specializationIds = tutor.getSpecializations().stream()
-                    .map(Specialization::getId)
-                    .collect(Collectors.toList());
+             tutorDto.setSpecialization(specializationName);
+             tutorDto.setSpecializationId(specializationId);
+         }
 
-            tutorDto.setSpecialization(String.join(", ", specializationNames));
-            tutorDto.setSpecializationId(specializationIds.isEmpty() ? null : specializationIds.get(0));
-        }
+         return tutorDto;
 
-        return tutorDto;
-    }
+     }
 }

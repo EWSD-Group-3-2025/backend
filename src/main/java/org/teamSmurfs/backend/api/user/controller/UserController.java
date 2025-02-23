@@ -14,6 +14,7 @@ import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
 import org.teamSmurfs.backend.api.user.dto.ChangePasswordRequest;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
+import org.teamSmurfs.backend.api.user.dto.UpdateUserRequest;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.service.UserService;
 import org.teamSmurfs.backend.api.user.utils.PasswordValidatorUtil;
@@ -51,15 +52,41 @@ public class UserController {
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        Object createdUser = userService.createUser(createUserRequest);
+        userService.createUser(createUserRequest);
 
         log.info("User created successfully: {}", createUserRequest.getEmail());
 
         ApiResponse successResponse = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.CREATED.value())
-                .data(createdUser)
+                .data(true)
                 .message("User created successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse> updateUser(
+            @PathVariable Long id,
+            @Validated @RequestBody UpdateUserRequest updateUserRequest,
+            HttpServletRequest request
+    ) throws Exception {
+
+        log.info("Updating user with ID: {}", id);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        // Call the service to update the user
+        userService.updateUser(id, updateUserRequest);
+
+        log.info("User updated successfully with ID: {}", id);
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(true)
+                .message("User updated successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
