@@ -22,4 +22,5 @@ public class StudentDto {
 	 private String course;
 	 private Boolean status;
 	 private LocalDateTime createdAt;
+	 private Long allocateTutorId;
 }
