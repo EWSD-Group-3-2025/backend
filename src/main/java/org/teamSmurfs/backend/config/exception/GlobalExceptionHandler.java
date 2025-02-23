@@ -118,7 +118,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         assert httpServletRequest != null;
         ApiResponse errorResponse = ApiResponse.builder()
                 .success(0)
-                .code(status.value())
+                .code(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .message("Validation failed")
                 .data(errors)
                 .meta(Map.of(
