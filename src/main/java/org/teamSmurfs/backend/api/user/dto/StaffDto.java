@@ -1,4 +1,4 @@
-package org.teamSmurfs.backend.api.staff.dto;
+package org.teamSmurfs.backend.api.user.dto;
 
 import java.time.LocalDateTime;
 

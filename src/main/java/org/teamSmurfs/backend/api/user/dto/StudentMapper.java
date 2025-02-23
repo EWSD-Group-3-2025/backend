@@ -1,4 +1,4 @@
-package org.teamSmurfs.backend.api.student.dto;
+package org.teamSmurfs.backend.api.user.dto;
 
 import java.util.Optional;
 
@@ -59,7 +59,7 @@ public class StudentMapper {
         }
 
         Optional<Allocation> allocationOptional = allocationRepository.findByStudentId(student.getId());
-        allocationOptional.ifPresent(allocation -> studentDto.setAllocateTutorId(allocation.getTutor().getId()));
+        allocationOptional.ifPresent(allocation -> studentDto.setAllocateTutorId(allocation.getTutor().getUser().getId()));
 
         return studentDto;
     }
