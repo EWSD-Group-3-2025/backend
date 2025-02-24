@@ -29,7 +29,7 @@ public class StaffMapper {
 	                        .findFirst()
 	                        .map(roleEntity -> roleEntity.getId())
 	                        .orElse(null))
-	                .department(staff.getDepartment() != null ? staff.getDepartment().getName() : null)
+	                .departmentName(staff.getDepartment() != null ? staff.getDepartment().getName() : null)
 	                .departmentId(staff.getDepartment() != null ? staff.getDepartment().getId() : null)
 	                .build();
 	        

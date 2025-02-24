@@ -52,10 +52,10 @@ public class StudentMapper {
             studentDto.setCourseId(studentCourse.getCourseId());
 
             Course course = courseRepository.findById(studentCourse.getCourseId()).orElse(null);
-            studentDto.setCourse(course != null ? course.getName() : "No Course");
+            studentDto.setCourseName(course != null ? course.getName() : "No Course");
         } else {
             studentDto.setCourseId(null);
-            studentDto.setCourse(null);
+            studentDto.setCourseName(null);
         }
 
         Optional<Allocation> allocationOptional = allocationRepository.findByStudentId(student.getId());
