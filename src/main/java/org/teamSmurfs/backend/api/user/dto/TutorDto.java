@@ -18,7 +18,7 @@ public class TutorDto {
     private String username;
     private String roleName;
     private Long roleId;
-    private String specialization;
+    private String specializationName;
     private Long specializationId;
     private Boolean status;
     private LocalDateTime createdAt;
