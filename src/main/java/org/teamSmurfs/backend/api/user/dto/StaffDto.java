@@ -1,4 +1,4 @@
-package org.teamSmurfs.backend.api.tutor.Dto;
+package org.teamSmurfs.backend.api.user.dto;
 
 import java.time.LocalDateTime;
 
@@ -11,15 +11,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TutorDto {
+public class StaffDto {
 	private Long id;
     private String name;
     private String email;
     private String username;
     private String roleName;
     private Long roleId;
-    private String specialization;
-    private Long specializationId;
+    private String departmentName;
+    private Long departmentId;
     private Boolean status;
     private LocalDateTime createdAt;
 }

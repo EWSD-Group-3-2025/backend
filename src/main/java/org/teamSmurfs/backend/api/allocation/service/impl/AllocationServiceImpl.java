@@ -15,6 +15,7 @@ import org.teamSmurfs.backend.api.user.repository.StudentRepository;
 import org.teamSmurfs.backend.api.user.repository.TutorRepository;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
+import org.teamSmurfs.backend.config.service.MailService;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ public class AllocationServiceImpl implements AllocationService {
     private final StudentRepository studentRepository;
     private final TutorRepository tutorRepository;
     private final UserRepository userRepository;
+    private final MailService mailService;
 
     @Override
     @Transactional
@@ -53,6 +55,8 @@ public class AllocationServiceImpl implements AllocationService {
 
         List<Allocation> savedAllocations = allocationRepository.saveAll(allocations);
         log.info("Successfully allocated {} students to tutor {}", savedAllocations.size(), tutor.getId());
+
+        sendAllocationEmails(savedAllocations, tutor);
     }
 
     /**
@@ -83,5 +87,18 @@ public class AllocationServiceImpl implements AllocationService {
         allocation.setTutor(tutor);
         allocation.setActive(true);
         return allocation;
+    }
+
+    private void sendAllocationEmails(List<Allocation> allocations, Tutor tutor) {
+        String tutorName = tutor.getUser().getName();
+
+        mailService.sendAllocationEmail(tutor.getUser().getEmail(), "TUTOR", tutorName,
+                allocations.size() + " new student(s)");
+
+        for (Allocation allocation : allocations) {
+            Student student = allocation.getStudent();
+            String studentName = student.getUser().getName() + " " + student.getUser().getName();
+            mailService.sendAllocationEmail(student.getUser().getEmail(), "STUDENT", tutorName, studentName);
+        }
     }
 }

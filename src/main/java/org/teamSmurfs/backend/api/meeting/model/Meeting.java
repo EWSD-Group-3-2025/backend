@@ -43,17 +43,30 @@ public class Meeting {
     @Column(nullable = false)
     private String description;
 
+    @Column(nullable = false)
+    private Integer meetingType;
+
+    private String link;
+
+    @Column(nullable = false)
+    private String location;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public Meeting(final User host, final Set<User> participants, final LocalDateTime startTime, final LocalDateTime endTime, final String description) {
+    public Meeting(
+        final User host, final Set<User> participants, final LocalDateTime startTime, final LocalDateTime endTime, final String description, final Integer meetingType, final String link, final String location
+    ) {
         this.host = host;
         this.participants = participants;
         this.startTime = startTime;
         this.endTime = endTime;
         this.description = description;
+        this.meetingType = meetingType;
+        this.link = link;
+        this.location = location;
     }
 }

@@ -1,4 +1,4 @@
-package org.teamSmurfs.backend.api.staff.dto;
+package org.teamSmurfs.backend.api.user.dto;
 
 import org.springframework.stereotype.Component;
 import org.teamSmurfs.backend.api.user.model.Staff;
@@ -29,7 +29,7 @@ public class StaffMapper {
 	                        .findFirst()
 	                        .map(roleEntity -> roleEntity.getId())
 	                        .orElse(null))
-	                .department(staff.getDepartment() != null ? staff.getDepartment().getName() : null)
+	                .departmentName(staff.getDepartment() != null ? staff.getDepartment().getName() : null)
 	                .departmentId(staff.getDepartment() != null ? staff.getDepartment().getId() : null)
 	                .build();
 	        

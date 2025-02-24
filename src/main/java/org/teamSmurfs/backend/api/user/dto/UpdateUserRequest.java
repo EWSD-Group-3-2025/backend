@@ -1,6 +1,4 @@
-package org.teamSmurfs.backend.api.staff.dto;
-
-import java.time.LocalDateTime;
+package org.teamSmurfs.backend.api.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,15 +9,19 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StaffDto {
-	private Long id;
+public class UpdateUserRequest {
+
+    private Long id;
     private String name;
     private String email;
-    private String username;
-    private String roleName;
+
     private Long roleId;
-    private String department;
+
     private Long departmentId;
-    private Boolean status;
-    private LocalDateTime createdAt;
+
+    private Long specializationId;
+
+    private Long courseId;
+
+    private boolean status;
 }

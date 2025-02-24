@@ -3,9 +3,6 @@ package org.teamSmurfs.backend.api.user.dto;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
-import org.teamSmurfs.backend.api.staff.dto.StaffMapper;
-import org.teamSmurfs.backend.api.student.dto.StudentMapper;
-import org.teamSmurfs.backend.api.tutor.Dto.TutorMapper;
 import org.teamSmurfs.backend.api.user.model.User;
 
 import lombok.RequiredArgsConstructor;

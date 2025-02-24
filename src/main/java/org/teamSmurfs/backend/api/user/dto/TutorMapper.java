@@ -1,10 +1,6 @@
-package org.teamSmurfs.backend.api.tutor.Dto;
-
-import java.util.List;
-import java.util.stream.Collectors;
+package org.teamSmurfs.backend.api.user.dto;
 
 import org.springframework.stereotype.Component;
-import org.teamSmurfs.backend.api.specialization.model.Specialization;
 import org.teamSmurfs.backend.api.user.model.Tutor;
 import org.teamSmurfs.backend.api.user.model.User;
 
@@ -32,19 +28,15 @@ public class TutorMapper {
             tutorDto.setRoleId(roleEntity.getId());
         });
 
-        if (tutor.getSpecializations() != null && !tutor.getSpecializations().isEmpty()) {
-            List<String> specializationNames = tutor.getSpecializations().stream()
-                    .map(Specialization::getName)
-                    .collect(Collectors.toList());
+         if (tutor.getSpecialization() != null) {
+             String specializationName = tutor.getSpecialization().getName();
+             Long specializationId = tutor.getSpecialization().getId();
 
-            List<Long> specializationIds = tutor.getSpecializations().stream()
-                    .map(Specialization::getId)
-                    .collect(Collectors.toList());
+             tutorDto.setSpecializationName(specializationName);
+             tutorDto.setSpecializationId(specializationId);
+         }
 
-            tutorDto.setSpecialization(String.join(", ", specializationNames));
-            tutorDto.setSpecializationId(specializationIds.isEmpty() ? null : specializationIds.get(0));
-        }
+         return tutorDto;
 
-        return tutorDto;
-    }
+     }
 }
