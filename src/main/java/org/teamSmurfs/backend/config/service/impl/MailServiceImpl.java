@@ -64,7 +64,7 @@ public class MailServiceImpl implements MailService {
 
     private String buildAllocationEmailBody(String role, String tutorName, String studentName) {
         String roleSpecificContent = role.equals("TUTOR")
-                ? String.format("You have been allocated a new student: %s.", studentName)
+                ? String.format("You have been allocated the following student(s): %s.", studentName)
                 : String.format("You have been allocated to a new tutor: %s.", tutorName);
 
         return String.format("""
