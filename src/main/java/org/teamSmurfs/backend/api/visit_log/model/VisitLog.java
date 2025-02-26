@@ -55,10 +55,10 @@ public class VisitLog {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String routeName;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String browserName;
 
     @CreationTimestamp

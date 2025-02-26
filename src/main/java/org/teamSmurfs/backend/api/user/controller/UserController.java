@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.teamSmurfs.backend.config.service.MailService;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +35,8 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+
+    private final MailService mailService;
 
     /**
      * Creates a new user with the provided details.
@@ -74,6 +77,7 @@ public class UserController {
     ) throws Exception {
 
         log.info("Updating user with ID: {}", id);
+        System.out.println("Received ID from URL: " + id);
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
@@ -246,5 +250,12 @@ public class UserController {
                 .message("User count retrieved Successfully")
                 .build();
         return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    //To run immediately for testing
+    @GetMapping("/notify")
+    public ResponseEntity<String> testNotification() {
+        mailService.notifyInactiveUsers();
+        return ResponseEntity.ok("Notification task executed manually!");
     }
 }
