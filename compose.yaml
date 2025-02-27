@@ -40,3 +40,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    volumes:
+      - mysqldata:/var/lib/mysql
+volumes:
+  mysqldata:
+    driver: "local"
