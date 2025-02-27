@@ -185,7 +185,7 @@ public class MailServiceImpl implements MailService {
         """, email, password);
     }
 
-    @Scheduled(cron = "0 00 01 * * ?")  // Runs daily at 12:24 AM - Adjust if needed
+    @Scheduled(cron = "0 00 00 * * ?")  // Runs daily at 12:24 AM - Adjust if needed
     public void notifyInactiveUsers() {
         LocalDateTime cutoffDate = LocalDateTime.now().minus(28, ChronoUnit.DAYS);
         List<User> inactiveUsers = visitLogRepository.findInactiveUsers(cutoffDate);
