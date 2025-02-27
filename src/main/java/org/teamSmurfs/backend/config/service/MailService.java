@@ -10,5 +10,6 @@ public interface MailService {
 
     void sendUserCredentialsEmail(String email, String rawPassword);
 
-    void sendAllocationEmail(String email, String role, String tutorName, String studentName);
+    void sendAllocationEmail(String email, String role, String tutorName, String studentName);    
+
 }
