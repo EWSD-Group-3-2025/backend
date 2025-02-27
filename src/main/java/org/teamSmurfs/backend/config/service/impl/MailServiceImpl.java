@@ -14,6 +14,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.user.model.User;
+import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.api.visit_log.repository.VisitLogRepository;
 import org.teamSmurfs.backend.config.service.MailService;
 
@@ -29,6 +30,8 @@ public class MailServiceImpl implements MailService {
     private final JavaMailSender mailSender;
 
     private final VisitLogRepository visitLogRepository;
+
+    private final UserRepository userRepository;;
 
     @Override
     public void sendMail(String to, String subject, String body) {
@@ -182,26 +185,32 @@ public class MailServiceImpl implements MailService {
         """, email, password);
     }
 
-    @Scheduled(cron = "0 24 00 * * ?")  // Runs daily at night 12AM - you can adjust
+    @Scheduled(cron = "0 00 01 * * ?")  // Runs daily at 12:24 AM - Adjust if needed
     public void notifyInactiveUsers() {
         LocalDateTime cutoffDate = LocalDateTime.now().minus(28, ChronoUnit.DAYS);
         List<User> inactiveUsers = visitLogRepository.findInactiveUsers(cutoffDate);
 
-        try {
-            String subject = "Notify that You are not active - Team Smurfs E-Tutoring";
-            String emailBody = this.buildNotifyInactiveUsersBody();
-            for (User user : inactiveUsers) {
-                this.sendMail(user.getEmail(), subject, emailBody);
-            }
-
-            log.info("Inactive user notification process completed. {} users notified.", inactiveUsers.size());
-
-        } catch (Exception e) {
-            log.error("Failed to send Notify Inactive Users email: {}", e.getMessage());
-            throw new RuntimeException("Failed to send inactive users notify email", e);
+        if (inactiveUsers.isEmpty()) {
+            log.info("No inactive users found for notification.");
+            return;
         }
 
+        String subject = "Notify that You are not active - Team Smurfs E-Tutoring";
+        String emailBody = this.buildNotifyInactiveUsersBody();
+
+        for (User user : inactiveUsers) {
+            try {
+                this.sendMail(user.getEmail(), subject, emailBody);
+                user.setInactive(true); // Mark user as inactive
+                userRepository.save(user); // Save changes to DB
+            } catch (Exception e) {
+                log.error("Failed to send email to user {}: {}", user.getEmail(), e.getMessage());
+            }
+        }
+
+        log.info("Inactive user notification process completed. {} users notified.", inactiveUsers.size());
     }
+
 
     private String buildNotifyInactiveUsersBody() {
         return String.format("""
