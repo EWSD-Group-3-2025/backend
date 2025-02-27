@@ -2,11 +2,13 @@ package org.teamSmurfs.backend.api.event.serviceimpl;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
+import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
 import org.teamSmurfs.backend.api.event.dto.CreateEventRequest;
 import org.teamSmurfs.backend.api.event.dto.EventDto;
 import org.teamSmurfs.backend.api.event.dto.UpdateEventRequest;
@@ -33,7 +35,9 @@ public class EventServiceImpl implements EventService{
 	private final EventRepository eventRepository;
 	private final UserRepository userRepository;
 	private final TutorRepository tutorRepository;
+	private final AllocationRepository allocationRepository;
 	private final ModelMapper modelMapper;
+	private final MailService mailService;
 	
 	@Override
 	public void createEvent(CreateEventRequest eventRequest) throws Exception {
@@ -54,7 +58,11 @@ public class EventServiceImpl implements EventService{
 	            		event.getEnddate()
 	            ))
 	            .map(eventRepository::save)
-	            .orElseThrow(() -> new IllegalArgumentException("Invalid Event request"));
+	            .orElseThrow(() -> new IllegalArgumentException("Invalid Event request"));	    
+	    
+	    List<Allocation> allocations = allocationRepository.findByTutorId(tutor.getId());
+	    
+	    sendEventEmails(allocations, tutor);
 	    }catch(Exception e){
 	    	log.error("Error Creating Event: ", e);
             throw new RuntimeException(e.getMessage());
@@ -115,6 +123,22 @@ public class EventServiceImpl implements EventService{
             throw new RuntimeException("Error Deleting Event :" + e.getMessage());
 		}	
 	}
+	
+	private void sendEventEmails(List<Allocation> allocations, Tutor tutor) {
+        String tutorName = tutor.getUser().getName();
+
+        String studentNames = allocations.stream()
+                .map(allocation -> allocation.getStudent().getUser().getName())
+                .collect(Collectors.joining(", "));
+
+        mailService.sendEventEmail(tutor.getUser().getEmail(), "TUTOR", tutorName, studentNames);
+
+        for (Allocation allocation : allocations) {
+            Student student = allocation.getStudent();
+            String studentName = student.getUser().getName();
+            mailService.sendEventEmail(student.getUser().getEmail(), "STUDENT", tutorName, studentName);
+        }
+    }
 	
 	private EventDto mapToDto(final Event event) {
         EventDto eventDto = modelMapper.map(event, EventDto.class);
