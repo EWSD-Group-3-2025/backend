@@ -16,4 +16,6 @@ public interface MailService {
 
     void notifyInactiveUsers();
 
+	void sendEventEmail(String email, String role, String tutorName, String studentName);
+
 }
