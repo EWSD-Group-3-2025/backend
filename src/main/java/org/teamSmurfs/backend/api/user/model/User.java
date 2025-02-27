@@ -65,7 +65,7 @@ public class User {
     private Tutor tutor;
 
     @Column(name = "inactive", nullable = false)
-    private boolean inactive = true;
+    private boolean inactive = false;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
