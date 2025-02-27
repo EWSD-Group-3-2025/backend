@@ -92,12 +92,15 @@ public class AllocationServiceImpl implements AllocationService {
     private void sendAllocationEmails(List<Allocation> allocations, Tutor tutor) {
         String tutorName = tutor.getUser().getName();
 
-        mailService.sendAllocationEmail(tutor.getUser().getEmail(), "TUTOR", tutorName,
-                allocations.size() + " new student(s)");
+        String studentNames = allocations.stream()
+                .map(allocation -> allocation.getStudent().getUser().getName())
+                .collect(Collectors.joining(", "));
+
+        mailService.sendAllocationEmail(tutor.getUser().getEmail(), "TUTOR", tutorName, studentNames);
 
         for (Allocation allocation : allocations) {
             Student student = allocation.getStudent();
-            String studentName = student.getUser().getName() + " " + student.getUser().getName();
+            String studentName = student.getUser().getName();
             mailService.sendAllocationEmail(student.getUser().getEmail(), "STUDENT", tutorName, studentName);
         }
     }
