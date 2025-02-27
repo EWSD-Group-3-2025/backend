@@ -19,7 +19,7 @@ public class StudentDto {
 	 private String roleName;
 	 private Long roleId;
 	 private Long courseId;
-	 private String course;
+	 private String courseName;
 	 private Boolean status;
 	 private LocalDateTime createdAt;
 	 private Long allocateTutorId;

@@ -18,7 +18,7 @@ public class StaffDto {
     private String username;
     private String roleName;
     private Long roleId;
-    private String department;
+    private String departmentName;
     private Long departmentId;
     private Boolean status;
     private LocalDateTime createdAt;

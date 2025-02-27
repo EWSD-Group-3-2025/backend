@@ -226,6 +226,7 @@ public class UserServiceImpl implements UserService {
                 // Update department if changed
                 Department department = EntityUtil.getEntityById(this.departmentRepository, updateUserRequest.getDepartmentId());
                 existingUser.getStaff().setDepartment(department);  // Assuming a one-to-one relation between Staff and User
+                existingUser.getStaff().setAdmin(updateUserRequest.isAdmin());
                 staffRepository.save(existingUser.getStaff());
                 log.info("User's department updated to: {}", department.getName());
             }

@@ -1,10 +1,6 @@
 package org.teamSmurfs.backend.api.user.dto;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Component;
-import org.teamSmurfs.backend.api.specialization.model.Specialization;
 import org.teamSmurfs.backend.api.user.model.Tutor;
 import org.teamSmurfs.backend.api.user.model.User;
 
@@ -36,7 +32,7 @@ public class TutorMapper {
              String specializationName = tutor.getSpecialization().getName();
              Long specializationId = tutor.getSpecialization().getId();
 
-             tutorDto.setSpecialization(specializationName);
+             tutorDto.setSpecializationName(specializationName);
              tutorDto.setSpecializationId(specializationId);
          }
 
