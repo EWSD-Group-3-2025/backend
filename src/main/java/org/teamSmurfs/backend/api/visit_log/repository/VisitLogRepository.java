@@ -14,6 +14,8 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
     SELECT v.user FROM VisitLog v
     WHERE v.createdAt = (SELECT MAX(v2.createdAt) FROM VisitLog v2 WHERE v2.user = v.user)
     AND v.createdAt < :cutoffDate
+    AND v.user.inactive = false
+    AND v.user.status = true
 """)
     List<User> findInactiveUsers(LocalDateTime cutoffDate);
 }

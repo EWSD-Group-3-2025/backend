@@ -250,4 +250,10 @@ public class UserController {
                 .build();
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
+
+    @PostMapping("/mail")
+    public ResponseEntity<String> testNotifyInactiveUsers() {
+        mailService.notifyInactiveUsers(); // Call the scheduled method manually
+        return ResponseEntity.ok("Inactive user notification test triggered successfully.");
+    }
 }
