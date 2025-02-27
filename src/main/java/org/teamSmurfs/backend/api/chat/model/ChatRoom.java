@@ -1,5 +1,6 @@
 package org.teamSmurfs.backend.api.chat.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,6 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "chat_rooms")
+@EqualsAndHashCode(exclude = {"participants"})
 public class ChatRoom {
 
     @Id
@@ -28,6 +30,7 @@ public class ChatRoom {
             joinColumns = @JoinColumn(name = "chatroom_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
+    @JsonManagedReference
     private Set<User> participants = new HashSet<>();
 
     @Column(nullable = false, unique = true)
