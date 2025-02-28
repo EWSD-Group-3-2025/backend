@@ -23,4 +23,5 @@ public class StaffDto {
     private Boolean status;
     private LocalDateTime createdAt;
     private boolean admin;
+    private Integer gender;
 }

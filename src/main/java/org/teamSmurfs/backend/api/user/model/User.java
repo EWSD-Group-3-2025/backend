@@ -73,6 +73,9 @@ public class User {
     @Column(name = "inactive", nullable = false)
     private boolean inactive = false;
 
+    @Column(nullable = false)
+    private Integer gender;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

@@ -117,17 +117,22 @@ public class UserServiceImpl implements UserService {
 
             String rawPassword = PasswordGeneratorUtil.generatePassword();
 
+            Gender gender = Gender.fromInt(createUserRequest.getGender());
+            if (gender == Gender.INVALID) {
+                throw new IllegalArgumentException("Invalid gender value provided.");
+            }
+
             User newUser = User.builder()
                     .name(createUserRequest.getName())
                     .username(createUserRequest.getUsername())
                     .email(createUserRequest.getEmail())
                     .password(passwordEncoder.encode(rawPassword))
                     .roles(Set.of(userRole))
+                    .gender(gender.getValue())
                     .build();
 
             userRepository.save(newUser);
 
-            // You can log the user details if necessary
             log.info("User created successfully with ID: {}", newUser.getId());
 
             if (userRole.getName().equals(RoleName.ROLE_ADMIN)) {

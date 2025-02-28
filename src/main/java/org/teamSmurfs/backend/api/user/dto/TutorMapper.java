@@ -21,6 +21,7 @@ public class TutorMapper {
                 .username(user.getUsername())
                 .status(user.isStatus())
                 .createdAt(user.getCreatedAt())
+                .gender(user.getGender())
                 .build();
 
         user.getRoles().stream().findFirst().ifPresent(roleEntity -> {
