@@ -3,6 +3,7 @@ package org.teamSmurfs.backend.api.visit_log.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.teamSmurfs.backend.api.user.model.User;
+import org.teamSmurfs.backend.api.visit_log.dto.VisitLogDto;
 import org.teamSmurfs.backend.api.visit_log.model.VisitLog;
 
 import java.time.LocalDateTime;
@@ -18,4 +19,12 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
     AND v.user.status = true
 """)
     List<User> findInactiveUsers(LocalDateTime cutoffDate);
+
+    @Query("""
+    SELECT new org.teamSmurfs.backend.api.visit_log.dto.VisitLogDto(
+        v.routeName, v.browserName, v.user.username
+    )\s
+    FROM VisitLog v
+""")
+    List<VisitLogDto> findAllVisitLogsWithUsername();
 }

@@ -23,4 +23,5 @@ public class StudentDto {
 	 private Boolean status;
 	 private LocalDateTime createdAt;
 	 private Long allocateTutorId;
+	 private Integer gender;
 }

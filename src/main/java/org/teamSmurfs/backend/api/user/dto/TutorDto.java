@@ -22,4 +22,5 @@ public class TutorDto {
     private Long specializationId;
     private Boolean status;
     private LocalDateTime createdAt;
+    private Integer gender;
 }

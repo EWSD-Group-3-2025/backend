@@ -8,6 +8,7 @@ import org.teamSmurfs.backend.api.allocation.dto.CreateAllocationRequest;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
 import org.teamSmurfs.backend.api.allocation.service.AllocationService;
+import org.teamSmurfs.backend.api.chat.service.ChatService;
 import org.teamSmurfs.backend.api.user.model.Student;
 import org.teamSmurfs.backend.api.user.model.Tutor;
 import org.teamSmurfs.backend.api.user.model.User;
@@ -33,6 +34,7 @@ public class AllocationServiceImpl implements AllocationService {
     private final TutorRepository tutorRepository;
     private final UserRepository userRepository;
     private final MailService mailService;
+    private final ChatService chatService;
 
     @Override
     @Transactional
@@ -55,6 +57,12 @@ public class AllocationServiceImpl implements AllocationService {
 
         List<Allocation> savedAllocations = allocationRepository.saveAll(allocations);
         log.info("Successfully allocated {} students to tutor {}", savedAllocations.size(), tutor.getId());
+
+        savedAllocations.forEach(allocation -> {
+            Long tutorId = allocation.getTutor().getUser().getId();
+            Long studentId = allocation.getStudent().getUser().getId();
+            chatService.createOrGetChatRoom(tutorId, studentId);
+        });
 
         sendAllocationEmails(savedAllocations, tutor);
     }
