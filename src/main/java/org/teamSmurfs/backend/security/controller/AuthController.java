@@ -124,12 +124,15 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse> getCurrentUser(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<ApiResponse> getCurrentUser(
+            @RequestHeader("Authorization") final String authHeader,
+            @RequestParam(required = false) final String routeName,
+            @RequestParam(required = false) final String browserName,
             HttpServletRequest request) {
         log.info("Fetching current authenticated user");
 
         double requestStartTime = System.currentTimeMillis();
-        ApiResponse response = authService.getCurrentUser(authHeader);
+        ApiResponse response = authService.getCurrentUser(authHeader, routeName, browserName);
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }

@@ -4,8 +4,6 @@
  * @Time : 11:41 PM
  */
 package org.teamSmurfs.backend.api.user.service.impl;
-
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +22,9 @@ import org.teamSmurfs.backend.api.student_course.repository.StudentCourseReposit
 import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.token.repository.TokenRepository;
 import org.teamSmurfs.backend.api.user.dto.CreateUserRequest;
+import org.teamSmurfs.backend.api.user.dto.UpdateUserRequest;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
+import org.teamSmurfs.backend.api.user.dto.UserMapper;
 import org.teamSmurfs.backend.api.user.model.*;
 import org.teamSmurfs.backend.api.user.repository.*;
 import org.teamSmurfs.backend.api.user.service.UserService;
@@ -54,6 +54,7 @@ public class UserServiceImpl implements UserService {
     private final StudentRepository studentRepository;
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserUtil userUtil;
     private final TokenRepository tokenRepository;
@@ -65,14 +66,21 @@ public class UserServiceImpl implements UserService {
     private final MailService mailService;
 
     @Override
-    public List<UserDto> retrieveUsers(final String role) throws Exception {
+    public List<Object> retrieveUsers(final String role) throws Exception {
         try {
             log.info("Fetching all users from the database with role {}", role);
 
             List<User> users;
 
             if (role.equalsIgnoreCase("all")) {
-                users = userRepository.findAll();
+                users = userRepository.findAllByOrderByCreatedAtDesc();
+            } else if (role.equalsIgnoreCase("admin")) {
+                users = userRepository.findUsersWithAdminRole();
+
+                users.forEach(user -> {
+                    Set<Role> roles = new HashSet<>(roleRepository.findRolesByUserId(user.getId()));
+                    user.setRoles(roles);
+                });
             } else {
                 String roleNameString = role.startsWith("ROLE_") ? role : "ROLE_" + role;
                 users = userRepository.findByRoleName(roleNameString.toUpperCase());
@@ -83,19 +91,10 @@ public class UserServiceImpl implements UserService {
                 return Collections.emptyList();
             }
 
-            List<UserDto> userList = users.stream()
-                    .map(user -> {
-                        UserDto userDto = modelMapper.map(user, UserDto.class);
-                        userDto.setRoleName(user.getRoles().stream()
-                                .findFirst()
-                                .map(roleEntity -> roleEntity.getName().name().replaceFirst("^ROLE_", ""))
-                                .orElse(null));
-                        return userDto;
-                    })
-                    .collect(Collectors.toList());
+            List<Object> userDtos = users.stream().map(userMapper::mapToDto).collect(Collectors.toList());
 
-            log.info("Successfully retrieved {} users", userList.size());
-            return userList;
+            log.info("Successfully retrieved {} users", userDtos.size());
+            return userDtos;
 
         } catch (Exception e) {
             log.error("Error retrieving users", e);
@@ -104,7 +103,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Object createUser(CreateUserRequest createUserRequest) throws Exception {
+    public void createUser(CreateUserRequest createUserRequest) throws Exception {
         try {
             log.info("Creating new user with email: {}", createUserRequest.getEmail());
 
@@ -118,16 +117,23 @@ public class UserServiceImpl implements UserService {
 
             String rawPassword = PasswordGeneratorUtil.generatePassword();
 
+            Gender gender = Gender.fromInt(createUserRequest.getGender());
+            if (gender == Gender.INVALID) {
+                throw new IllegalArgumentException("Invalid gender value provided.");
+            }
+
             User newUser = User.builder()
                     .name(createUserRequest.getName())
                     .username(createUserRequest.getUsername())
                     .email(createUserRequest.getEmail())
                     .password(passwordEncoder.encode(rawPassword))
                     .roles(Set.of(userRole))
+                    .gender(gender.getValue())
                     .build();
 
             userRepository.save(newUser);
-            UserDto userDto = modelMapper.map(newUser, UserDto.class);
+
+            log.info("User created successfully with ID: {}", newUser.getId());
 
             if (userRole.getName().equals(RoleName.ROLE_ADMIN)) {
                 Staff newStaff = new Staff();
@@ -136,31 +142,26 @@ public class UserServiceImpl implements UserService {
                 newStaff.setDepartment(department);
                 newStaff.setAdmin(true);
                 staffRepository.save(newStaff);
-                userDto.setDepartment(department.getName());
+                log.info("Admin assigned to department: {}", department.getName());
 
-            }
-            else if (userRole.getName().equals(RoleName.ROLE_STAFF)) {
+            } else if (userRole.getName().equals(RoleName.ROLE_STAFF)) {
                 Staff newStaff = new Staff();
                 newStaff.setUser(newUser);
                 Department department = EntityUtil.getEntityById(this.departmentRepository, createUserRequest.getDepartmentId());
                 newStaff.setDepartment(department);
                 staffRepository.save(newStaff);
-                userDto.setDepartment(department.getName());
-            }
-            else if (userRole.getName().equals(RoleName.ROLE_TUTOR)) {
+                log.info("Staff assigned to department: {}", department.getName());
+            } else if (userRole.getName().equals(RoleName.ROLE_TUTOR)) {
                 Tutor newTutor = new Tutor();
                 newTutor.setUser(newUser);
                 Specialization specialization = specializationRepository.findById(createUserRequest.getSpecializationId())
                         .orElseThrow(() -> new RuntimeException("Specialization not found"));
 
-                newTutor.setSpecializations(Set.of(specialization)); // If you want to map the Specialization as an entity.
-
+                newTutor.setSpecialization(specialization);
                 tutorRepository.save(newTutor);
 
-                userDto.setSpecialization(specialization.getName());
-
-            }
-            else {
+                log.info("Tutor assigned to specialization: {}", specialization.getName());
+            } else {
                 Student newStudent = new Student();
                 newStudent.setUser(newUser);
                 studentRepository.save(newStudent);
@@ -171,7 +172,7 @@ public class UserServiceImpl implements UserService {
                 studentCourseRepository.save(newStudentCourse);
 
                 Optional<Course> course = courseRepository.findById(newStudentCourse.getCourseId());
-                userDto.setCourse(course.map(Course::getName).orElse("Unknown Course"));
+                log.info("Student enrolled in course: {}", course.map(Course::getName).orElse("Unknown Course"));
             }
 
             Map<String, Object> tokenData = authUtil.generateTokens(newUser, String.valueOf(userRole.getName()));
@@ -190,114 +191,91 @@ public class UserServiceImpl implements UserService {
 
             this.mailService.sendUserCredentialsEmail(newUser.getEmail(), rawPassword);
 
-            log.info("User created successfully with ID: {}", newUser.getId());
+            log.info("User credentials sent to email.");
 
-            userDto.setRoleName(newUser.getRoles().stream()
-                    .findFirst()
-                    .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
-                    .orElse(null));
-            return userDto;
         } catch (DuplicateEntityException e) {
             throw e;
         } catch (Exception e) {
+            log.error("Error creating user: ", e);
             throw new Exception(e.getMessage());
         }
     }
 
-//    @Override
-//    public Object updateUser(Long userId, UserDto userDto) throws Exception {
-//        try {
-//            log.info("Updating user with ID: {}", userId);
-//
-//            User existingUser = userRepository.findById(userId)
-//                    .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
-//
-//            // Check if email is being updated and already exists
-//            if (!existingUser.getEmail().equals(userDto.getEmail()) && userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-//                log.warn("Email already exists: {}", userDto.getEmail());
-//                throw new DuplicateEntityException("Email: " + userDto.getEmail() + " is already in use");
-//            }
-//
-//            // Update user properties
-//            existingUser.setName(userDto.getName());
-//            existingUser.setUsername(userDto.getUsername());
-//            existingUser.setEmail(userDto.getEmail());
-//
-//            Role updatedRole = EntityUtil.getEntityById(roleRepository, userDto.getRoleId());
-//            existingUser.setRoles(Set.of(updatedRole));
-//
-//            userRepository.save(existingUser);
-//
-//            // Convert updated user to DTO
-//            UserDto updatedUserDto = modelMapper.map(existingUser, UserDto.class);
-//
-//            // Handle role-based updates
-//            if (updatedRole.getName().equals(RoleName.ROLE_ADMIN)) {
-//                Staff staff = staffRepository.findByUser(existingUser)
-//                        .orElseGet(() -> new Staff()); // Create if not exists
-//
-//                staff.setUser(existingUser);
-//                Department department = EntityUtil.getEntityById(departmentRepository, userDto.getDepartmentId());
-//                staff.setDepartment(department);
-//                staff.setAdmin(true);
-//                staffRepository.save(staff);
-//                updatedUserDto.setDepartment(department.getName());
-//            }
-//            else if (updatedRole.getName().equals(RoleName.ROLE_STAFF)) {
-//                Staff staff = staffRepository.findByUser(existingUser)
-//                        .orElseGet(() -> new Staff());
-//
-//                staff.setUser(existingUser);
-//                Department department = EntityUtil.getEntityById(departmentRepository, userDto.getDepartmentId());
-//                staff.setDepartment(department);
-//                staff.setAdmin(false);
-//                staffRepository.save(staff);
-//                updatedUserDto.setDepartment(department.getName());
-//            }
-//            else if (updatedRole.getName().equals(RoleName.ROLE_TUTOR)) {
-//                Tutor tutor = tutorRepository.findByUser(existingUser)
-//                        .orElseGet(() -> new Tutor());
-//
-//                tutor.setUser(existingUser);
-//                Specialization specialization = specializationRepository.findById(userDto.getSpecializationId())
-//                        .orElseThrow(() -> new RuntimeException("Specialization not found"));
-//
-//                tutor.setSpecializations(Set.of(specialization));
-//                tutorRepository.save(tutor);
-//                updatedUserDto.setSpecialization(specialization.getName());
-//            }
-//            else {
-//                Student student = studentRepository.findByUser(existingUser)
-//                        .orElseGet(() -> new Student());
-//
-//                student.setUser(existingUser);
-//                studentRepository.save(student);
-//
-//                StudentCourse studentCourse = studentCourseRepository.findByStudentId(student.getId())
-//                        .orElseGet(() -> new StudentCourse());
-//
-//                studentCourse.setStudentId(student.getId());
-//                studentCourse.setCourseId(userDto.getCourseId());
-//                studentCourseRepository.save(studentCourse);
-//
-//                Optional<Course> course = courseRepository.findById(studentCourse.getCourseId());
-//                updatedUserDto.setCourse(course.map(Course::getName).orElse("Unknown Course"));
-//            }
-//
-//            log.info("User updated successfully with ID: {}", existingUser.getId());
-//
-//            updatedUserDto.setRoleName(existingUser.getRoles().stream()
-//                    .findFirst()
-//                    .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
-//                    .orElse(null));
-//
-//            return updatedUserDto;
-//        } catch (EntityNotFoundException | DuplicateEntityException e) {
-//            throw e;
-//        } catch (Exception e) {
-//            throw new Exception(e.getMessage());
-//        }
-//    }
+    @Override
+    public void updateUser(Long userId, UpdateUserRequest updateUserRequest) throws Exception {
+        try {
+            log.info("Updating user with ID: {}", userId);
+
+            // Fetch the existing user by ID
+            User existingUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Check if email is being updated and is already taken
+            if (!existingUser.getEmail().equals(updateUserRequest.getEmail()) &&
+                    userRepository.findByEmail(updateUserRequest.getEmail()).isPresent()) {
+                log.warn("Email already exists: {}", updateUserRequest.getEmail());
+                throw new DuplicateEntityException("Email: " + updateUserRequest.getEmail() + " is already in use");
+            }
+
+            // Update user fields
+            existingUser.setName(updateUserRequest.getName());
+            existingUser.setEmail(updateUserRequest.getEmail());
+
+            // Save the updated user
+            userRepository.save(existingUser);
+            log.info("User with ID: {} updated successfully.", existingUser.getId());
+
+            // Handling role and other associations
+            Role newRole = EntityUtil.getEntityById(roleRepository, updateUserRequest.getRoleId());
+            if (!existingUser.getRoles().contains(newRole)) {
+                existingUser.setRoles(Set.of(newRole));
+                userRepository.save(existingUser);
+                log.info("User role updated to: {}", newRole.getName());
+            }
+
+            // Handle additional entity associations (e.g., Staff, Tutor, Student)
+            if (newRole.getName().equals(RoleName.ROLE_ADMIN) || newRole.getName().equals(RoleName.ROLE_STAFF)) {
+                // Update department if changed
+                Department department = EntityUtil.getEntityById(this.departmentRepository, updateUserRequest.getDepartmentId());
+                existingUser.getStaff().setDepartment(department);  // Assuming a one-to-one relation between Staff and User
+                existingUser.getStaff().setAdmin(updateUserRequest.isAdmin());
+                staffRepository.save(existingUser.getStaff());
+                log.info("User's department updated to: {}", department.getName());
+            }
+
+            if (newRole.getName().equals(RoleName.ROLE_TUTOR)) {
+                // Update specialization if needed
+                Specialization specialization = specializationRepository.findById(updateUserRequest.getSpecializationId())
+                        .orElseThrow(() -> new RuntimeException("Specialization not found"));
+                Tutor tutor = existingUser.getTutor();
+                tutor.setSpecialization(specialization);
+                tutorRepository.save(tutor);
+                log.info("User's specialization updated to: {}", specialization.getName());
+            }
+
+            // Handle Student and their course associations
+            if (newRole.getName().equals(RoleName.ROLE_STUDENT)) {
+                Student student = existingUser.getStudent();
+                if (student != null) {
+                    StudentCourse studentCourse = studentCourseRepository.findByStudentId(student.getId())
+                            .orElseThrow(() -> new RuntimeException("StudentCourse not found for student ID: " + student.getId()));
+
+                    studentCourse.setCourseId(updateUserRequest.getCourseId());
+                    studentCourseRepository.save(studentCourse);
+
+                    Optional<Course> course = courseRepository.findById(updateUserRequest.getCourseId());
+                    log.info("Student's course updated to: {}", course.map(Course::getName).orElse("Unknown Course"));
+                }
+            }
+
+        } catch (RuntimeException e) {
+            log.error("Error updating user with ID: {}", userId, e);
+            throw new Exception("User update failed: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error while updating user with ID: {}", userId, e);
+            throw new Exception("Unexpected error: " + e.getMessage());
+        }
+    }
 
 
     @Override
@@ -330,17 +308,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto retrieveOne(Long id) {
+    public Object retrieveOne(Long id) {
         log.info("Fetching user details for ID: {}", id);
 
         User user = EntityUtil.getEntityById(userRepository, id);
 
-        UserDto userDto = modelMapper.map(user, UserDto.class);
-
-        userDto.setRoleName(user.getRoles().stream()
-                .findFirst()
-                .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
-                .orElse(null));
+        Object userDto = userMapper.mapToDto(user);
 
         log.info("Successfully retrieved user with ID: {}", id);
 

@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.specialization.model.Specialization;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -23,20 +26,30 @@ public class Tutor {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "tutor_specialization",
-            joinColumns = @JoinColumn(name = "tutor_id"),
-            inverseJoinColumns = @JoinColumn(name = "specialization_id")
-    )
-    private Set<Specialization> specializations;
+//    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+//    @JoinTable(
+//            name = "tutor_specialization",
+//            joinColumns = @JoinColumn(name = "tutor_id"),
+//            inverseJoinColumns = @JoinColumn(name = "specialization_id")
+//    )
+//    private Set<Specialization> specializations;
 
     @OneToMany(mappedBy = "tutor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Allocation> allocations;
 
-    public Tutor(final User user, final Specialization Specializations, final boolean admin) {
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    public Tutor(final User user, final Specialization specialization, final boolean admin) {
         this.user = user;
-        this.specializations = specializations;
+        this.specialization = specialization;
     }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "specialization_id", nullable = false)
+    private Specialization specialization;
 
 }

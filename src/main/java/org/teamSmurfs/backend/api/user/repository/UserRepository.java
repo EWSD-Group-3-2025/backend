@@ -39,14 +39,25 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "SELECT u.* FROM user u " +
             "JOIN user_roles ur ON u.id = ur.user_id " +
             "JOIN role r ON ur.role_id = r.id " +
-            "WHERE r.name = :roleName", nativeQuery = true)
+            "WHERE r.name = :roleName ORDER BY u.created_at DESC", nativeQuery = true)
     List<User> findByRoleName(String roleName);
     
     List<User> findByUsername(String staff1);
     
     @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
-    List<User> findAll();
+    List<User> findAllByOrderByCreatedAtDesc();
     
     @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
     Optional<User> findById(Long id);
+
+    @Query(value = """
+        SELECT u.* FROM staff s
+        LEFT JOIN user u ON u.id = s.user_id
+        LEFT JOIN user_roles ur ON ur.user_id = u.id   
+        LEFT JOIN role r ON r.id = ur.role_id
+        WHERE s.is_admin = true AND r.name = 'ROLE_ADMIN'
+        ORDER BY u.created_at DESC
+    """, nativeQuery = true)
+    List<User> findUsersWithAdminRole();
+
 }

@@ -21,8 +21,12 @@ import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.api.user.utils.UserUtil;
+import org.teamSmurfs.backend.api.visit_log.model.VisitLog;
+import org.teamSmurfs.backend.api.visit_log.service.VisitLogService;
+import org.teamSmurfs.backend.config.exception.TokenExpiredException;
 import org.teamSmurfs.backend.config.exception.UnauthorizedException;
 import org.teamSmurfs.backend.config.utils.DtoUtil;
+import org.teamSmurfs.backend.config.utils.EntityUtil;
 import org.teamSmurfs.backend.security.dto.LoginRequest;
 import org.teamSmurfs.backend.security.dto.RegisterRequest;
 import org.teamSmurfs.backend.security.dto.UpdateUserResponseDto;
@@ -40,7 +44,9 @@ import org.teamSmurfs.backend.security.utils.OtpUtils.OtpData;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,6 +64,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserUtil userUtil;
     private final MailService mailService;
     private final AuthUtil authUtil;
+    private final VisitLogService visitLogService;
 
     private final Map<String, OtpData> otpStore = new ConcurrentHashMap<>();
     private String emailInProcess;
@@ -92,15 +99,39 @@ public class AuthServiceImpl implements AuthService {
 
         userDto.setRoleName(roleName);
 
-        Token refreshToken = tokenRepository.findByUser(user)
-                .orElseThrow(() -> {
-                    log.warn("Token not found for user: {}", loginRequest.getEmail());
-                    return new UnauthorizedException("Token not found for user");
-                });
+        Token refreshToken;
+        Optional<Token> refreshTokenOptional = tokenRepository.findByUserAndExpiredAtAfter(user, Instant.now());
+        if (refreshTokenOptional.isPresent()) {
+            log.info("Valid refresh token found for user: {}", loginRequest.getEmail());
+            refreshToken = refreshTokenOptional.get();
+        } else {
+            log.info("Refresh token expired or not found for user: {}, generating new token", loginRequest.getEmail());
+            Map<String, Object> tokenData = authUtil.generateTokens(user, roleName);
+            String newRefreshToken = (String) tokenData.get("refreshToken");
+
+            Instant newExpiryDate = Instant.now().plusSeconds(7 * 24 * 60 * 60);
+
+            refreshToken = Token.builder()
+                    .refreshtoken(newRefreshToken)
+                    .expiredAt(newExpiryDate)
+                    .user(user)
+                    .build();
+
+            tokenRepository.save(refreshToken);
+        }
 
         Map<String, Object> tokenData = authUtil.generateTokens(user, roleName);
 
+        assert refreshTokenOptional.isPresent();
         TokenDto tokenDto = DtoUtil.map(refreshToken, TokenDto.class, modelMapper);
+
+        VisitLog visitLog = new VisitLog(
+                user,
+                "AFTER_LOGGED",
+                "something"
+        );
+
+        visitLogService.save(visitLog);
 
         return ApiResponse.builder()
                 .success(1)
@@ -200,11 +231,11 @@ public class AuthServiceImpl implements AuthService {
         Claims claims;
         try {
             claims = jwtService.validateToken(refreshToken);
-        } catch (UnauthorizedException ex) {
+        } catch (TokenExpiredException ex) {
             log.warn("Invalid refresh token: {}", ex.getMessage());
             return ApiResponse.builder()
                     .success(0)
-                    .code(HttpStatus.UNAUTHORIZED.value())
+                    .code(HttpStatus.FORBIDDEN.value())
                     .data(ex.getMessage())
                     .message("Invalid or expired refresh token")
                     .build();
@@ -215,12 +246,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (user == null) {
             log.warn("User not found for refresh token: {}", email);
-            return ApiResponse.builder()
-                    .success(0)
-                    .code(HttpStatus.UNAUTHORIZED.value())
-                    .data(false)
-                    .message("User not found")
-                    .build();
+            throw new UnauthorizedException("User not found for refresh token");
         }
 
         log.info("Generating new access token for user: {}", email);
@@ -243,8 +269,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ApiResponse getCurrentUser(String authHeader) {
+    public ApiResponse getCurrentUser(final String authHeader, final String routeName, final String browserName) {
         UserDto userDto = userUtil.getCurrentUserDto(authHeader);
+        User user = EntityUtil.getEntityById(userRepository, userDto.getId());
+
+        VisitLog visitLog = new VisitLog(
+                user,
+                routeName,
+                browserName
+        );
+
+        visitLogService.save(visitLog);
 
         return ApiResponse.builder()
                 .success(1)

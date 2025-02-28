@@ -41,7 +41,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid argument provided.", ex.getMessage(), request);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), "Invalid argument provided.", request);
     }
 
     /**
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ApiResponse> handleEntityNotFoundException(EntityNotFoundException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, "Entity not found.", ex.getMessage(), request);
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), "Entity not found.", request);
     }
 
     /**
@@ -65,7 +65,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(DuplicateEntityException.class)
     public ResponseEntity<ApiResponse> handleDuplicateEntityException(DuplicateEntityException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.CONFLICT, "Duplicate entity detected.", ex.getMessage(), request);
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), "Duplicate entity detected.", request);
     }
 
     /**
@@ -118,7 +118,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         assert httpServletRequest != null;
         ApiResponse errorResponse = ApiResponse.builder()
                 .success(0)
-                .code(status.value())
+                .code(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .message("Validation failed")
                 .data(errors)
                 .meta(Map.of(
@@ -140,7 +140,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ApiResponse> handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", ex.getMessage(), request);
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), "Unauthorized", request);
+    }
+
+    /**
+     * Handles UnauthorizedException, typically thrown when a request is made by an unauthenticated or unauthorized user.
+     *
+     * @param ex      the TokenExpiredException encountered.
+     * @param request the current HTTP request.
+     * @return a ResponseEntity containing the standardized ApiResponse with an HTTP 401 (Unauthorized) status.
+     */
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ApiResponse> handleTokenExpiredException(TokenExpiredException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.GONE, ex.getMessage(), "Token Expired", request);
+    }
+
+    @ExceptionHandler(EntityDeletionException.class)
+    public ResponseEntity<ApiResponse> handleEntityDeletionException(EntityDeletionException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), "Entity Deletion", request);
     }
 
     /**
@@ -152,7 +169,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.", ex.getMessage(), request);
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), "An unexpected error occurred.", request);
     }
 
     /**
