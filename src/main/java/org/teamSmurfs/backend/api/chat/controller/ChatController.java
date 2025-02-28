@@ -13,6 +13,8 @@ import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.teamSmurfs.backend.config.deprecated.DeprecatedRoute;
+
 import java.util.List;
 import java.util.Set;
 
@@ -24,6 +26,7 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping("/room")
+    @DeprecatedRoute(message = "This endpoint is deprecated. Use /new-endpoint instead.")
     public ResponseEntity<ApiResponse> createOrGetChatRoom(
             @RequestParam Long senderId,
             @RequestParam Long receiverId,
@@ -44,6 +47,7 @@ public class ChatController {
     }
 
     @PostMapping("/group")
+    @DeprecatedRoute(message = "This endpoint is deprecated. Use /new-endpoint instead.")
     public ResponseEntity<ApiResponse> createGroupChat(
             @RequestParam String groupName,
             @RequestBody Set<Long> participantIds,
@@ -64,6 +68,7 @@ public class ChatController {
     }
 
     @PostMapping("/{roomId}/message")
+    @DeprecatedRoute(message = "This endpoint is deprecated. Use /new-endpoint instead.")
     public ResponseEntity<ApiResponse> sendMessage(
             @PathVariable Long roomId,
             @RequestParam Long senderId,
