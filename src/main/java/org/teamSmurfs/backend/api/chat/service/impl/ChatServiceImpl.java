@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.teamSmurfs.backend.api.chat.dto.ChatMessageDto;
+import org.teamSmurfs.backend.api.chat.dto.ChatRoomData;
 import org.teamSmurfs.backend.api.chat.dto.ChatRoomDto;
 import org.teamSmurfs.backend.api.chat.model.ChatMessage;
 import org.teamSmurfs.backend.api.chat.model.ChatRoom;
@@ -27,60 +28,83 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional
-    public ChatRoomDto createOrGetChatRoom(Long senderId, Long receiverId) {
-        User sender = getUserById(senderId);
-        User receiver = getUserById(receiverId);
-        String roomKey = generateRoomKey(senderId, receiverId);
+    public ChatRoomDto createOrGetChatRoom(final Long senderId, final Long receiverId) {
+        User sender = this.getUserById(senderId);
+        User receiver = this.getUserById(receiverId);
+        String roomKey = this.generateRoomKey(senderId, receiverId);
 
-        ChatRoom chatRoom = chatRoomRepository.findByRoomKey(roomKey)
+        ChatRoom chatRoom = this.chatRoomRepository.findByRoomKey(roomKey)
                 .orElseGet(() -> createNewChatRoom(roomKey, Set.of(sender, receiver)));
 
-        return mapToChatRoomDto(chatRoom);
+        return this.mapToChatRoomDto(chatRoom);
     }
 
     @Override
     @Transactional
-    public ChatRoomDto createGroupChat(String groupName, Set<Long> participantIds) {
+    public ChatRoomDto createGroupChat(final String groupName, final Set<Long> participantIds) {
         Set<User> participants = participantIds.stream()
                 .map(this::getUserById)
                 .collect(Collectors.toSet());
 
-        ChatRoom chatRoom = chatRoomRepository.save(ChatRoom.builder()
+        ChatRoom chatRoom = this.chatRoomRepository.save(ChatRoom.builder()
                 .roomKey("GROUP_" + System.currentTimeMillis())
                 .participants(participants)
                 .build());
 
-        return mapToChatRoomDto(chatRoom);
+        return this.mapToChatRoomDto(chatRoom);
     }
 
     @Override
     @Transactional
-    public ChatMessageDto sendMessage(Long chatRoomId, Long senderId, String content) {
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+    public ChatMessageDto sendMessage(final Long chatRoomId, final Long senderId, final String content) {
+        ChatRoom chatRoom = this.chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("Chat Room not found"));
         User sender = getUserById(senderId);
 
-        ChatMessage message = chatMessageRepository.save(ChatMessage.builder()
+        ChatMessage message = this.chatMessageRepository.save(ChatMessage.builder()
                 .chatRoom(chatRoom)
                 .sender(sender)
                 .content(content)
                 .build());
 
-        return mapToChatMessageDto(message);
+        return this.mapToChatMessageDto(message);
     }
 
     @Override
-    public List<ChatMessageDto> getMessagesByChatRoom(Long chatRoomId) {
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+    public List<ChatMessageDto> getMessagesByChatRoom(final Long chatRoomId) {
+        ChatRoom chatRoom = this.chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("Chat Room not found"));
 
-        return chatMessageRepository.findByChatRoom(chatRoom).stream()
+        return this.chatMessageRepository.findByChatRoom(chatRoom).stream()
                 .map(this::mapToChatMessageDto)
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<ChatRoomData> retrieveChatRoomsByUserId(final Long userId) {
+        User currentUser = this.getUserById(userId);
+
+        List<ChatRoom> chatRooms = this.chatRoomRepository.findChatRoomsByUserId(userId);
+
+        return chatRooms.stream().map(chatRoom -> {
+            User receiver = chatRoom.getParticipants().stream()
+                    .filter(user -> !user.getId().equals(userId))
+                    .findFirst()
+                    .orElse(null);
+
+            return new ChatRoomData(
+                    currentUser.getId(),
+                    currentUser.getUsername(),
+                    receiver != null ? receiver.getId() : null,
+                    receiver != null ? receiver.getUsername() : null,
+                    chatRoom.getRoomKey(),
+                    chatRoom.getId()
+            );
+        }).collect(Collectors.toList());
+    }
+
     private User getUserById(Long userId) {
-        return userRepository.findById(userId)
+        return this.userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
@@ -89,7 +113,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private ChatRoom createNewChatRoom(String roomKey, Set<User> participants) {
-        return chatRoomRepository.save(ChatRoom.builder()
+        return this.chatRoomRepository.save(ChatRoom.builder()
                 .roomKey(roomKey)
                 .participants(participants)
                 .build());

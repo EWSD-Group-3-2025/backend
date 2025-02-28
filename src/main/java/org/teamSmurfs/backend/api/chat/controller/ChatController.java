@@ -5,8 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.teamSmurfs.backend.api.chat.dto.ChatMessageDto;
+import org.teamSmurfs.backend.api.chat.dto.ChatRoomData;
 import org.teamSmurfs.backend.api.chat.dto.ChatRoomDto;
 import org.teamSmurfs.backend.api.chat.service.ChatService;
+import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
 
@@ -27,7 +29,8 @@ public class ChatController {
             @RequestParam Long receiverId,
             HttpServletRequest request) {
 
-        double requestStartTime = System.currentTimeMillis();
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
         ChatRoomDto chatRoom = chatService.createOrGetChatRoom(senderId, receiverId);
 
         ApiResponse response = ApiResponse.builder()
@@ -46,7 +49,8 @@ public class ChatController {
             @RequestBody Set<Long> participantIds,
             HttpServletRequest request) {
 
-        double requestStartTime = System.currentTimeMillis();
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
         ChatRoomDto chatRoom = chatService.createGroupChat(groupName, participantIds);
 
         ApiResponse response = ApiResponse.builder()
@@ -66,7 +70,8 @@ public class ChatController {
             @RequestParam String content,
             HttpServletRequest request) {
 
-        double requestStartTime = System.currentTimeMillis();
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
         ChatMessageDto chatMessage = chatService.sendMessage(roomId, senderId, content);
 
         ApiResponse response = ApiResponse.builder()
@@ -79,12 +84,13 @@ public class ChatController {
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
 
-    @GetMapping("/{roomId}/messages")
+    @GetMapping("/rooms/{roomId}/messages")
     public ResponseEntity<ApiResponse> getMessagesByRoom(
             @PathVariable Long roomId,
             HttpServletRequest request) {
 
-        double requestStartTime = System.currentTimeMillis();
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
         List<ChatMessageDto> messages = chatService.getMessagesByChatRoom(roomId);
 
         ApiResponse response = ApiResponse.builder()
@@ -92,6 +98,26 @@ public class ChatController {
                 .code(HttpStatus.OK.value())
                 .data(messages)
                 .message("Messages retrieved successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @GetMapping("/rooms")
+    public ResponseEntity<ApiResponse> getRoomsByUserId(
+            @RequestParam(value = "userId") final Long userId,
+            final HttpServletRequest request
+    ) {
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        List<ChatRoomData> chatRoomList = this.chatService.retrieveChatRoomsByUserId(userId);
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(chatRoomList)
+                .message("Chat rooms retrieved successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
