@@ -55,7 +55,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         LEFT JOIN user u ON u.id = s.user_id
         LEFT JOIN user_roles ur ON ur.user_id = u.id   
         LEFT JOIN role r ON r.id = ur.role_id
-        WHERE s.is_admin = true AND r.name = 'ROLE_STAFF'
+        WHERE s.is_admin = true AND r.name = 'ROLE_ADMIN'
         ORDER BY u.created_at DESC
     """, nativeQuery = true)
     List<User> findUsersWithAdminRole();
