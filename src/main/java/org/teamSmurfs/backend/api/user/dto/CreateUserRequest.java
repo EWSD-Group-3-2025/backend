@@ -35,4 +35,6 @@ public class CreateUserRequest {
     private Long studentId;
 
     private Long departmentId;
+
+    private Integer gender;
 }

@@ -22,4 +22,6 @@ public class StaffDto {
     private Long departmentId;
     private Boolean status;
     private LocalDateTime createdAt;
+    private boolean admin;
+    private Integer gender;
 }

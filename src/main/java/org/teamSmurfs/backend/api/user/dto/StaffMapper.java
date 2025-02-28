@@ -31,6 +31,8 @@ public class StaffMapper {
 	                        .orElse(null))
 	                .departmentName(staff.getDepartment() != null ? staff.getDepartment().getName() : null)
 	                .departmentId(staff.getDepartment() != null ? staff.getDepartment().getId() : null)
+					.admin(staff.isAdmin())
+					.gender(user.getGender())
 	                .build();
 	        
 	        return staffDto;

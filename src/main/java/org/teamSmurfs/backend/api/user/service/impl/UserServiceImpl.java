@@ -73,7 +73,14 @@ public class UserServiceImpl implements UserService {
             List<User> users;
 
             if (role.equalsIgnoreCase("all")) {
-                users = userRepository.findAll();
+                users = userRepository.findAllByOrderByCreatedAtDesc();
+            } else if (role.equalsIgnoreCase("admin")) {
+                users = userRepository.findUsersWithAdminRole();
+
+                users.forEach(user -> {
+                    Set<Role> roles = new HashSet<>(roleRepository.findRolesByUserId(user.getId()));
+                    user.setRoles(roles);
+                });
             } else {
                 String roleNameString = role.startsWith("ROLE_") ? role : "ROLE_" + role;
                 users = userRepository.findByRoleName(roleNameString.toUpperCase());
@@ -110,17 +117,22 @@ public class UserServiceImpl implements UserService {
 
             String rawPassword = PasswordGeneratorUtil.generatePassword();
 
+            Gender gender = Gender.fromInt(createUserRequest.getGender());
+            if (gender == Gender.INVALID) {
+                throw new IllegalArgumentException("Invalid gender value provided.");
+            }
+
             User newUser = User.builder()
                     .name(createUserRequest.getName())
                     .username(createUserRequest.getUsername())
                     .email(createUserRequest.getEmail())
                     .password(passwordEncoder.encode(rawPassword))
                     .roles(Set.of(userRole))
+                    .gender(gender.getValue())
                     .build();
 
             userRepository.save(newUser);
 
-            // You can log the user details if necessary
             log.info("User created successfully with ID: {}", newUser.getId());
 
             if (userRole.getName().equals(RoleName.ROLE_ADMIN)) {
