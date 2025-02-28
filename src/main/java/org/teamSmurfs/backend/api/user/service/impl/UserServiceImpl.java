@@ -73,7 +73,14 @@ public class UserServiceImpl implements UserService {
             List<User> users;
 
             if (role.equalsIgnoreCase("all")) {
-                users = userRepository.findAll();
+                users = userRepository.findAllByOrderByCreatedAtDesc();
+            } else if (role.equalsIgnoreCase("admin")) {
+                users = userRepository.findUsersWithAdminRole();
+
+                users.forEach(user -> {
+                    Set<Role> roles = new HashSet<>(roleRepository.findRolesByUserId(user.getId()));
+                    user.setRoles(roles);
+                });
             } else {
                 String roleNameString = role.startsWith("ROLE_") ? role : "ROLE_" + role;
                 users = userRepository.findByRoleName(roleNameString.toUpperCase());

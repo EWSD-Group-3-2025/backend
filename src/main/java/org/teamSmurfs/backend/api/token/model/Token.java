@@ -28,6 +28,7 @@ public class Token {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @ToString.Exclude
     private User user;
 
     @CreationTimestamp
