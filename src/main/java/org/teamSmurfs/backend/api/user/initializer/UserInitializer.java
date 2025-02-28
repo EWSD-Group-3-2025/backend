@@ -12,6 +12,7 @@ import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.role.repository.RoleRepository;
 import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.token.repository.TokenRepository;
+import org.teamSmurfs.backend.api.user.model.Gender;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
@@ -39,16 +40,17 @@ public class UserInitializer implements CommandLineRunner {
     public void run(String... args) {
         log.info("Initializing default users...");
 
-        Role staffRole = this.roleRepository.findByName(RoleName.ROLE_STAFF)
-                .orElseThrow(() -> new RuntimeException("Role STAFF not found."));
+        Role adminRole = this.roleRepository.findByName(RoleName.ROLE_ADMIN)
+                .orElseThrow(() -> new RuntimeException("Role ADMIN not found."));
 
-        if (this.userRepository.findByUsername("staff1").isEmpty()) {
+        if (this.userRepository.findByUsername("staff-1").isEmpty()) {
             User staffUser = User.builder()
                     .name("Admin Staff")
-                    .username("staff1")
+                    .username("staff-1")
                     .email("teamsmurfs@gmail.com")
                     .password(passwordEncoder.encode("password123"))
-                    .roles(Set.of(staffRole))
+                    .gender(Gender.MALE.getValue())
+                    .roles(Set.of(adminRole))
                     .build();
             this.userRepository.save(staffUser);
             log.info("Inserted default staff user: {}", staffUser.getUsername());
