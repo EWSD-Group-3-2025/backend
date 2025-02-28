@@ -43,10 +43,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             String content = jsonNode.get("content").asText();
 
             ChatMessageDto chatMessageDto = chatService.sendMessage(chatRoomId, senderId, content);
+            String chatMessageJson = objectMapper.writeValueAsString(chatMessageDto);
 
             for (WebSocketSession webSocketSession : sessions) {
                 if (webSocketSession.isOpen()) {
-                    webSocketSession.sendMessage(new TextMessage("Server received: " + chatMessageDto.getContent()));
+                    webSocketSession.sendMessage(
+                            new TextMessage(
+                                    chatMessageJson
+                            )
+                    );
                 }
             }
         } catch (Exception e) {
