@@ -26,8 +26,8 @@ public class Token {
     @Column(nullable = false)
     private Instant expiredAt;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     @ToString.Exclude
     private User user;
 
