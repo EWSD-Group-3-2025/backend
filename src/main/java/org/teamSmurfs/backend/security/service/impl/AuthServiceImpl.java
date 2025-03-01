@@ -104,6 +104,13 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("User authenticated successfully: {}", loginRequest.getEmail());
 
+        if(user.isLoginFirstTime()) {
+            user.setLoginFirstTime(false);
+            this.userRepository.save(user);
+            log.info("User {} logged in for the first time.", user.getUsername());
+        }
+
+
         UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
 
         userDto.setRoleName(roleName);
