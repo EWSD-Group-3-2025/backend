@@ -42,7 +42,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "WHERE r.name = :roleName ORDER BY u.created_at DESC", nativeQuery = true)
     List<User> findByRoleName(String roleName);
     
-    List<User> findByUsername(String staff1);
+    Optional<User> findByUsername(String staff1);
     
     @EntityGraph(attributePaths = {"roles", "student", "staff", "tutor"})
     List<User> findAllByOrderByCreatedAtDesc();

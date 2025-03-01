@@ -71,13 +71,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ApiResponse authenticateUser(LoginRequest loginRequest) {
-        log.info("Authenticating user with email: {}", loginRequest.getEmail());
+        String identifier = loginRequest.getEmail();
+        log.info("Authenticating user with identifier: {}", identifier);
 
-        User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> {
-                    log.warn("User not found: {}", loginRequest.getEmail());
-                    return new UnauthorizedException("Invalid email or password");
-                });
+        Optional<User> userOpt = this.userRepository.findByEmail(identifier)
+                .or(() -> this.userRepository.findByUsername(identifier));
+
+        User user = userOpt.orElseThrow(() -> {
+            log.warn("User not found with identifier: {}", identifier);
+            return new UnauthorizedException("Invalid email/username or password");
+        });
 
         if (!user.isStatus()) {
             log.warn("User is inactive: {}", loginRequest.getEmail());
