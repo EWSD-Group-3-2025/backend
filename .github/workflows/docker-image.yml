@@ -33,7 +33,7 @@ jobs:
 
       - name: Deploy to Z.com VPS
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd /root/backend/
             git pull --no-rebase origin develop
             docker compose down
