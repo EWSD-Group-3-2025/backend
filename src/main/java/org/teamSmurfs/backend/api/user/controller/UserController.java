@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.teamSmurfs.backend.config.deprecated.DeprecatedRoute;
 import org.teamSmurfs.backend.config.service.MailService;
 
 import java.util.Collections;
@@ -252,8 +253,36 @@ public class UserController {
     }
 
     @PostMapping("/mail")
+    @DeprecatedRoute(message = "This endpoint is deprecated. Use /new-endpoint instead.")
     public ResponseEntity<String> testNotifyInactiveUsers() {
         mailService.notifyInactiveUsers(); // Call the scheduled method manually
         return ResponseEntity.ok("Inactive user notification test triggered successfully.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse> resetPassword(
+            final HttpServletRequest request,
+            @RequestHeader("Authorization") final String authHeader
+    ) {
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        log.info("Password reset request received for authenticated user.");
+
+        String maskedAuthHeader = authHeader != null ? authHeader.substring(0, Math.min(10, authHeader.length())) + "***" : "N/A";
+        log.info("Processing reset password for Authorization: {}", maskedAuthHeader);
+
+        this.userService.resetPassword(authHeader);
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(true)
+                .message("Password reset successfully")
+                .build();
+
+        log.info("Password reset request completed successfully. Execution Time: {} ms",
+                (System.currentTimeMillis() - requestStartTime));
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
 }

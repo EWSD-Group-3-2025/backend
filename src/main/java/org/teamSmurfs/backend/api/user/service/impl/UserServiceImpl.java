@@ -347,4 +347,27 @@ public class UserServiceImpl implements UserService {
     public int retrieveUserNameCount(String name) {
         return userRepository.countByName(name);
     }
+
+    @Override
+    public void resetPassword(final String authHeader) {
+        log.info("Initiating password reset for authenticated user.");
+
+        UserDto userDto = this.userUtil.getCurrentUserDto(authHeader);
+        User currentUser = EntityUtil.getEntityById(this.userRepository, userDto.getId());
+
+        log.info("Generating new password for user ID {}", currentUser.getId());
+
+        String randomPassword = PasswordGeneratorUtil.generatePassword();
+
+        currentUser.setPassword(this.passwordEncoder.encode(randomPassword));
+        currentUser.setLoginFirstTime(true);
+
+        this.userRepository.save(currentUser);
+
+        log.info("Password reset successfully for email {}. Sending reset email.", currentUser.getEmail());
+
+        this.mailService.sendEmailForResetPassword(currentUser.getEmail(), randomPassword);
+
+        log.info("Password reset confirmation email sent to {}", currentUser.getEmail());
+    }
 }
