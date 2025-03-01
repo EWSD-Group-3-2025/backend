@@ -33,4 +33,5 @@ public class UserDto {
     private String course;
 
     private boolean status;
+    private boolean firstTimeLogin;
 }
