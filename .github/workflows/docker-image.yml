@@ -63,6 +63,7 @@ jobs:
           env: production
           status: success
           desc: "Deployment to Z.com VPS successful! 🚀"
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
 
       - name: Mark Deployment as Failed
         uses: bobheadxi/deployments@v1
@@ -73,3 +74,4 @@ jobs:
           env: production
           status: failure
           desc: "Deployment to Z.com VPS failed. ❌"
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
