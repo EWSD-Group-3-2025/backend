@@ -131,6 +131,10 @@ public class UserServiceImpl implements UserService {
                     .gender(gender.getValue())
                     .build();
 
+            userRepository.save(newUser);
+
+            log.info("User created successfully with ID: {}", newUser.getId());
+
             if (userRole.getName().equals(RoleName.ROLE_ADMIN)) {
                 Staff newStaff = new Staff();
                 newStaff.setUser(newUser);
@@ -170,10 +174,6 @@ public class UserServiceImpl implements UserService {
                 Optional<Course> course = courseRepository.findById(newStudentCourse.getCourseId());
                 log.info("Student enrolled in course: {}", course.map(Course::getName).orElse("Unknown Course"));
             }
-
-            userRepository.save(newUser);
-
-            log.info("User created successfully with ID: {}", newUser.getId());
 
             Map<String, Object> tokenData = authUtil.generateTokens(newUser, String.valueOf(userRole.getName()));
 
