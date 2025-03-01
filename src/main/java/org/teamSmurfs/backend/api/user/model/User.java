@@ -76,6 +76,9 @@ public class User {
     @Column(nullable = false)
     private Integer gender;
 
+    @Column(nullable = false)
+    private boolean loginFirstTime = false;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -86,6 +89,9 @@ public class User {
     public void prePersist() {
         if (!status) {
             status = true;
+        }
+        if (loginFirstTime) {
+            loginFirstTime = false;
         }
     }
 
