@@ -23,3 +23,19 @@ jobs:
         run: |
           docker build . --file Dockerfile --tag thanthtoo/team-smurfs-backend:latest
           docker push thanthtoo/team-smurfs-backend:latest
+
+      - name: Set up SSH key for Z.com VPS
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+          - name: Deploy to Z.com VPS
+            run: |
+              ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+                cd /root/backend/
+                git pull --no-rebase origin develop
+                docker compose down
+                docker compose up --build -d
+              EOF
