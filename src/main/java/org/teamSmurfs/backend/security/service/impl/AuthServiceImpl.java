@@ -104,7 +104,10 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("User authenticated successfully: {}", loginRequest.getEmail());
 
+        boolean firstTimeLogin = false;
+
         if(user.isLoginFirstTime()) {
+            firstTimeLogin = true;
             user.setLoginFirstTime(false);
             this.userRepository.save(user);
             log.info("User {} logged in for the first time.", user.getUsername());
@@ -114,6 +117,7 @@ public class AuthServiceImpl implements AuthService {
         UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
 
         userDto.setRoleName(roleName);
+        userDto.setFirstTimeLogin(firstTimeLogin);
 
         Token refreshToken;
         Optional<Token> refreshTokenOptional = tokenRepository.findByUserAndExpiredAtAfter(user, Instant.now());
