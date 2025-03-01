@@ -44,10 +44,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     List<User> findByUsername(String staff1);
     
-    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
+    @EntityGraph(attributePaths = {"roles", "student", "staff", "tutor"})
     List<User> findAllByOrderByCreatedAtDesc();
     
-    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
+    @EntityGraph(attributePaths = {"roles", "student", "staff", "tutor"})
     Optional<User> findById(Long id);
 
     @Query(value = """
