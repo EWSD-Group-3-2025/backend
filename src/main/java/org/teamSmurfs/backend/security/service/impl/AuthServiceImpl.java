@@ -79,6 +79,15 @@ public class AuthServiceImpl implements AuthService {
                     return new UnauthorizedException("Invalid email or password");
                 });
 
+        if (!user.isStatus()) {
+            log.warn("User is inactive: {}", loginRequest.getEmail());
+            return ApiResponse.builder()
+                    .success(0)
+                    .code(HttpStatus.UNAUTHORIZED.value())
+                    .message("Your account has been locked. Please contact your administrator.")
+                    .build();
+        }
+
         String roleName = user.getRoles().stream()
                 .findFirst()
                 .map(role -> role.getName().name().replaceFirst("^ROLE_", ""))
