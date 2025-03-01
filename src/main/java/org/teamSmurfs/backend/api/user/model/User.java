@@ -77,7 +77,7 @@ public class User {
     private Integer gender;
 
     @Column(nullable = false)
-    private boolean loginFirstTime = false;
+    private boolean loginFirstTime = true;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -90,8 +90,8 @@ public class User {
         if (!status) {
             status = true;
         }
-        if (loginFirstTime) {
-            loginFirstTime = false;
+        if (!loginFirstTime) {
+            loginFirstTime = true;
         }
     }
 
