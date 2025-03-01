@@ -32,7 +32,7 @@ jobs:
         uses: bobheadxi/deployments@v1
         with:
           step: start
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DEPLOYMENT_TOKEN }}
           env: production
           ref: staging
           desc: "Starting deployment to Z.com VPS"
@@ -58,7 +58,7 @@ jobs:
         if: success()
         with:
           step: finish
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DEPLOYMENT_TOKEN }}
           env: production
           status: success
           desc: "Deployment to Z.com VPS successful! 🚀"
@@ -68,7 +68,7 @@ jobs:
         if: failure()
         with:
           step: finish
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DEPLOYMENT_TOKEN }}
           env: production
           status: failure
           desc: "Deployment to Z.com VPS failed. ❌"
