@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class CourseDto {
 	private Long id;
 	private String name;
-	private String created_by;
+	private String staffName;
 }

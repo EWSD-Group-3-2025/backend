@@ -88,7 +88,7 @@ public class CourseServiceImpl implements CourseService {
 
     private CourseDto mapToDto(final Course course) {
         CourseDto courseDto = modelMapper.map(course, CourseDto.class);
-        courseDto.setCreated_by(EntityUtil.getEntityById(this.userRepository, course.getCreatedBy()).getName());
+        courseDto.setStaffName(EntityUtil.getEntityById(this.userRepository, course.getCreatedBy()).getName());
         return courseDto;
     }
 }
