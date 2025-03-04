@@ -24,6 +24,22 @@ public class BlogJdbcRepositoryWrapper implements BlogJdbcRepository {
         SELECT id, author_id, title, content FROM blogs
     """;
 
+//    private static final String FIND_BLOGS_FOR_THIS_USER_QUERY = """
+//        SELECT
+//            b.id AS id,
+//            u.name AS author_name,
+//            b.title AS title,
+//            b.content AS content,
+//            b.created_at AS created_at,
+//            b.updated_at AS updated_at
+//        FROM
+//            blog b
+//        LEFT JOIN
+//            user u ON u.id = b.author_id
+//        WHERE
+//            b.author_id = ?
+//    """;
+
     private static final String FIND_BLOGS_FOR_THIS_USER_QUERY = """
         SELECT
             b.id AS id,
@@ -35,9 +51,27 @@ public class BlogJdbcRepositoryWrapper implements BlogJdbcRepository {
         FROM
             blog b
         LEFT JOIN
-            user u ON u.id = b.author_id        
+            user u ON u.id = b.author_id
         WHERE 
-            b.author_id = ?
+            b.author_id IN (
+                SELECT t.user_id 
+                FROM tutor t
+                JOIN allocation a ON t.id = a.tutor_id
+                JOIN student s ON a.student_id = s.id
+                WHERE s.user_id = ?
+            )
+            OR
+            b.author_id IN (
+                SELECT s.user_id 
+                FROM student s
+                JOIN allocation a ON s.id = a.student_id
+                JOIN tutor t ON a.tutor_id = t.id
+                WHERE t.user_id = ?
+            )
+            OR
+            NOT EXISTS (SELECT 1 FROM student WHERE user_id = ?)
+            AND
+            NOT EXISTS (SELECT 1 FROM tutor WHERE user_id = ?)
     """;
 
     private static final String FIND_BY_ID_QUERY = """
@@ -76,8 +110,8 @@ public class BlogJdbcRepositoryWrapper implements BlogJdbcRepository {
         return jdbcTemplate.query(FIND_ALL_QUERY, BLOG_ROW_MAPPER);
     }
 
-    public List<BlogRecord> findBlogsForThisUser(final Long blogId) {
-        return jdbcTemplate.query(FIND_BLOGS_FOR_THIS_USER_QUERY, BLOG_ROW_MAPPER, blogId);
+    public List<BlogRecord> findBlogsForThisUser(final Long userId) {
+        return jdbcTemplate.query(FIND_BLOGS_FOR_THIS_USER_QUERY, BLOG_ROW_MAPPER, userId, userId, userId, userId);
     }
 
     public Optional<BlogRecord> findById(final Long blogId) {
