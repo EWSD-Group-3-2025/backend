@@ -349,25 +349,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void resetPassword(final String authHeader) {
-        log.info("Initiating password reset for authenticated user.");
+    public void resetPassword(final Long id) {
+        log.info("Initiating password for user with ID: {}.", id);
 
-        UserDto userDto = this.userUtil.getCurrentUserDto(authHeader);
-        User currentUser = EntityUtil.getEntityById(this.userRepository, userDto.getId());
+        User user = EntityUtil.getEntityById(userRepository, id);
 
-        log.info("Generating new password for user ID {}", currentUser.getId());
+        log.info("Generating new password for user ID {}", user.getId());
 
         String randomPassword = PasswordGeneratorUtil.generatePassword();
 
-        currentUser.setPassword(this.passwordEncoder.encode(randomPassword));
-        currentUser.setLoginFirstTime(true);
+        user.setPassword(this.passwordEncoder.encode(randomPassword));
+        user.setLoginFirstTime(true);
 
-        this.userRepository.save(currentUser);
+        this.userRepository.save(user);
 
-        log.info("Password reset successfully for email {}. Sending reset email.", currentUser.getEmail());
+        log.info("Password reset successfully for email {}. Sending reset email.", user.getEmail());
 
-        this.mailService.sendEmailForResetPassword(currentUser.getEmail(), randomPassword);
+        this.mailService.sendEmailForResetPassword(user.getEmail(), randomPassword);
 
-        log.info("Password reset confirmation email sent to {}", currentUser.getEmail());
+        log.info("Password reset confirmation email sent to {}", user.getEmail());
     }
 }
