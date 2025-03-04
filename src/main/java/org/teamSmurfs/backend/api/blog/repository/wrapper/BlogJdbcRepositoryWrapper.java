@@ -41,7 +41,19 @@ public class BlogJdbcRepositoryWrapper implements BlogJdbcRepository {
     """;
 
     private static final String FIND_BY_ID_QUERY = """
-        SELECT id, author_id, title, content FROM blogs WHERE id = ?
+        SELECT
+            b.id AS id,
+            u.name AS author_name,
+            b.title AS title,
+            b.content AS content,
+            b.created_at AS created_at,
+            b.updated_at AS updated_at
+        FROM
+            blog b
+        LEFT JOIN
+            user u ON u.id = b.author_id
+        WHERE 
+            b.id = ?
     """;
 
     private static final String FIND_BY_AUTHOR_ID_QUERY = """

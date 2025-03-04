@@ -22,13 +22,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class BlogController {
-    // just define route
-    // POST mapping (create blog)
-    // GET mapping (get blogs for this user) ? params =: userId
-    // GET mapping (get my post) -> /blogs/mine < Authorization with Bearer Token >
-    // Update mapping (update my post) -> /blogs/:id
-    // Delete mapping (delete my post) -> /blogs/:id
-
     private final BlogService blogService;
 
     @PostMapping
@@ -145,6 +138,29 @@ public class BlogController {
                 .code(HttpStatus.NO_CONTENT.value())
                 .data(true)
                 .message("Blog deleted successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> retrieveOne(
+            @PathVariable(value = "id") final Long id,
+            final HttpServletRequest request
+    ) {
+        log.info("Retrieving blog with ID: {}", id);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        final BlogDto blog = this.blogService.retrieveOne(id);
+
+        log.info("Retrieved blog: {}", blog);
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(blog)
+                .message("Blog retrieved with ID: " + id + " successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);

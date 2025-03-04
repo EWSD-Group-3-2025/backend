@@ -11,4 +11,5 @@ public interface BlogService {
     List<BlogDto> retrieveBlogsByThisUser(final String authHeader);
     void updateBlog(final Long blogId, final BlogRequest blogRequest);
     void deleteBlog(final Long blogId);
+    BlogDto retrieveOne(final Long id);
 }

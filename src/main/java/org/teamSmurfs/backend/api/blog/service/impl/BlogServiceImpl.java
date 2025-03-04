@@ -16,6 +16,7 @@ import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.api.user.utils.UserUtil;
+import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 
 import java.util.List;
@@ -91,6 +92,13 @@ public class BlogServiceImpl implements BlogService {
     @Transactional
     public void deleteBlog(final Long blogId) {
         this.jpaRepository.deleteById(blogId);
+    }
+
+    @Override
+    public BlogDto retrieveOne(final Long id) {
+        return this.jdbcRepository.findById(id)
+                .map(this::convertToDto)
+                .orElseThrow(() -> new EntityNotFoundException("Blog with ID " + id + " not found"));
     }
 
     private BlogDto convertToDto(BlogRecord blogRecord) {
