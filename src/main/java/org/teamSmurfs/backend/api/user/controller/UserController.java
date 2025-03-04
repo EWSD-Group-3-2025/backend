@@ -262,16 +262,13 @@ public class UserController {
     @PostMapping("/reset-password")
     public ResponseEntity<ApiResponse> resetPassword(
             final HttpServletRequest request,
-            @RequestHeader("Authorization") final String authHeader
+            @RequestParam(value = "userId") final Long userId
     ) {
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        log.info("Password reset request received for authenticated user.");
+        log.info("Password reset request received for user with ID {}.", userId);
 
-        String maskedAuthHeader = authHeader != null ? authHeader.substring(0, Math.min(10, authHeader.length())) + "***" : "N/A";
-        log.info("Processing reset password for Authorization: {}", maskedAuthHeader);
-
-        this.userService.resetPassword(authHeader);
+        this.userService.resetPassword(userId);
 
         ApiResponse response = ApiResponse.builder()
                 .success(1)

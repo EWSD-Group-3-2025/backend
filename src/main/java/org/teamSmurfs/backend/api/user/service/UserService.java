@@ -28,5 +28,5 @@ public interface UserService {
 
     int retrieveUserNameCount(String name);
 
-    void resetPassword(final String authHeader);
+    void resetPassword(final Long id);
 }
