@@ -37,7 +37,7 @@ public class Blog {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    private Blog(final User author, final String content, final String title) {
+    public Blog(final User author, final String content, final String title) {
         this.author = author;
         this.content = content;
         this.title = title;
