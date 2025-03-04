@@ -42,14 +42,18 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public List<BlogDto> retrieveBlogsForThisUserId(final Long userId) {
-        return this.jdbcRepository.findBlogsForThisUser(userId).stream()
+    public List<BlogDto> retrieveBlogsForThisUser(final String authHeader) {
+        UserDto userDto = this.userUtil.getCurrentUserDto(authHeader);
+
+        User user = EntityUtil.getEntityById(this.userRepository, userDto.getId());
+
+        return this.jdbcRepository.findBlogsForThisUser(user.getId()).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<BlogDto> retrieveBlogsByThisUser(String authHeader) {
+    public List<BlogDto> retrieveBlogsByThisUser(final String authHeader) {
 
         UserDto userDto = this.userUtil.getCurrentUserDto(authHeader);
 
