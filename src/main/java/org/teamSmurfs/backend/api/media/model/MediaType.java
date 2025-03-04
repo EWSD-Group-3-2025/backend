@@ -6,7 +6,8 @@ public enum MediaType {
     BLOG(2, "mediaType.blog"),
     EVENT(3, "mediaType.event"),
     CHAT(4, "mediaType.chat"),
-    COMMENT(5, "mediaType.comment");
+    COMMENT(5, "mediaType.comment"),
+    DOCUMENT(6, "mediaType.document"),;
 
     private final Integer value;
     private final String code;
@@ -28,6 +29,7 @@ public enum MediaType {
             case 3 -> EVENT;
             case 4 -> CHAT;
             case 5 -> COMMENT;
+            case 6 -> DOCUMENT;
             default -> throw new IllegalStateException("Unexpected value: " + value);
         };
     }
@@ -55,4 +57,6 @@ public enum MediaType {
     public boolean isComment() {
         return this.value.equals(MediaType.COMMENT.getValue());
     }
+
+    public boolean isDocument() { return this.value.equals(MediaType.DOCUMENT.getValue()); }
 }
