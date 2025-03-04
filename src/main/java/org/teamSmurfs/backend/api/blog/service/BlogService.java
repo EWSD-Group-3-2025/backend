@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface BlogService {
     void createBlog(final BlogRequest blogRequest);
-    List<BlogDto> retrieveBlogsForThisUserId(final Long userId);
+    List<BlogDto> retrieveBlogsForThisUser(final String authHeader);
     List<BlogDto> retrieveBlogsByThisUser(final String authHeader);
     void updateBlog(final Long blogId, final BlogRequest blogRequest);
     void deleteBlog(final Long blogId);

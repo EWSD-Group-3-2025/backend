@@ -47,42 +47,26 @@ public class BlogController {
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse> retrieveBlogsForThisUser(
-            @RequestParam(value = "userId") final Long userId,
-            final HttpServletRequest request
-    ) {
-        log.info("Retrieving blogs for userId: {}.", userId);
-
-        double requestStartTime = RequestUtils.extractRequestStartTime(request);
-
-        List<BlogDto> blogList = this.blogService.retrieveBlogsForThisUserId(userId);
-
-        log.info("Retrieved {} blogs successfully", (blogList != null) ? blogList.size() : 0);
-
-        ApiResponse successResponse = ApiResponse.builder()
-                .success(1)
-                .code(HttpStatus.OK.value())
-                .data(blogList != null ? blogList : Collections.emptyList())
-                .message("Blog retrieved successfully")
-                .build();
-
-        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
-    }
-
     @GetMapping("/mine")
-    public ResponseEntity<ApiResponse> retrieveBlogsByThisUser(
-            @RequestHeader("Authorization") final String authHeader,
+    public ResponseEntity<ApiResponse> retrieveBlogs(
+            @RequestHeader(value = "Authorization", required = false) final String authHeader,
+            @RequestParam(value = "fetchFeed", defaultValue = "false") final boolean fetchFeed,
             final HttpServletRequest request
     ) {
         log.info("Retrieving blogs for authenticated user.");
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
+        List<BlogDto> blogList;
+
         String maskedAuthHeader = authHeader != null ? authHeader.substring(0, Math.min(10, authHeader.length())) + "***" : "N/A";
         log.info("Processing reset password for Authorization: {}", maskedAuthHeader);
 
-        List<BlogDto> blogList = this.blogService.retrieveBlogsByThisUser(authHeader);
+        if (fetchFeed) {
+            blogList = this.blogService.retrieveBlogsForThisUser(authHeader);
+        } else {
+            blogList = this.blogService.retrieveBlogsByThisUser(authHeader);
+        }
 
         log.info("Retrieved {} blogs for authenticated user successfully", (blogList != null) ? blogList.size() : 0);
 
