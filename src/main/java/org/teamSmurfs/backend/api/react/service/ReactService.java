@@ -1,9 +1,6 @@
 package org.teamSmurfs.backend.api.react.service;
 
-import org.teamSmurfs.backend.api.react.dto.CreateReactRequest;
-import org.teamSmurfs.backend.api.react.dto.DeleteReactRequest;
-
 public interface ReactService {
-    void createReact(final CreateReactRequest createReactRequest);
-    void deleteReact(final DeleteReactRequest deleteReactRequest);
+    boolean isReactionExists(final String authHeader, final Long entityId, final Integer entityType);
+    void handleReaction(final String authHeader, final Long entityId, final Integer entityType, final String react, final boolean isAddReaction);
 }
