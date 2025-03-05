@@ -1,11 +1,11 @@
 package org.teamSmurfs.backend.api.react.model;
 
 public enum ReactEntityType {
-    INVALID(0, "reactEntityType.invalid"),
-    BLOG(2, "reactEntityType.blog"),
-    EVENT(3, "reactEntityType.event"),
-    CHAT(4, "reactEntityType.chat"),
-    COMMENT(5, "reactEntityType.comment");
+    INVALID(0, "Invalid"),
+    BLOG(2, "Blog"),
+    EVENT(3, "Event"),
+    CHAT(4, "Chat"),
+    COMMENT(5, "Comment");
 
     private final Integer value;
     private final String code;

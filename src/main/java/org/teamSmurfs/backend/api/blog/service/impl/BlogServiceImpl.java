@@ -12,6 +12,10 @@ import org.teamSmurfs.backend.api.blog.model.Blog;
 import org.teamSmurfs.backend.api.blog.repository.BlogJdbcRepository;
 import org.teamSmurfs.backend.api.blog.repository.wrapper.BlogJpaRepositoryWrapper;
 import org.teamSmurfs.backend.api.blog.service.BlogService;
+import org.teamSmurfs.backend.api.react.dto.ReactDto;
+import org.teamSmurfs.backend.api.react.dto.ReactRecord;
+import org.teamSmurfs.backend.api.react.model.ReactEntityType;
+import org.teamSmurfs.backend.api.react.repository.ReactJdbcRepository;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
@@ -30,6 +34,7 @@ public class BlogServiceImpl implements BlogService {
     private final BlogJpaRepositoryWrapper jpaRepository;
     private final BlogJdbcRepository jdbcRepository;
     private final UserRepository userRepository;
+    private final ReactJdbcRepository reactJdbcRepository;
     private final ModelMapper modelMapper;
     private final UserUtil userUtil;
 
@@ -106,6 +111,26 @@ public class BlogServiceImpl implements BlogService {
     }
 
     private BlogDto convertToDto(BlogRecord blogRecord) {
-        return this.modelMapper.map(blogRecord, BlogDto.class);
+        BlogDto blogDto = this.modelMapper.map(blogRecord, BlogDto.class);
+
+        List<ReactDto> reactList = this.reactJdbcRepository.findByEntityIdAndEntityType(blogDto.getId(), ReactEntityType.BLOG.getValue())
+                .stream()
+                .map(this::convertReactToDto)
+                .collect(Collectors.toList());
+
+        blogDto.setReactList(reactList);
+
+        return blogDto;
+    }
+
+    private ReactDto convertReactToDto(ReactRecord react) {
+        return new ReactDto(
+            EntityUtil.getEntityById(this.userRepository, react.authorId()).getName(),
+            react.react(),
+            react.entityId(),
+            react.entityType(),
+            react.createdAt(),
+            react.updatedAt()
+        );
     }
 }
