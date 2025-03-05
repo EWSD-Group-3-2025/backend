@@ -3,8 +3,6 @@ package org.teamSmurfs.backend.api.react.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.teamSmurfs.backend.api.blog.model.Blog;
-import org.teamSmurfs.backend.api.blog.repository.wrapper.BlogJpaRepositoryWrapper;
 import org.teamSmurfs.backend.api.react.dto.CreateReactRequest;
 import org.teamSmurfs.backend.api.react.dto.DeleteReactRequest;
 import org.teamSmurfs.backend.api.react.dto.ReactRecord;
@@ -18,7 +16,6 @@ import org.teamSmurfs.backend.api.event.repository.EventRepository;
 import org.teamSmurfs.backend.api.chat.repository.ChatMessageRepository;
 import org.teamSmurfs.backend.api.comment.repository.CommentRepository;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
-import org.teamSmurfs.backend.config.exception.UnauthorizedException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 
 import java.util.List;
@@ -31,7 +28,6 @@ public class ReactServiceImpl implements ReactService {
     private final ReactJdbcRepository jdbcRepository;
     private final UserRepository userRepository;
     private final BlogJpaRepository blogJpaRepository;
-    private final BlogJpaRepositoryWrapper blogJpaRepositoryWrapper;
     private final EventRepository eventRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final CommentRepository commentRepository;
@@ -58,14 +54,6 @@ public class ReactServiceImpl implements ReactService {
     }
 
     private void validateReactionOwnership(final Long authorId, final Long entityId, final Integer entityType) {
-        if (ReactEntityType.fromInt(entityType).getValue().equals(ReactEntityType.BLOG.getValue())) {
-            final Blog blog = this.blogJpaRepositoryWrapper.findOneWithNotFoundDetection(entityId);
-
-            if (!blog.getAuthor().getId().equals(authorId)) {
-                throw new UnauthorizedException("You are not the author of this blog");
-            }
-        }
-
         final List<ReactRecord> existingReactions = jdbcRepository.findByEntityIdAndEntityType(entityId, entityType);
         final boolean reactionExists = existingReactions.stream()
                 .anyMatch(reactRecord -> reactRecord.authorId().equals(authorId));
