@@ -4,8 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.teamSmurfs.backend.api.comment.dto.CommentDto;
+import org.teamSmurfs.backend.api.react.dto.ReactDto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,4 +27,8 @@ public class BlogDto {
     private String createdAt;
 
     private String updatedAt;
+
+    private List<ReactDto> reactList;
+
+    private List<CommentDto> commentList;
 }
