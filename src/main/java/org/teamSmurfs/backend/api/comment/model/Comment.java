@@ -39,7 +39,7 @@ public class Comment {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    private Comment(final Blog blog, final User commenter, final String commentText) {
+    public Comment(final Blog blog, final User commenter, final String commentText) {
         this.blog = blog;
         this.commenter = commenter;
         this.commentText = commentText;

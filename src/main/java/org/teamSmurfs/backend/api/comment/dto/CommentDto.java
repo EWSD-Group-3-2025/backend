@@ -1,4 +1,22 @@
 package org.teamSmurfs.backend.api.comment.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CommentDto {
+    private Long id;
+
+    private String commenterName;
+
+    private String commentText;
+
+    private String createdAt;
+
+    private String updatedAt;
 }
