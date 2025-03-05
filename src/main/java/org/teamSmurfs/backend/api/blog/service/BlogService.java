@@ -6,10 +6,10 @@ import org.teamSmurfs.backend.api.blog.dto.BlogRequest;
 import java.util.List;
 
 public interface BlogService {
-    void createBlog(final BlogRequest blogRequest);
+    void createBlog(final String authHeader, final BlogRequest blogRequest);
     List<BlogDto> retrieveBlogsForThisUser(final String authHeader);
     List<BlogDto> retrieveBlogsByThisUser(final String authHeader);
-    void updateBlog(final Long blogId, final BlogRequest blogRequest);
+    void updateBlog(final String authHeader, final Long blogId, final BlogRequest blogRequest);
     void deleteBlog(final Long blogId);
     BlogDto retrieveOne(final Long id);
 }
