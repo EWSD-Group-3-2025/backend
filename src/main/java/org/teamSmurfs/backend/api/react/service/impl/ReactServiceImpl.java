@@ -59,7 +59,7 @@ public class ReactServiceImpl implements ReactService {
                 .anyMatch(reactRecord -> reactRecord.authorId().equals(authorId));
 
         if (!reactionExists) {
-            throw new EntityNotFoundException("No reaction found from this author for this entity");
+            throw new EntityNotFoundException("No reaction found from this user for this " + ReactEntityType.fromInt(entityType).getCode() + ".");
         }
     }
 
