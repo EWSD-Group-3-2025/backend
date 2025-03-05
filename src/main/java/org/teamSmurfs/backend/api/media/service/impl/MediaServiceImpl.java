@@ -43,7 +43,9 @@ public class MediaServiceImpl implements MediaService{
             throw new IllegalArgumentException("Invalid mediaType value provided.");
         }
 		
-		Media media = buildMediaEntity(user, createMediaRequest , mediaType.getValue());	
+		Media media = buildMediaEntity(user, createMediaRequest, mediaType.getValue(), -1L);	
+		media=mediaRepository.save(media);
+		media.setEntityId(media.getId());
 		mediaRepository.save(media);
 		
 		log.info("Media uploaded successfully with ID: {}", createMediaRequest.getUser_id());
@@ -73,24 +75,16 @@ public class MediaServiceImpl implements MediaService{
 		    
 			final Media existMedia = EntityUtil.getEntityById(this.mediaRepository, id);
 			
-			if (existMedia.getUploadedBy().getId() != null && !existMedia.getUploadedBy().getId().equals(updateMediaRequest.getUser_id())) {    	
-				 User existUser = EntityUtil.getEntityById(this.userRepository, updateMediaRequest.getUser_id());			 
-				 existMedia.setUploadedBy(existUser);
-	        }
-			
 			if (existMedia.getEntityType() != null && !existMedia.getEntityType().equals(updateMediaRequest.getEntityType())) {    	
 				MediaType mediaType = MediaType.fromInt(updateMediaRequest.getEntityType());
 				
 				if (mediaType == MediaType.INVALID) {
 		            throw new IllegalArgumentException("Invalid mediaType value provided.");
 		        }
-				 existMedia.setEntityType(mediaType.getValue());
-				
+				 existMedia.setEntityType(mediaType.getValue());				
 	        }
-			   existMedia.setEntityId(updateMediaRequest.getEntityId());
 			   existMedia.setFileType(updateMediaRequest.getFileType());
 			   existMedia.setFileUrl(updateMediaRequest.getFileUrl());
-			   existMedia.setUploadedAt(LocalDateTime.now());
 			  
 			    
 			    return mapToDto(mediaRepository.save(existMedia));
@@ -126,12 +120,12 @@ public class MediaServiceImpl implements MediaService{
         return mediaDto;
     }
 	
-	private Media buildMediaEntity(User user, CreateMediaRequest request , Integer mediaTypeValue) {
+	private Media buildMediaEntity(User user, CreateMediaRequest request , Integer mediaTypeValue , Long initialEntityId) {
         return new Media(
             user,
             request.getFileUrl(),
             LocalDateTime.now(),
-            request.getEntityId(),
+            initialEntityId,
             mediaTypeValue,
             request.getFileType()
         );

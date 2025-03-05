@@ -7,15 +7,12 @@ import lombok.Data;
 @Data
 public class CreateMediaRequest {
 	
-	@NotNull(message = "Author ID is required.")
-    @Min(value = 1, message = "Author ID must be a positive number.")
+	@NotNull(message = "User ID is required.")
+    @Min(value = 1, message = "User ID must be a positive number.")
 	private Long user_id;
 	
 	@NotNull(message="File Url is required.")
 	private String fileUrl ;
-	
-	@NotNull(message = "Entity ID is required.")
-	private Long entityId;
 	
 	@NotNull(message = "Entity Type is required.")
 	private Integer entityType;

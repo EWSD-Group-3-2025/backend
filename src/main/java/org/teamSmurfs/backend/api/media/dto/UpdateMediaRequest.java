@@ -11,11 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UpdateMediaRequest {
 
-    private Long user_id;
-
     private String fileUrl;
-
-    private Long entityId;
 
     private Integer entityType;
 
