@@ -26,16 +26,20 @@ public class BlogController {
 
     @PostMapping
     public ResponseEntity<ApiResponse> createBlog(
+            @RequestHeader(value = "Authorization", required = false) final String authHeader,
             @Validated @RequestBody final BlogRequest blogRequest,
             final HttpServletRequest request
     ) {
-        log.info("Creating blog: {}", blogRequest);
+        log.info("Creating blog with authenticated user.");
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        this.blogService.createBlog(blogRequest);
+        String maskedAuthHeader = authHeader != null ? authHeader.substring(0, Math.min(10, authHeader.length())) + "***" : "N/A";
+        log.info("Processing blog for Authorization: {}", maskedAuthHeader);
 
-        log.info("Created blog: {}", blogRequest);
+        this.blogService.createBlog(authHeader, blogRequest);
+
+        log.info("Created blog with authenticated user.");
 
         ApiResponse successResponse = ApiResponse.builder()
                 .success(1)
@@ -82,15 +86,19 @@ public class BlogController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse> updateBlog(
+            @RequestHeader(value = "Authorization", required = false) final String authHeader,
             @Validated @RequestBody final BlogRequest blogRequest,
             @PathVariable(value = "id") final Long id,
             final HttpServletRequest request
     ) {
-        log.info("Updating blog: {}", blogRequest);
+        log.info("Updating with authenticated user.");
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        this.blogService.updateBlog(id, blogRequest);
+        String maskedAuthHeader = authHeader != null ? authHeader.substring(0, Math.min(10, authHeader.length())) + "***" : "N/A";
+        log.info("Updating blog for Authorization: {}", maskedAuthHeader);
+
+        this.blogService.updateBlog(authHeader, id, blogRequest);
 
         log.info("Updated blog: {}", blogRequest);
 

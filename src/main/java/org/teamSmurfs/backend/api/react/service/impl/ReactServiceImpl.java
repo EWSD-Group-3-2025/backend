@@ -25,7 +25,7 @@ public class ReactServiceImpl implements ReactService {
         final UserDto userDto = this.userUtil.getCurrentUserDto(authHeader);
 
         if (isAddReaction) {
-            validateReact(react);
+            this.validateReact(react);
             this.jdbcRepository.giveReaction(userDto.getId(), react, entityId, entityType);
             log.info("Adding reaction '{}' to entity with ID {}", react, entityId);
         } else {
@@ -37,7 +37,7 @@ public class ReactServiceImpl implements ReactService {
     @Override
     public boolean isReactionExists(final String authHeader, final Long entityId, final Integer entityType) {
         final UserDto userDto = this.userUtil.getCurrentUserDto(authHeader);
-        final List<ReactRecord> existingReactions = jdbcRepository.findByEntityIdAndEntityType(entityId, entityType);
+        final List<ReactRecord> existingReactions = this.jdbcRepository.findByEntityIdAndEntityType(entityId, entityType);
         return existingReactions.stream()
                 .anyMatch(reactRecord -> reactRecord.authorId().equals(userDto.getId()));
     }

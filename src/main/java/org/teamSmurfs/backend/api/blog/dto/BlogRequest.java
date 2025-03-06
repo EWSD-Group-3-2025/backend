@@ -15,10 +15,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class BlogRequest {
 
-    @NotNull(message = "Author ID is required.")
-    @Min(value = 1, message = "Author ID must be a positive number.")
-    private Long authorId;
-
     @NotBlank(message = "Content is required.")
     private String content;
 
