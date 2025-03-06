@@ -2,9 +2,11 @@ package org.teamSmurfs.backend.api.allocation.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.teamSmurfs.backend.api.allocation.dto.CreateAllocationRequest;
+import org.teamSmurfs.backend.api.allocation.dto.EmailRequest;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
 import org.teamSmurfs.backend.api.allocation.service.AllocationService;
@@ -35,6 +37,7 @@ public class AllocationServiceImpl implements AllocationService {
     private final UserRepository userRepository;
     private final MailService mailService;
     private final ChatService chatService;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional
@@ -64,7 +67,7 @@ public class AllocationServiceImpl implements AllocationService {
             chatService.createOrGetChatRoom(tutorId, studentId);
         });
 
-        sendAllocationEmails(savedAllocations, tutor);
+        sendAllocationEmailsAsync(savedAllocations, tutor);
     }
 
     @Override
@@ -112,19 +115,28 @@ public class AllocationServiceImpl implements AllocationService {
         return allocation;
     }
 
-    private void sendAllocationEmails(List<Allocation> allocations, Tutor tutor) {
+    private void sendAllocationEmailsAsync(List<Allocation> allocations, Tutor tutor) {
         String tutorName = tutor.getUser().getName();
 
-        String studentNames = allocations.stream()
-                .map(allocation -> allocation.getStudent().getUser().getName())
-                .collect(Collectors.joining(", "));
-
-        mailService.sendAllocationEmail(tutor.getUser().getEmail(), "TUTOR", tutorName, studentNames);
+        EmailRequest tutorEmailRequest = new EmailRequest(
+                tutor.getUser().getEmail(),
+                "TUTOR",
+                tutorName,
+                allocations.stream()
+                        .map(a -> a.getStudent().getUser().getName())
+                        .collect(Collectors.joining(", "))
+        );
+        rabbitTemplate.convertAndSend("emailQueue", tutorEmailRequest);
 
         for (Allocation allocation : allocations) {
             Student student = allocation.getStudent();
-            String studentName = student.getUser().getName();
-            mailService.sendAllocationEmail(student.getUser().getEmail(), "STUDENT", tutorName, studentName);
+            EmailRequest studentEmailRequest = new EmailRequest(
+                    student.getUser().getEmail(),
+                    "STUDENT",
+                    tutorName,
+                    student.getUser().getName()
+            );
+            rabbitTemplate.convertAndSend("emailQueue", studentEmailRequest);
         }
     }
 }
