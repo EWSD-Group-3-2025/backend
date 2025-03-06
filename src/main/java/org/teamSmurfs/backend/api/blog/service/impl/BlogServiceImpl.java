@@ -12,6 +12,9 @@ import org.teamSmurfs.backend.api.blog.model.Blog;
 import org.teamSmurfs.backend.api.blog.repository.BlogJdbcRepository;
 import org.teamSmurfs.backend.api.blog.repository.wrapper.BlogJpaRepositoryWrapper;
 import org.teamSmurfs.backend.api.blog.service.BlogService;
+import org.teamSmurfs.backend.api.comment.dto.CommentDto;
+import org.teamSmurfs.backend.api.comment.dto.CommentRecord;
+import org.teamSmurfs.backend.api.comment.repository.CommentJdbcRepository;
 import org.teamSmurfs.backend.api.react.dto.ReactDto;
 import org.teamSmurfs.backend.api.react.dto.ReactRecord;
 import org.teamSmurfs.backend.api.react.model.ReactEntityType;
@@ -35,13 +38,16 @@ public class BlogServiceImpl implements BlogService {
     private final BlogJdbcRepository jdbcRepository;
     private final UserRepository userRepository;
     private final ReactJdbcRepository reactJdbcRepository;
+    private final CommentJdbcRepository commentJdbcRepository;
     private final ModelMapper modelMapper;
     private final UserUtil userUtil;
 
     @Override
     @Transactional
-    public void createBlog(final BlogRequest blogRequest) {
-        User author = EntityUtil.getEntityById(this.userRepository, blogRequest.getAuthorId());
+    public void createBlog(final String authHeader, final BlogRequest blogRequest) {
+        final UserDto userDto = this.userUtil.getCurrentUserDto(authHeader);
+
+        User author = EntityUtil.getEntityById(this.userRepository, userDto.getId());
         Blog newBlog = new Blog(author, blogRequest.getContent(), blogRequest.getTitle());
         this.jpaRepository.save(newBlog);
     }
@@ -71,14 +77,16 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Transactional
-    public void updateBlog(final Long blogId, final BlogRequest blogRequest) {
+    public void updateBlog(final String authHeader, final Long blogId, final BlogRequest blogRequest) {
         Blog existingBlog = this.jpaRepository.findOneWithNotFoundDetection(blogId);
 
-        User author = EntityUtil.getEntityById(this.userRepository, blogRequest.getAuthorId());
+        final UserDto userDto = this.userUtil.getCurrentUserDto(authHeader);
+
+        User author = EntityUtil.getEntityById(this.userRepository, userDto.getId());
 
         boolean isUpdated = false;
 
-        if (!blogRequest.getAuthorId().equals(existingBlog.getAuthor().getId())) {
+        if (!userDto.getId().equals(existingBlog.getAuthor().getId())) {
             existingBlog.setAuthor(author);
             isUpdated = true;
         }
@@ -120,6 +128,12 @@ public class BlogServiceImpl implements BlogService {
 
         blogDto.setReactList(reactList);
 
+        List<CommentDto> commentList = this.commentJdbcRepository.findByBlogId(blogDto.getId())
+                .stream()
+                .map(this::convertCommentToDo)
+                .collect(Collectors.toList());
+
+        blogDto.setCommentList(commentList);
         return blogDto;
     }
 
@@ -131,6 +145,16 @@ public class BlogServiceImpl implements BlogService {
             react.entityType(),
             react.createdAt(),
             react.updatedAt()
+        );
+    }
+
+    private CommentDto convertCommentToDo(CommentRecord comment) {
+        return new CommentDto(
+            comment.id(),
+            comment.commenterName(),
+            comment.commentText(),
+            comment.createdAt(),
+            comment.updatedAt()
         );
     }
 }
