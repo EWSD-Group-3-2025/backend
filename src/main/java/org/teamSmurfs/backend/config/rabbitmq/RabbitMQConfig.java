@@ -14,7 +14,10 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue mailQueue() { return new Queue("emailQueue", false); }
+    public Queue allocationMailQueue() { return new Queue("allocationEmailQueue", false); }
+
+    @Bean
+    public Queue userCreationEmailQueue() { return new Queue("userCreationEmailQueue", false); }
 
     @Bean
     public Jackson2JsonMessageConverter jsonMessageConverter() {
