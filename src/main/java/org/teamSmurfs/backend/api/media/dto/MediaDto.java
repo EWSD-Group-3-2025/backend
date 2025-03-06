@@ -15,7 +15,7 @@ public class MediaDto {
 	
 	    private Long id;
 
-	    private Long user_id;
+	    private Long userId;
 
 	    private String fileUrl;
 

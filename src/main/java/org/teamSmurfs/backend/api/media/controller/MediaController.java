@@ -37,7 +37,7 @@ public class MediaController {
 	@PostMapping
 	public ResponseEntity<ApiResponse> uploadMedia(@Validated @RequestBody CreateMediaRequest createMediaRequest,
 			HttpServletRequest request){
-		log.warn("Create Media with User ID: {}" , createMediaRequest.getUser_id());
+		log.warn("Create Media with User ID: {}" , createMediaRequest.getUserId());
 		
 		double requestStartTime = RequestUtils.extractRequestStartTime(request);	
 		mediaService.uploadMedia(createMediaRequest);

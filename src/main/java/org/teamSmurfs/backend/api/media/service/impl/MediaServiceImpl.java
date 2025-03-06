@@ -33,9 +33,9 @@ public class MediaServiceImpl implements MediaService{
 	@Override
 	public void uploadMedia(CreateMediaRequest createMediaRequest) {
 	try {	
-		log.info("Uploading media with User ID: {}", createMediaRequest.getUser_id());
+		log.info("Uploading media with User ID: {}", createMediaRequest.getUserId());
 		
-		User user=EntityUtil.getEntityById(this.userRepository, createMediaRequest.getUser_id());
+		User user=EntityUtil.getEntityById(this.userRepository, createMediaRequest.getUserId());
 		
 		MediaType mediaType = MediaType.fromInt(createMediaRequest.getEntityType());
 		
@@ -48,7 +48,7 @@ public class MediaServiceImpl implements MediaService{
 		media.setEntityId(media.getId());
 		mediaRepository.save(media);
 		
-		log.info("Media uploaded successfully with ID: {}", createMediaRequest.getUser_id());
+		log.info("Media uploaded successfully with ID: {}", createMediaRequest.getUserId());
 	}catch(Exception e) {
 		log.error("Error Uploading Media: ", e);
         throw new RuntimeException(e.getMessage());
@@ -115,7 +115,7 @@ public class MediaServiceImpl implements MediaService{
         if (media.getId() != null) {
             User users = userRepository.findById(media.getUploadedBy().getId())
                     .orElseThrow(() -> new EntityNotFoundException("User not found for Media ID: " + media.getId()));
-            mediaDto.setUser_id(users.getId());
+            mediaDto.setUserId(users.getId());
         }
         return mediaDto;
     }
