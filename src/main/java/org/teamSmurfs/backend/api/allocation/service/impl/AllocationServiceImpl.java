@@ -67,6 +67,21 @@ public class AllocationServiceImpl implements AllocationService {
         sendAllocationEmails(savedAllocations, tutor);
     }
 
+    @Override
+    public void deallocateAllStudents(final Long tutorId) {
+        User user = EntityUtil.getEntityById(this.userRepository, tutorId);
+        Tutor tutor = this.tutorRepository.findByUser(user)
+                .orElseThrow(() -> new EntityNotFoundException("Tutor not found for user ID: " + user.getId()));
+
+        List<Allocation> allocationList = this.allocationRepository.findByTutorId(tutor.getId());
+        if (allocationList == null || allocationList.isEmpty()) {
+            log.info("There is no students allocated with tutor: {}", user.getName());
+            throw new EntityNotFoundException("There is no students allocated with tutor " + user.getName());
+        }
+
+        this.allocationRepository.deleteAll(allocationList);
+    }
+
     /**
      * Prepares an allocation entity from a CreateAllocationRequest.
      */
