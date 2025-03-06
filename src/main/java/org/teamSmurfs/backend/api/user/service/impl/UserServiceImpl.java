@@ -7,6 +7,7 @@ package org.teamSmurfs.backend.api.user.service.impl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.teamSmurfs.backend.api.course.model.Course;
 import org.teamSmurfs.backend.api.course.repository.CourseRepository;
@@ -64,6 +65,7 @@ public class UserServiceImpl implements UserService {
     private final StudentCourseRepository studentCourseRepository;
     private final CourseRepository courseRepository;
     private final MailService mailService;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     public List<Object> retrieveUsers(final String role) throws Exception {
@@ -189,7 +191,11 @@ public class UserServiceImpl implements UserService {
 
             tokenRepository.save(token);
 
-            this.mailService.sendUserCredentialsEmail(newUser.getEmail(), rawPassword);
+            Map<String, String> emailPayload = Map.of(
+                    "email", newUser.getEmail(),
+                    "password", rawPassword
+            );
+            rabbitTemplate.convertAndSend("userCreationEmailQueue", emailPayload);
 
             log.info("User credentials sent to email.");
 
