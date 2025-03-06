@@ -76,7 +76,7 @@ public class AllocationServiceImpl implements AllocationService {
         List<Allocation> allocationList = this.allocationRepository.findByTutorId(tutorId);
         if (allocationList == null || allocationList.isEmpty()) {
             log.info("There is no students allocated with tutor: {}", user.getName());
-            throw new EntityNotFoundException("Student not found for user ID: " + tutorId);
+            throw new EntityNotFoundException("There is no students allocated with tutor " + user.getName());
         }
 
         this.allocationRepository.deleteAll(allocationList);
