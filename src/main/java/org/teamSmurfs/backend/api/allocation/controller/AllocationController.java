@@ -14,7 +14,7 @@ import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
 
 @RestController
-@RequestMapping("/api/v1/allocate")
+@RequestMapping("/api/v1/allocations")
 @RequiredArgsConstructor
 @Slf4j
 public class AllocationController {
@@ -24,7 +24,7 @@ public class AllocationController {
     @PostMapping
     public ResponseEntity<ApiResponse> bulkAllocate(
             @Valid @RequestBody CreateAllocationRequest requestPayload,
-            HttpServletRequest request
+            final HttpServletRequest request
     ) {
         log.info("Processing bulk allocation request");
 
@@ -37,6 +37,29 @@ public class AllocationController {
         ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
+                .data(true)
+                .message("Successful")
+                .build();
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @DeleteMapping("/deallocate-students")
+    public ResponseEntity<ApiResponse> deallocateAllStudents(
+            @RequestParam(value = "tutorId") final Long tutorId,
+            final HttpServletRequest request
+    ) {
+        log.info("Processing bulk deallocate all-students request for tutor ID: {}", tutorId);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        this.allocationService.deallocateAllStudents(tutorId);
+
+        log.info("Completed deallocate all-students request for tutor ID: {}", tutorId);
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.NO_CONTENT.value())
                 .data(true)
                 .message("Successful")
                 .build();
