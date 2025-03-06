@@ -126,7 +126,7 @@ public class AllocationServiceImpl implements AllocationService {
                         .map(a -> a.getStudent().getUser().getName())
                         .collect(Collectors.joining(", "))
         );
-        rabbitTemplate.convertAndSend("emailQueue", tutorEmailRequest);
+        rabbitTemplate.convertAndSend("allocationEmailQueue", tutorEmailRequest);
 
         for (Allocation allocation : allocations) {
             Student student = allocation.getStudent();
@@ -136,7 +136,7 @@ public class AllocationServiceImpl implements AllocationService {
                     tutorName,
                     student.getUser().getName()
             );
-            rabbitTemplate.convertAndSend("emailQueue", studentEmailRequest);
+            rabbitTemplate.convertAndSend("allocationEmailQueue", studentEmailRequest);
         }
     }
 }
