@@ -40,7 +40,7 @@ public class UserInitializer implements CommandLineRunner {
     public void run(String... args) {
         log.info("Initializing default users...");
 
-        Role adminRole = this.roleRepository.findByName(RoleName.ROLE_ADMIN)
+        Role adminRole = this.roleRepository.findByName(RoleName.ROLE_STUDENT)
                 .orElseThrow(() -> new RuntimeException("Role ADMIN not found."));
 
         if (this.userRepository.findByUsername("staff-1").isEmpty()) {

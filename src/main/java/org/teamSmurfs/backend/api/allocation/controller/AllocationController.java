@@ -14,7 +14,7 @@ import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
 
 @RestController
-@RequestMapping("/api/v1/allocate")
+@RequestMapping("/api/v1/allocations")
 @RequiredArgsConstructor
 @Slf4j
 public class AllocationController {
