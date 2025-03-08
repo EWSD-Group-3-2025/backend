@@ -1,4 +1,8 @@
 package org.teamSmurfs.backend.report.service;
 
-public class ReportService {
+import java.util.Map;
+
+public interface ReportService {
+    Map<String, Long> getUniqueUserCountByBrowser();
+    Map<String, Long> getTop5VisitedRoutes();
 }
