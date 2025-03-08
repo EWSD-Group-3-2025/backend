@@ -4,4 +4,5 @@ import org.teamSmurfs.backend.api.allocation.dto.CreateAllocationRequest;
 
 public interface AllocationService {
     void allocate(final CreateAllocationRequest request);
+    void deallocateAllStudents(final Long tutorId);
 }

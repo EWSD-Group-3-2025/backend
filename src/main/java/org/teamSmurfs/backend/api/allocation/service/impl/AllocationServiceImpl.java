@@ -2,9 +2,11 @@ package org.teamSmurfs.backend.api.allocation.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.teamSmurfs.backend.api.allocation.dto.CreateAllocationRequest;
+import org.teamSmurfs.backend.api.allocation.dto.EmailRequest;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
 import org.teamSmurfs.backend.api.allocation.service.AllocationService;
@@ -35,6 +37,7 @@ public class AllocationServiceImpl implements AllocationService {
     private final UserRepository userRepository;
     private final MailService mailService;
     private final ChatService chatService;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional
@@ -64,7 +67,22 @@ public class AllocationServiceImpl implements AllocationService {
             chatService.createOrGetChatRoom(tutorId, studentId);
         });
 
-        sendAllocationEmails(savedAllocations, tutor);
+        sendAllocationEmailsAsync(savedAllocations, tutor);
+    }
+
+    @Override
+    public void deallocateAllStudents(final Long tutorId) {
+        User user = EntityUtil.getEntityById(this.userRepository, tutorId);
+        Tutor tutor = this.tutorRepository.findByUser(user)
+                .orElseThrow(() -> new EntityNotFoundException("Tutor not found for user ID: " + user.getId()));
+
+        List<Allocation> allocationList = this.allocationRepository.findByTutorId(tutor.getId());
+        if (allocationList == null || allocationList.isEmpty()) {
+            log.info("There is no students allocated with tutor: {}", user.getName());
+            throw new EntityNotFoundException("There is no students allocated with tutor " + user.getName());
+        }
+
+        this.allocationRepository.deleteAll(allocationList);
     }
 
     /**
@@ -97,19 +115,28 @@ public class AllocationServiceImpl implements AllocationService {
         return allocation;
     }
 
-    private void sendAllocationEmails(List<Allocation> allocations, Tutor tutor) {
+    private void sendAllocationEmailsAsync(List<Allocation> allocations, Tutor tutor) {
         String tutorName = tutor.getUser().getName();
 
-        String studentNames = allocations.stream()
-                .map(allocation -> allocation.getStudent().getUser().getName())
-                .collect(Collectors.joining(", "));
-
-        mailService.sendAllocationEmail(tutor.getUser().getEmail(), "TUTOR", tutorName, studentNames);
+        EmailRequest tutorEmailRequest = new EmailRequest(
+                tutor.getUser().getEmail(),
+                "TUTOR",
+                tutorName,
+                allocations.stream()
+                        .map(a -> a.getStudent().getUser().getName())
+                        .collect(Collectors.joining(", "))
+        );
+        rabbitTemplate.convertAndSend("allocationEmailQueue", tutorEmailRequest);
 
         for (Allocation allocation : allocations) {
             Student student = allocation.getStudent();
-            String studentName = student.getUser().getName();
-            mailService.sendAllocationEmail(student.getUser().getEmail(), "STUDENT", tutorName, studentName);
+            EmailRequest studentEmailRequest = new EmailRequest(
+                    student.getUser().getEmail(),
+                    "STUDENT",
+                    tutorName,
+                    student.getUser().getName()
+            );
+            rabbitTemplate.convertAndSend("allocationEmailQueue", studentEmailRequest);
         }
     }
 }
