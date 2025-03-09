@@ -13,6 +13,7 @@ public class CommentRowMapper implements RowMapper<CommentRecord> {
         return new CommentRecord(
                 rs.getLong("id"),
                 rs.getLong("blog_id"),
+                rs.getLong("commenter_id"),
                 rs.getString("commenter_name"),
                 rs.getString("comment_text"),
                 rs.getTimestamp("created_at").toString(),

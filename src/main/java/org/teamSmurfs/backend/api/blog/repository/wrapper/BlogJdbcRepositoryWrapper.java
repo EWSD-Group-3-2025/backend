@@ -43,6 +43,7 @@ public class BlogJdbcRepositoryWrapper implements BlogJdbcRepository {
     private static final String FIND_BLOGS_FOR_THIS_USER_QUERY = """
         SELECT
             b.id AS id,
+            b.author_id AS author_id,
             u.name AS author_name,
             b.title AS title,
             b.content AS content,
@@ -77,6 +78,7 @@ public class BlogJdbcRepositoryWrapper implements BlogJdbcRepository {
     private static final String FIND_BY_ID_QUERY = """
         SELECT
             b.id AS id,
+            b.author_id AS author_id,
             u.name AS author_name,
             b.title AS title,
             b.content AS content,
@@ -93,6 +95,7 @@ public class BlogJdbcRepositoryWrapper implements BlogJdbcRepository {
     private static final String FIND_BY_AUTHOR_ID_QUERY = """
         SELECT
             b.id AS id,
+            b.author_id AS author_id,
             u.name AS author_name,
             b.title AS title,
             b.content AS content,

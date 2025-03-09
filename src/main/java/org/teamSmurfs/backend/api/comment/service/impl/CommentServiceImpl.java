@@ -82,6 +82,7 @@ public class CommentServiceImpl implements CommentService {
     private CommentDto convertToDto(CommentRecord comment) {
         return new CommentDto(
                 comment.id(),
+                comment.commenterId(),
                 comment.commenterName(),
                 comment.commentText(),
                 comment.createdAt(),
