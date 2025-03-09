@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.visit_log.model.VisitLog;
 import org.teamSmurfs.backend.api.visit_log.repository.VisitLogRepository;
+import org.teamSmurfs.backend.report.dto.BrowserUsageDto;
+import org.teamSmurfs.backend.report.dto.RouteUsageDto;
 import org.teamSmurfs.backend.report.service.ReportService;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -18,30 +21,33 @@ public class ReportServiceImpl implements ReportService {
     private final VisitLogRepository visitLogRepository;
 
     @Override
-    public Map<String, Long> getUniqueUserCountByBrowser() {
+    public List<BrowserUsageDto> getUniqueUserCountByBrowser() {
         return visitLogRepository.findAll().stream()
-                .filter(log -> log.getBrowserName() != null && log.getUser() != null) // Filter out null browser names and users
+                .filter(log -> log.getBrowserName() != null && log.getUser() != null) // Ensure non-null values
                 .collect(Collectors.groupingBy(
                         VisitLog::getBrowserName,
-                        Collectors.mapping(log -> log.getUser().getId(), Collectors.toSet()) // Collect unique user IDs per browser
+                        Collectors.mapping(log -> log.getUser().getId(), Collectors.toSet()) // Get unique user IDs per browser
                 )).entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> (long) entry.getValue().size())); // Convert to count of unique users
+                .map(entry -> new BrowserUsageDto(entry.getKey(), entry.getValue().size())) // Convert to DTO
+                .collect(Collectors.toList()); // Convert to List<BrowserUsageDto>
     }
 
 
     @Override
-    public Map<String, Long> getTop5VisitedRoutes() {
+    public List<RouteUsageDto> getTop5VisitedRoutes() {
         return visitLogRepository.findAll().stream()
-                .filter(log -> log.getRouteName() != null) // Ensure no null route names
+                .filter(log -> log.getRouteName() != null) // Exclude null route names
                 .collect(Collectors.groupingBy(
                         VisitLog::getRouteName,
-                        Collectors.counting() // Count occurrences of each route
+                        Collectors.counting() // Count visits per route
                 ))
                 .entrySet().stream()
-                .sorted(Map.Entry.<String, Long>comparingByValue().reversed()) // Sort by count (desc)
-                .limit(5) // Get the top 5
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed()) // Sort by most visited
+                .limit(5) // Keep only the top 5 routes
+                .map(entry -> new RouteUsageDto(entry.getKey(), entry.getValue())) // Convert to DTO
+                .collect(Collectors.toList()); // Convert to List<RouteUsageDto>
     }
+
 
 
 }
