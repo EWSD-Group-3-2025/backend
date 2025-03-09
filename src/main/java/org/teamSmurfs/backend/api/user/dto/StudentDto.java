@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StudentDto {
 	 private Long id;
+	 private Long userId;
      private String name;
 	 private String email;
 	 private String username;

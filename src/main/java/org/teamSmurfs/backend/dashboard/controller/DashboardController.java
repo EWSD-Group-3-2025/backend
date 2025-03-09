@@ -62,12 +62,12 @@ public class DashboardController {
         TutorDto tutorDto = dashboardService.getTutorByStudentId(userId);
 
         if (tutorDto == null) {
-            ApiResponse errorResponse = ApiResponse.builder()
-                    .success(0)
-                    .code(HttpStatus.NOT_FOUND.value())
+            ApiResponse emptyResponse = ApiResponse.builder()
+                    .success(1)
+                    .code(HttpStatus.OK.value())
                     .message("No active tutor found for user ID: " + userId)
                     .build();
-            return ResponseUtil.buildResponse(request, errorResponse, requestStartTime);
+            return ResponseUtil.buildResponse(request, emptyResponse, requestStartTime);
         }
 
         ApiResponse successResponse = ApiResponse.builder()
@@ -86,13 +86,13 @@ public class DashboardController {
         List<StudentDto> students = dashboardService.getStudentsByTutorId(userId);
 
         if (students.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    ApiResponse.builder()
-                            .success(0)
-                            .code(HttpStatus.NOT_FOUND.value())
-                            .message("No students assigned to tutor ID: " + userId)
-                            .build()
-            );
+            ApiResponse emptyResponse = ApiResponse.builder()
+                    .success(1)
+                    .code(HttpStatus.OK.value())
+                    .message("No students assigned to tutor ID: " + userId)
+                    .build();
+            return ResponseUtil.buildResponse(request, emptyResponse, requestStartTime);
+
         }
 
         ApiResponse successResponse = ApiResponse.builder()
