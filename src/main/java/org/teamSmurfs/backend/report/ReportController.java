@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
+import org.teamSmurfs.backend.report.dto.BrowserUsageDto;
+import org.teamSmurfs.backend.report.dto.RouteUsageDto;
 import org.teamSmurfs.backend.report.service.ReportService;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -25,37 +28,37 @@ public class ReportController {
 
     @GetMapping("/admin/report/browser-count")
     public ResponseEntity<ApiResponse> getUniqueUserCountByBrowser(final HttpServletRequest request) {
-
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        Map<String, Long> browserUsage = reportService.getUniqueUserCountByBrowser();
+        List<BrowserUsageDto> browserUsageList = reportService.getUniqueUserCountByBrowser();
 
         ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(browserUsage)
+                .data(browserUsageList) // Return list instead of map
                 .message("Unique user count by browser retrieved successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
 
-    @GetMapping("/admin/report/top-routes")
-    public ResponseEntity<?> getTopVisitedRoutes(final HttpServletRequest request) {
 
+    @GetMapping("/admin/report/top-routes")
+    public ResponseEntity<ApiResponse> getTopVisitedRoutes(final HttpServletRequest request) {
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
-        Map<String, Long> topRoutes = reportService.getTop5VisitedRoutes();
+
+        List<RouteUsageDto> topRoutes = reportService.getTop5VisitedRoutes();
 
         ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(topRoutes)
-                .message("Top 5 visited routes retrieved")
+                .data(topRoutes) // Return List<RouteUsageDto> instead of a map
+                .message("Top 5 visited routes retrieved successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
-
     }
+
 
 
 }

@@ -11,6 +11,9 @@ import org.teamSmurfs.backend.api.user.dto.StudentDto;
 import org.teamSmurfs.backend.api.user.dto.StudentMapper;
 import org.teamSmurfs.backend.api.user.dto.TutorDto;
 import org.teamSmurfs.backend.api.user.dto.TutorMapper;
+import org.teamSmurfs.backend.api.user.model.Student;
+import org.teamSmurfs.backend.api.user.model.Tutor;
+import org.teamSmurfs.backend.api.user.repository.StudentRepository;
 import org.teamSmurfs.backend.api.user.repository.TutorRepository;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.dashboard.dto.AdminDashboardDto;
@@ -28,6 +31,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final UserRepository userRepository;
     private final AllocationRepository allocationRepository;
     private final TutorRepository tutorRepository;
+    private final StudentRepository studentRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final TutorMapper tutorMapper;
     private final StudentMapper studentMapper;
@@ -51,7 +55,15 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public TutorDto getTutorByStudentId(Long studentId) {
+    public TutorDto getTutorByStudentId(Long userId) {
+        Optional<Student> studentOpt = studentRepository.findByUserId(userId);
+
+        if (studentOpt.isEmpty()) {
+            log.warn("No student found for user ID: {}", userId);
+            return null;
+        }
+
+        Long studentId = studentOpt.get().getId();
         Optional<Allocation> allocationOpt = allocationRepository.findByStudentId(studentId);
 
         if (allocationOpt.isEmpty()) {
@@ -62,18 +74,28 @@ public class DashboardServiceImpl implements DashboardService {
         return tutorMapper.mapToDto(allocationOpt.get().getTutor().getUser());
     }
 
+
     @Override
-    public List<StudentDto> getStudentsByTutorId(Long tutorId) {
+    public List<StudentDto> getStudentsByTutorId(Long userId) {
+        Optional<Tutor> tutorOpt = tutorRepository.findByUserId(userId);
+
+        if (tutorOpt.isEmpty()) {
+            log.warn("No tutor found for user ID: {}", userId);
+            return List.of();
+        }
+
+        Long tutorId = tutorOpt.get().getId();
         List<Allocation> allocations = allocationRepository.findByTutorId(tutorId);
 
         if (allocations.isEmpty()) {
-            log.warn("No students assigned to tutor ID: {}", tutorId);
+            log.warn("No students assigned to tutor with user ID: {}", tutorId);
             return List.of();
         }
 
         return allocations.stream()
-                .filter(allocation -> allocation.getStudent().getUser().isStatus())
-                .map(allocation -> studentMapper.mapToDto(allocation.getStudent().getUser())) // Use StudentMapper
+                .filter(allocation -> allocation.getStudent().getUser().isStatus()) // Ensure the student is active
+                .map(allocation -> studentMapper.mapToDto(allocation.getStudent().getUser())) // Map to StudentDto
                 .collect(Collectors.toList());
     }
+
 }
