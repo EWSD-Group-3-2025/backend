@@ -56,16 +56,16 @@ public class DashboardController {
 
     @GetMapping("student/dashboard/{userId}")
     public ResponseEntity<ApiResponse> getTutorByStudentId(
-            @PathVariable Long studentId, final HttpServletRequest request) {
+            @PathVariable Long userId, final HttpServletRequest request) {
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
-        TutorDto tutorDto = dashboardService.getTutorByStudentId(studentId);
+        TutorDto tutorDto = dashboardService.getTutorByStudentId(userId);
 
         if (tutorDto == null) {
             ApiResponse errorResponse = ApiResponse.builder()
                     .success(0)
                     .code(HttpStatus.NOT_FOUND.value())
-                    .message("No active tutor found for student ID: " + studentId)
+                    .message("No active tutor found for user ID: " + userId)
                     .build();
             return ResponseUtil.buildResponse(request, errorResponse, requestStartTime);
         }
@@ -80,17 +80,17 @@ public class DashboardController {
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
     }
 
-    @GetMapping("/tutor/dashboard/{tutorId}")
-    public ResponseEntity<ApiResponse> getStudentsByTutorId(@PathVariable Long tutorId, HttpServletRequest request) {
+    @GetMapping("/tutor/dashboard/{userId}")
+    public ResponseEntity<ApiResponse> getStudentsByTutorId(@PathVariable Long userId, HttpServletRequest request) {
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
-        List<StudentDto> students = dashboardService.getStudentsByTutorId(tutorId);
+        List<StudentDto> students = dashboardService.getStudentsByTutorId(userId);
 
         if (students.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     ApiResponse.builder()
                             .success(0)
                             .code(HttpStatus.NOT_FOUND.value())
-                            .message("No students assigned to tutor ID: " + tutorId)
+                            .message("No students assigned to tutor ID: " + userId)
                             .build()
             );
         }
@@ -99,7 +99,7 @@ public class DashboardController {
                 .success(1)
                 .code(HttpStatus.OK.value())
                 .data(students)
-                .message("Students retrieved successfully for tutor ID: " + tutorId)
+                .message("Students retrieved successfully for tutor ID: " + userId)
                 .build();
 
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);

@@ -9,6 +9,6 @@ import java.util.List;
 public interface DashboardService {
 
     AdminDashboardDto getAdminDashboardData();
-    TutorDto getTutorByStudentId(Long studentId);
-    List<StudentDto> getStudentsByTutorId(Long tutorId);
+    TutorDto getTutorByStudentId(Long userId);
+    List<StudentDto> getStudentsByTutorId(Long userId);
 }
