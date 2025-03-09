@@ -26,8 +26,13 @@ public class ReactServiceImpl implements ReactService {
 
         if (isAddReaction) {
             this.validateReact(react);
-            this.jdbcRepository.giveReaction(userDto.getId(), react, entityId, entityType);
-            log.info("Adding reaction '{}' to entity with ID {}", react, entityId);
+            if (isReactionExists(authHeader, entityId, entityType)) {
+                this.jdbcRepository.updateReaction(userDto.getId(), react, entityId, entityType);
+                log.info("Updating reaction '{}' for entity with ID {}", react, entityId);
+            } else {
+                this.jdbcRepository.giveReaction(userDto.getId(), react, entityId, entityType);
+                log.info("Adding reaction '{}' to entity with ID {}", react, entityId);
+            }
         } else {
             this.jdbcRepository.undoReaction(userDto.getId(), entityId, entityType);
             log.info("Removing reaction from entity with ID {}", entityId);

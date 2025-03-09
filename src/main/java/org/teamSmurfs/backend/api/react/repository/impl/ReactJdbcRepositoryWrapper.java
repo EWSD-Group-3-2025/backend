@@ -29,6 +29,12 @@ public class ReactJdbcRepositoryWrapper implements ReactJdbcRepository {
         VALUES (?, ?, ?, ?, NOW(), NOW())
     """;
 
+    private static final String UPDATE_REACT_QUERY = """
+        UPDATE react 
+        SET react = ?, updated_at = NOW() 
+        WHERE author_id = ? AND entity_id = ? AND entity_type = ?
+    """;
+
     private static final String DELETE_REACT_QUERY = """
         DELETE FROM react WHERE author_id = ? AND entity_id = ? AND entity_type = ?
     """;
@@ -46,5 +52,10 @@ public class ReactJdbcRepositoryWrapper implements ReactJdbcRepository {
     @Override
     public void undoReaction(final Long authorId, final Long entityId, final Integer entityType) {
         jdbcTemplate.update(DELETE_REACT_QUERY, authorId, entityId, entityType);
+    }
+
+    @Override
+    public void updateReaction(Long authorId, String reaction, Long entityId, Integer entityType) {
+        jdbcTemplate.update(UPDATE_REACT_QUERY, reaction, authorId, entityId, entityType);
     }
 }
