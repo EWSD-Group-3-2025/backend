@@ -102,8 +102,8 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public List<StudentDto> getUnassignedStudentsByTutorUserId() {
-        // Fetch all students
-        List<Student> allStudents = studentRepository.findAll();
+        // Fetch all students that are active
+        List<Student> allStudents = studentRepository.findAll();  // Assuming 'status' is a field indicating if a student is active
 
         // Fetch all allocations and get the set of student IDs that are already assigned
         List<Allocation> allAllocations = allocationRepository.findAll();
@@ -111,7 +111,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .map(allocation -> allocation.getStudent().getId())  // Get student IDs from allocations
                 .collect(Collectors.toSet());
 
-        // Filter out the students who are assigned to any tutor
+        // Filter out the students who are unassigned (not in any allocation)
         List<Student> unassignedStudents = allStudents.stream()
                 .filter(student -> !assignedStudentIds.contains(student.getId()))  // Ensure the student is unassigned
                 .collect(Collectors.toList());
@@ -121,6 +121,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .map(student -> studentMapper.mapToDto(student.getUser())) // Map User to StudentDto
                 .collect(Collectors.toList());
     }
+
 
 
 
