@@ -10,6 +10,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReactDto {
+    private Long authorId;
+
     private String authorName;
 
     private String react;
