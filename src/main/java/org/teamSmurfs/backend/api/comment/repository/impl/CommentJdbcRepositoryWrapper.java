@@ -21,6 +21,7 @@ public class CommentJdbcRepositoryWrapper implements CommentJdbcRepository {
         SELECT
             c.id,
             c.blog_id,
+            c.commenter_id,
             u.name AS commenter_name,
             c.comment_text,
             c.created_at,
@@ -37,6 +38,7 @@ public class CommentJdbcRepositoryWrapper implements CommentJdbcRepository {
         SELECT
             c.id,
             c.blog_id,
+            c.commenter_id,
             u.name AS commenter_name,
             c.comment_text,
             c.created_at,
