@@ -33,15 +33,15 @@ public class ReactController {
         String maskedAuthHeader = authHeader != null ? authHeader.substring(0, Math.min(10, authHeader.length())) + "***" : "N/A";
         log.info("Processing react for Authorization: {}", maskedAuthHeader);
 
-        boolean isReactionExist = this.reactService.isReactionExists(authHeader, reactRequest.getEntityId(), reactRequest.getEntityType());
+        final boolean isDeleteReaction = this.reactService.isReactionExists(authHeader, reactRequest.getEntityId(), reactRequest.getEntityType()) && reactRequest.getReact() == null;
 
-        this.reactService.handleReaction(authHeader, reactRequest.getEntityId(), reactRequest.getEntityType(), reactRequest.getReact(), !isReactionExist);
+        this.reactService.handleReaction(authHeader, reactRequest.getEntityId(), reactRequest.getEntityType(), reactRequest.getReact(), !isDeleteReaction);
 
         ApiResponse successResponse = ApiResponse.builder()
                 .success(1)
-                .code(!isReactionExist ? HttpStatus.CREATED.value() : HttpStatus.NO_CONTENT.value())
+                .code(!isDeleteReaction ? HttpStatus.CREATED.value() : HttpStatus.NO_CONTENT.value())
                 .data(true)
-                .message("React " + (!isReactionExist ? "submitted" : "deleted") + " successfully")
+                .message("React " + (!isDeleteReaction ? "submitted" : "deleted") + " successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
