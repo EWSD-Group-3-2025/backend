@@ -40,7 +40,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public List<DepartmentDto> retrieveAll() {
-        return repository.findAll().stream()
+        return repository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::mapToDto)
                 .toList();
     }

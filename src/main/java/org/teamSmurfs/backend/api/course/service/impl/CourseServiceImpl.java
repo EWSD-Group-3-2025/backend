@@ -43,7 +43,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<CourseDto> retrieveAll() {
-        return repository.findAll().stream()
+        return repository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::mapToDto)
                 .toList();
     }

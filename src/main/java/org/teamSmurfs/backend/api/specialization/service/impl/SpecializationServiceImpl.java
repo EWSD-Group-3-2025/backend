@@ -43,7 +43,7 @@ public class SpecializationServiceImpl implements SpecializationService {
 
     @Override
     public List<SpecializationDto> retrieveAll() {
-        return repository.findAll().stream()
+        return repository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
