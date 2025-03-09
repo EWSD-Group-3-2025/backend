@@ -139,6 +139,7 @@ public class BlogServiceImpl implements BlogService {
 
     private ReactDto convertReactToDto(ReactRecord react) {
         return new ReactDto(
+            react.authorId(),
             EntityUtil.getEntityById(this.userRepository, react.authorId()).getName(),
             react.react(),
             react.entityId(),
@@ -151,6 +152,7 @@ public class BlogServiceImpl implements BlogService {
     private CommentDto convertCommentToDo(CommentRecord comment) {
         return new CommentDto(
             comment.id(),
+            comment.commenterId(),
             comment.commenterName(),
             comment.commentText(),
             comment.createdAt(),
