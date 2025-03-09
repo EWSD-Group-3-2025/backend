@@ -83,8 +83,8 @@ public class DashboardServiceImpl implements DashboardService {
 
         // Build and return the TutorDto using Builder
         return TutorDto.builder()
-                .id(tutor.getId())  // Tutor ID
-                .userId(tutor.getUser().getId())  // User ID associated with the tutor
+                .tutorId(tutor.getId())  // Tutor ID
+                .id(tutor.getUser().getId())  // User ID associated with the tutor
                 .name(tutor.getUser().getName())  // Tutor's name
                 .email(tutor.getUser().getEmail())  // Tutor's email
                 .username(tutor.getUser().getUsername())  // Tutor's username
@@ -124,8 +124,8 @@ public class DashboardServiceImpl implements DashboardService {
                     User user = student.getUser();
 
                     return StudentDto.builder()
-                            .id(user.getId()) // Student's user ID
-                            .userId(user.getId()) // User ID
+                            .studentId(student.getId()) // Student's user ID
+                            .id(student.getUser().getId()) // User ID
                             .name(user.getName()) // Student's name
                             .email(user.getEmail()) // Student's email
                             .username(user.getUsername()) // Student's username
@@ -170,8 +170,8 @@ public class DashboardServiceImpl implements DashboardService {
                     User user = student.getUser(); // Get the user associated with the student
 
                     return StudentDto.builder()
-                            .id(user.getId()) // Student's user ID
-                            .userId(user.getId()) // User ID
+                            .studentId(student.getId()) // Student's user ID
+                            .id(user.getId()) // User ID
                             .name(user.getName()) // Student's name
                             .email(user.getEmail()) // Student's email
                             .username(user.getUsername()) // Student's username
