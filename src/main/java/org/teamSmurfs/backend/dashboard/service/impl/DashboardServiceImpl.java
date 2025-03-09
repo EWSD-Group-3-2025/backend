@@ -21,6 +21,7 @@ import org.teamSmurfs.backend.dashboard.service.DashboardService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -97,5 +98,30 @@ public class DashboardServiceImpl implements DashboardService {
                 .map(allocation -> studentMapper.mapToDto(allocation.getStudent().getUser())) // Map to StudentDto
                 .collect(Collectors.toList());
     }
+
+
+    @Override
+    public List<StudentDto> getUnassignedStudentsByTutorUserId() {
+        // Fetch all students
+        List<Student> allStudents = studentRepository.findAll();
+
+        // Fetch all allocations and get the set of student IDs that are already assigned
+        List<Allocation> allAllocations = allocationRepository.findAll();
+        Set<Long> assignedStudentIds = allAllocations.stream()
+                .map(allocation -> allocation.getStudent().getId())  // Get student IDs from allocations
+                .collect(Collectors.toSet());
+
+        // Filter out the students who are assigned to any tutor
+        List<Student> unassignedStudents = allStudents.stream()
+                .filter(student -> !assignedStudentIds.contains(student.getId()))  // Ensure the student is unassigned
+                .collect(Collectors.toList());
+
+        // Map unassigned students to StudentDto
+        return unassignedStudents.stream()
+                .map(student -> studentMapper.mapToDto(student.getUser())) // Map User to StudentDto
+                .collect(Collectors.toList());
+    }
+
+
 
 }

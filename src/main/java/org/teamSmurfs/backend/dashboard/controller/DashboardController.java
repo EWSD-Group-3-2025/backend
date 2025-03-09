@@ -105,5 +105,15 @@ public class DashboardController {
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
     }
 
+    @GetMapping("/admin/dashboard/get-unassigned-students")
+    public ResponseEntity<List<StudentDto>> getUnassignedStudents() {
+        List<StudentDto> unassignedStudents = dashboardService.getUnassignedStudentsByTutorUserId();
+
+        if (unassignedStudents.isEmpty()) {
+            return ResponseEntity.noContent().build();  // Return 204 if no unassigned students
+        }
+
+        return ResponseEntity.ok(unassignedStudents);  // Return 200 OK with the list of unassigned students
+    }
 
 }
