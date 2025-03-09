@@ -16,4 +16,6 @@ public interface TutorRepository extends JpaRepository<Tutor, Long> {
     @Query("SELECT COUNT(t) FROM Tutor t WHERE t.user.status = true")
     long countActiveTutors();
 
+    Optional<Tutor> findByUserId(Long userId);
+
 }
