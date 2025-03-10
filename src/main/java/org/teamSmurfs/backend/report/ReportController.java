@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
+import org.teamSmurfs.backend.api.user.dto.UserDto;
+import org.teamSmurfs.backend.api.visit_log.service.VisitLogService;
 import org.teamSmurfs.backend.report.dto.BrowserUsageDto;
 import org.teamSmurfs.backend.report.dto.RouteUsageDto;
 import org.teamSmurfs.backend.report.service.ReportService;
@@ -58,6 +60,23 @@ public class ReportController {
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
+
+    @GetMapping("/admin/report/top20-visited-users")
+    public ResponseEntity<ApiResponse> getMostVisitedUsers(final HttpServletRequest request) {
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        List<Object> mostVisitedUsers = reportService.getMostVisitedUsers();
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(mostVisitedUsers) // Return list of user DTOs
+                .message("Most visited users retrieved successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
 
 
 

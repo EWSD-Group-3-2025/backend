@@ -11,4 +11,5 @@ public interface DashboardService {
     AdminDashboardDto getAdminDashboardData();
     TutorDto getTutorByStudentId(Long userId);
     List<StudentDto> getStudentsByTutorId(Long userId);
+    List<StudentDto> getUnassignedStudentsByTutorUserId();
 }

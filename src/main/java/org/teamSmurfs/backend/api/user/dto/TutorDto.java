@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TutorDto {
 	private Long id;
+    private Long tutorId;
     private String name;
     private String email;
     private String username;
