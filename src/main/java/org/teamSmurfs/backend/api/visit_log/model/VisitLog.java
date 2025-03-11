@@ -61,15 +61,21 @@ public class VisitLog {
     @Column(nullable = true)
     private String browserName;
 
+    @Column(nullable = true)
+    private String pageName;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public VisitLog(final User user, final String routeName, final String browserName) {
+    public VisitLog(final User user, final String routeName, final String browserName, final String pageName) {
         this.user = user;
         this.routeName = routeName;
         this.browserName = browserName;
+        this.pageName = pageName;
     }
+
+
 }

@@ -15,4 +15,6 @@ public class VisitLogDto {
     private String browserName;
 
     private String username;
+
+    private String pageName;
 }

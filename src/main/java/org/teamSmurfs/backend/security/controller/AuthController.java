@@ -128,11 +128,12 @@ public class AuthController {
             @RequestHeader("Authorization") final String authHeader,
             @RequestParam(required = false) final String routeName,
             @RequestParam(required = false) final String browserName,
+            @RequestParam(required = false) final String pageName,
             HttpServletRequest request) {
         log.info("Fetching current authenticated user");
 
         double requestStartTime = System.currentTimeMillis();
-        ApiResponse response = authService.getCurrentUser(authHeader, routeName, browserName);
+        ApiResponse response = authService.getCurrentUser(authHeader, routeName, browserName, pageName);
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
