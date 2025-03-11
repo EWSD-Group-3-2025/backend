@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RouteUsageDto {
-    private String routeName;
+    private String pageName;
     private long visitCount;
 }
 
