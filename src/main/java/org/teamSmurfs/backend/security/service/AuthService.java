@@ -20,7 +20,7 @@ public interface AuthService {
 
     ApiResponse refreshToken(String refreshToken);
 
-    ApiResponse getCurrentUser(final String authHeader, final String routeName, final String browserName);
+    ApiResponse getCurrentUser(final String authHeader, final String routeName, final String browserName, final String pageName);
 
     ApiResponse initiatePasswordReset(String email);
 

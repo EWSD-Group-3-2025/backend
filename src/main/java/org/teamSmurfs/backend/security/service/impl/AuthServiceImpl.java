@@ -151,7 +151,8 @@ public class AuthServiceImpl implements AuthService {
         VisitLog visitLog = new VisitLog(
                 user,
                 "AFTER_LOGGED",
-                "something"
+                "something",
+                "pageName"
         );
 
         visitLogService.save(visitLog);
@@ -292,14 +293,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ApiResponse getCurrentUser(final String authHeader, final String routeName, final String browserName) {
+    public ApiResponse getCurrentUser(final String authHeader, final String routeName, final String browserName,
+                                      final String pageName) {
         UserDto userDto = userUtil.getCurrentUserDto(authHeader);
         User user = EntityUtil.getEntityById(userRepository, userDto.getId());
 
         VisitLog visitLog = new VisitLog(
                 user,
                 routeName,
-                browserName
+                browserName,
+                pageName
         );
 
         visitLogService.save(visitLog);
