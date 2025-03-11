@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.teamSmurfs.backend.api.allocation.dto.CreateAllocationRequest;
 import org.teamSmurfs.backend.api.allocation.dto.EmailRequest;
+import org.teamSmurfs.backend.api.allocation.dto.TransferStudentRequest;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
 import org.teamSmurfs.backend.api.allocation.service.AllocationService;
@@ -22,7 +23,9 @@ import org.teamSmurfs.backend.config.service.MailService;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -83,6 +86,71 @@ public class AllocationServiceImpl implements AllocationService {
         }
 
         this.allocationRepository.deleteAll(allocationList);
+    }
+
+    @Override
+    @Transactional
+    public void transferStudents(final TransferStudentRequest transferRequest) {
+        log.info("Initiating student transfer process...");
+
+        final Tutor firstTutor = this.getTutorById(transferRequest.getFirstTutorId());
+        final Tutor secondTutor = this.getTutorById(transferRequest.getSecondTutorId());
+
+        final List<Long> studentsToMoveToSecond = transferRequest.getStudentsFromFirstToSecond();
+        final List<Long> studentsToMoveToFirst = transferRequest.getStudentsFromSecondToFirst();
+
+        if (this.isTransferListEmpty(studentsToMoveToFirst) && this.isTransferListEmpty(studentsToMoveToSecond)) {
+            log.warn("No students specified for transfer.");
+            throw new IllegalArgumentException("No students provided for transfer.");
+        }
+
+        this.transferStudentsBetweenTutors(studentsToMoveToSecond, firstTutor, secondTutor);
+        this.transferStudentsBetweenTutors(studentsToMoveToFirst, secondTutor, firstTutor);
+
+        log.info("Student transfer process completed successfully.");
+    }
+
+    private Tutor getTutorById(final Long tutorId) {
+        return this.tutorRepository.findByUser(
+                        EntityUtil.getEntityById(this.userRepository, tutorId))
+                .orElseThrow(() -> new EntityNotFoundException("Tutor not found for user ID: " + tutorId));
+    }
+
+    private boolean isTransferListEmpty(final List<Long> studentIds) {
+        return studentIds == null || studentIds.isEmpty();
+    }
+
+    private void transferStudentsBetweenTutors(final List<Long> studentIds, final Tutor fromTutor, final Tutor toTutor) {
+        if (this.isTransferListEmpty(studentIds)) return;
+
+        List<Student> students = this.studentRepository.findAllByUserIdIn(studentIds);
+        if (students.size() != studentIds.size()) {
+            throw new EntityNotFoundException("Some students were not found.");
+        }
+
+        final List<Allocation> updatedAllocations = students.stream()
+                .map(student -> this.allocationRepository.findByStudentAndActiveTrue(student)
+                        .map(allocation -> this.updateAllocation(allocation, toTutor))
+                        .orElseGet(() -> this.logNoActiveAllocation(student)))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (!updatedAllocations.isEmpty()) {
+            this.allocationRepository.saveAll(updatedAllocations);
+            log.info("{} students successfully transferred to Tutor {}", updatedAllocations.size(), toTutor.getId());
+        }
+    }
+
+    private Allocation updateAllocation(final Allocation allocation, final Tutor toTutor) {
+        allocation.setTutor(toTutor);
+        allocation.setUpdatedAt(LocalDateTime.now());
+        log.info("Student {} moved to Tutor {}", allocation.getStudent().getId(), toTutor.getId());
+        return allocation;
+    }
+
+    private Allocation logNoActiveAllocation(Student student) {
+        log.warn("Student {} has no active allocation and cannot be transferred", student.getId());
+        return null;
     }
 
     /**
