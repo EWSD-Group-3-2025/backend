@@ -38,7 +38,6 @@ public class DashboardController {
 
     @GetMapping("/admin/dashboard")
     public ResponseEntity<ApiResponse> getDashboardData(final HttpServletRequest request) {
-
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
         Object object = dashboardService.getAdminDashboardData();
@@ -46,12 +45,11 @@ public class DashboardController {
         ApiResponse successResponse = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(object)
+                .data(object != null ? object : Collections.emptyMap()) // Ensure empty object instead of null
                 .message("Admin Dashboard data retrieved successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
-
     }
 
     @GetMapping("student/dashboard/{userId}")
@@ -61,23 +59,15 @@ public class DashboardController {
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
         TutorDto tutorDto = dashboardService.getTutorByStudentId(userId);
 
-        if (tutorDto == null) {
-            ApiResponse emptyResponse = ApiResponse.builder()
-                    .success(1)
-                    .code(HttpStatus.OK.value())
-                    .message("No active tutor found for user ID: " + userId)
-                    .build();
-            return ResponseUtil.buildResponse(request, emptyResponse, requestStartTime);
-        }
-
-        ApiResponse successResponse = ApiResponse.builder()
+        ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(tutorDto)
-                .message("Tutor details retrieved successfully")
+                .data(tutorDto != null ? tutorDto : Collections.emptyMap()) // Return empty object if no tutor is found
+                .message(tutorDto != null ? "Tutor details retrieved successfully" :
+                        "No active tutor found for user ID: " + userId)
                 .build();
 
-        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
 
     @GetMapping("/tutor/dashboard/{userId}")
@@ -85,35 +75,34 @@ public class DashboardController {
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
         List<StudentDto> students = dashboardService.getStudentsByTutorId(userId);
 
-        if (students.isEmpty()) {
-            ApiResponse emptyResponse = ApiResponse.builder()
-                    .success(1)
-                    .code(HttpStatus.OK.value())
-                    .message("No students assigned to tutor ID: " + userId)
-                    .build();
-            return ResponseUtil.buildResponse(request, emptyResponse, requestStartTime);
-
-        }
-
-        ApiResponse successResponse = ApiResponse.builder()
+        ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(students)
-                .message("Students retrieved successfully for tutor ID: " + userId)
+                .data(students.isEmpty() ? Collections.emptyList() : students) // Ensure empty array instead of null
+                .message(students.isEmpty() ? "No students assigned to tutor ID: " + userId :
+                        "Students retrieved successfully for tutor ID: " + userId)
                 .build();
 
-        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
 
     @GetMapping("/admin/dashboard/get-unassigned-students")
-    public ResponseEntity<List<StudentDto>> getUnassignedStudents() {
+    public ResponseEntity<ApiResponse> getUnassignedStudents(final HttpServletRequest request) {
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
         List<StudentDto> unassignedStudents = dashboardService.getUnassignedStudentsByTutorUserId();
 
-        if (unassignedStudents.isEmpty()) {
-            return ResponseEntity.noContent().build();  // Return 204 if no unassigned students
-        }
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(unassignedStudents.isEmpty() ? Collections.emptyList() : unassignedStudents) // Ensure empty array
+                .message(unassignedStudents.isEmpty() ? "No unassigned students found" :
+                        "Unassigned students retrieved successfully")
+                .build();
 
-        return ResponseEntity.ok(unassignedStudents);  // Return 200 OK with the list of unassigned students
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
+
+
+
 
 }
