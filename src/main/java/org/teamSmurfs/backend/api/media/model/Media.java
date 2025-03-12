@@ -24,7 +24,10 @@ public class Media {
     @ManyToOne
     @JoinColumn(name = "uploaded_by", nullable = false)
     private User uploadedBy;
-
+    
+    @Column(nullable = false)
+    private String userName;
+    
     @Column(nullable = false)
     private String fileUrl;
 
@@ -39,7 +42,19 @@ public class Media {
 
     @Column(nullable = false)
     private String fileType;
-
+    
+    @Column(nullable = false)
+	private String storedName;
+	
+    @Column(nullable = false)
+	private Long storedUUID;
+	
+    @Column(nullable = false)
+	private String title;
+	
+    @Column(nullable = false)
+	private String description;
+	
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -47,13 +62,19 @@ public class Media {
     private LocalDateTime updatedAt;
 
     public Media(
-            final User uploadedBy, final String fileUrl, final LocalDateTime uploadedAt, final Long entityId, final Integer entityType, final String fileType
-    ) {
+            final User uploadedBy,final String userName, final String fileUrl, final LocalDateTime uploadedAt, final Long entityId, final Integer entityType, 
+            final String fileType,final String storedName,final Long storedUUID, final String title, final String description ) {
         this.uploadedBy = uploadedBy;
+        this.userName = userName;
         this.fileUrl = fileUrl;
         this.uploadedAt = uploadedAt;
         this.entityId = entityId;
         this.entityType = entityType;
         this.fileType = fileType;
+        this.storedName = storedName;
+        this.storedUUID = storedUUID;
+        this.title = title;
+        this.description = description;
+        
     }
 }
