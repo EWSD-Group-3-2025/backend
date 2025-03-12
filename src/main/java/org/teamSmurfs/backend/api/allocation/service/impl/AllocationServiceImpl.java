@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.teamSmurfs.backend.api.allocation.dto.AllocatedStudentResponse;
 import org.teamSmurfs.backend.api.allocation.dto.CreateAllocationRequest;
 import org.teamSmurfs.backend.api.allocation.dto.EmailRequest;
 import org.teamSmurfs.backend.api.allocation.dto.TransferStudentRequest;
@@ -12,6 +13,7 @@ import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
 import org.teamSmurfs.backend.api.allocation.service.AllocationService;
 import org.teamSmurfs.backend.api.chat.service.ChatService;
+import org.teamSmurfs.backend.api.user.dto.StudentDto;
 import org.teamSmurfs.backend.api.user.model.Student;
 import org.teamSmurfs.backend.api.user.model.Tutor;
 import org.teamSmurfs.backend.api.user.model.User;
@@ -108,6 +110,36 @@ public class AllocationServiceImpl implements AllocationService {
         this.transferStudentsBetweenTutors(studentsToMoveToFirst, secondTutor, firstTutor);
 
         log.info("Student transfer process completed successfully.");
+    }
+
+    @Override
+    public List<AllocatedStudentResponse> retrieveStudentsByTutorId(final Long userId) {
+        Optional<Tutor> tutorOpt = tutorRepository.findByUserId(userId);
+
+        if (tutorOpt.isEmpty()) {
+            log.warn("No tutor found for user ID: {}", userId);
+            return List.of();
+        }
+
+        Long tutorId = tutorOpt.get().getId();
+        List<Allocation> allocations = this.allocationRepository.findByTutorId(tutorId);
+
+        if (allocations.isEmpty()) {
+            log.warn("No students assigned to tutor with user ID: {}", tutorId);
+            return List.of();
+        }
+        return allocations.stream()
+                .filter(allocation -> allocation.getStudent().getUser().isStatus()) // Ensure the student is active
+                .map(allocation -> {
+                    Student student = allocation.getStudent();
+                    User user = student.getUser();
+
+                    return AllocatedStudentResponse.builder()
+                            .id(student.getUser().getId())
+                            .name(user.getName())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     private Tutor getTutorById(final Long tutorId) {
