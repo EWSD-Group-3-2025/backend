@@ -79,4 +79,37 @@ public class ReportController {
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
+
+    
+    @GetMapping("/admin/report/most-active-users")
+    public ResponseEntity<ApiResponse> getMostActiveUsers(final HttpServletRequest request) {
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        List<Object> mostActiveUsers = reportService.getMostActiveUsers();
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(mostActiveUsers)
+                .message("Most Active Users retrieved successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+    
+    @GetMapping("/admin/report/inactivity-users-betweendates")
+    public ResponseEntity<ApiResponse> findInactiveUsersBetweenDates(final HttpServletRequest request) {
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        List<Object> InActivityUsers = reportService.findInactiveUsersBetweenDates();
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(InActivityUsers)
+                .message("InActivity Users between 7 from 28 days ago retrieved successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
 }

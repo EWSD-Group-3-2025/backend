@@ -10,10 +10,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateMediaRequest {
-
+	
+	private String userName;
+	
     private String fileUrl;
 
     private Integer entityType;
 
     private String fileType;
+    
+    private String storedName;
+    
+    private Long storedUUID;
+    
+    private String title;
+    
+    private String description;
 }

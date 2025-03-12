@@ -1,7 +1,9 @@
 package org.teamSmurfs.backend.api.visit_log.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.visit_log.dto.VisitLogDto;
@@ -31,6 +33,15 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
 
 
     @Query("SELECT v.user FROM VisitLog v GROUP BY v.user ORDER BY COUNT(v) DESC LIMIT 20")
-    List<User> getMostVisitedUsers();
+    List<User> getMostVisitedUsers(); // for get only 20 most visited user count 
+
+    @Query("SELECT v.user, COUNT(v) FROM VisitLog v GROUP BY v.user ORDER BY COUNT(v) DESC")
+	List<User> getMostActiveUsers(Pageable pageable);
+
+    @Query("SELECT v.user FROM VisitLog v WHERE v.createdAt BETWEEN :startDate AND :endDate GROUP BY v.user")
+    List<User> findInactiveUsersBetweenDates(
+        @Param("startDate") LocalDateTime startDate, 
+        @Param("endDate") LocalDateTime endDate
+    );
 
 }
