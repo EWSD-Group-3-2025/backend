@@ -23,6 +23,8 @@ import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.dashboard.dto.AdminDashboardDto;
 import org.teamSmurfs.backend.dashboard.service.DashboardService;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -49,15 +51,16 @@ public class DashboardServiceImpl implements DashboardService {
             long totalUsers = userRepository.count();
             long assignedStudents = allocationRepository.countAssignedStudents();
             long activeTutors = tutorRepository.countActiveTutors();
-            long totalMessages = chatMessageRepository.count();
+            long totalMessages = chatMessageRepository.count();           
+            long thisMothIncreaseCnt = userRepository.thisMothIncreaseCnt();
+            
+            log.debug("Fetched Admin Dashboard Data: totalUsers={}, assignedStudents={}, activeTutors={}, totalMessages={} , thisMonthIncreaseCount={}",
+                    totalUsers, assignedStudents, activeTutors, totalMessages, thisMothIncreaseCnt);
 
-            log.debug("Fetched Admin Dashboard Data: totalUsers={}, assignedStudents={}, activeTutors={}, totalMessages={}",
-                    totalUsers, assignedStudents, activeTutors, totalMessages);
-
-            return new AdminDashboardDto(totalUsers, assignedStudents, activeTutors, totalMessages);
+            return new AdminDashboardDto(totalUsers, assignedStudents, activeTutors, totalMessages , thisMothIncreaseCnt);
         } catch (Exception e) {
             log.error("Error fetching Admin Dashboard data", e);
-            return new AdminDashboardDto(0, 0, 0, 0);  // Returning default values to prevent failure
+            return new AdminDashboardDto(0, 0, 0, 0, 0);  // Returning default values to prevent failure
         }
     }
 
@@ -145,8 +148,6 @@ public class DashboardServiceImpl implements DashboardService {
                 .collect(Collectors.toList());
     }
 
-
-
     @Override
     public List<StudentDto> getUnassignedStudentsByTutorUserId() {
         // Fetch all students that are active
@@ -190,8 +191,5 @@ public class DashboardServiceImpl implements DashboardService {
                 })
                 .collect(Collectors.toList());
     }
-
-
-
 
 }

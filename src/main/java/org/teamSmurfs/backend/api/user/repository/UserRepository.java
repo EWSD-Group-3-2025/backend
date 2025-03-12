@@ -60,4 +60,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     """, nativeQuery = true)
     List<User> findUsersWithAdminRole();
 
+    @Query(value = """
+            SELECT COUNT(*) FROM user u 
+            WHERE YEAR(u.created_at) = YEAR(CURRENT_DATE()) 
+            AND MONTH(u.created_at) = MONTH(CURRENT_DATE())
+        """, nativeQuery = true)
+        long thisMothIncreaseCnt();
+
 }

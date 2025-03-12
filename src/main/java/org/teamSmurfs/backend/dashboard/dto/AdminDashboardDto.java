@@ -13,4 +13,5 @@ public class AdminDashboardDto {
     //private double assignedPercentage;
     private long activeTutors;
     private long totalMessages;
+    private long increaseThisMonthCount;
 }

@@ -2,6 +2,8 @@ package org.teamSmurfs.backend.report.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.dto.UserMapper;
@@ -12,6 +14,7 @@ import org.teamSmurfs.backend.report.dto.BrowserUsageDto;
 import org.teamSmurfs.backend.report.dto.RouteUsageDto;
 import org.teamSmurfs.backend.report.service.ReportService;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +73,44 @@ public class ReportServiceImpl implements ReportService {
         log.info("Successfully retrieved {} most visited users", userDtos.size());
         return userDtos;
     }
+
+
+	@Override
+	public List<Object> getMostActiveUsers() {
+		List<User> users = visitLogRepository.getMostActiveUsers(PageRequest.of(0,20));
+		
+		if(users.size() == 0) {
+			log.warn("No most active users found in visit logs");
+			return Collections.emptyList();
+		}
+		
+		List<Object> userDtos = users.stream()
+				.map(userMapper::mapToDto)
+				.collect(Collectors.toList());
+		log.info("Successfully retrieved {} most active users", userDtos.size());
+		return userDtos;
+	}
+
+
+	@Override
+	public List<Object> findInactiveUsersBetweenDates() {
+
+        LocalDateTime today = LocalDateTime.now();
+        LocalDateTime startDate = today.minusDays(28);
+        LocalDateTime endDate = today.minusDays(7);
+        List<User> users = visitLogRepository.findInactiveUsersBetweenDates(startDate,endDate);
+		
+		if(users.size() == 0) {
+			log.warn("No inactivity users between 7 to 28 days ago found in visit logs");
+			return Collections.emptyList();
+		}
+		
+		List<Object> userDtos = users.stream()
+				.map(userMapper::mapToDto)
+				.collect(Collectors.toList());
+		log.info("Successfully retrieved {} inactivity users between 7 to 28 days ago", userDtos.size());
+		return userDtos;
+	}
 
 
 }
