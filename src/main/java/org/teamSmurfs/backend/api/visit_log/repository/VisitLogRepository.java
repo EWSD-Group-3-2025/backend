@@ -25,7 +25,7 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
 
     @Query("""
     SELECT new org.teamSmurfs.backend.api.visit_log.dto.VisitLogDto(
-        v.routeName, v.browserName, v.user.username
+        v.routeName, v.browserName, v.user.username, v.pageName
     )\s
     FROM VisitLog v
 """)

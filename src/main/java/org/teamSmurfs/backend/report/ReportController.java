@@ -17,8 +17,9 @@ import org.teamSmurfs.backend.report.dto.BrowserUsageDto;
 import org.teamSmurfs.backend.report.dto.RouteUsageDto;
 import org.teamSmurfs.backend.report.service.ReportService;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+
 
 @RestController
 @RequestMapping("/${api.base.path}")
@@ -37,13 +38,13 @@ public class ReportController {
         ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(browserUsageList) // Return list instead of map
-                .message("Unique user count by browser retrieved successfully")
+                .data(browserUsageList.isEmpty() ? Collections.emptyList() : browserUsageList) // Ensures empty array
+                .message(browserUsageList.isEmpty() ? "No browser usage data found" :
+                        "Unique user count by browser retrieved successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
-
 
     @GetMapping("/admin/report/top-routes")
     public ResponseEntity<ApiResponse> getTopVisitedRoutes(final HttpServletRequest request) {
@@ -54,8 +55,9 @@ public class ReportController {
         ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(topRoutes) // Return List<RouteUsageDto> instead of a map
-                .message("Top 5 visited routes retrieved successfully")
+                .data(topRoutes.isEmpty() ? Collections.emptyList() : topRoutes) // Ensures empty array
+                .message(topRoutes.isEmpty() ? "No top visited routes found" :
+                        "Top 5 visited routes retrieved successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
@@ -70,8 +72,9 @@ public class ReportController {
         ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(mostVisitedUsers) // Return list of user DTOs
-                .message("Most visited users retrieved successfully")
+                .data(mostVisitedUsers.isEmpty() ? Collections.emptyList() : mostVisitedUsers) // Ensures empty array
+                .message(mostVisitedUsers.isEmpty() ? "No most visited users found" :
+                        "Most visited users retrieved successfully")
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
@@ -109,6 +112,4 @@ public class ReportController {
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
-
-
 }

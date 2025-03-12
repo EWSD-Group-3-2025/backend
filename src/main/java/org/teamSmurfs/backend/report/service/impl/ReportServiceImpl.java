@@ -44,9 +44,9 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<RouteUsageDto> getTop5VisitedRoutes() {
         return visitLogRepository.findAll().stream()
-                .filter(log -> log.getRouteName() != null) // Exclude null route names
+                .filter(log -> log.getPageName() != null) // Exclude null route names
                 .collect(Collectors.groupingBy(
-                        VisitLog::getRouteName,
+                        VisitLog::getPageName,
                         Collectors.counting() // Count visits per route
                 ))
                 .entrySet().stream()

@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.teamSmurfs.backend.api.allocation.dto.CreateAllocationRequest;
+import org.teamSmurfs.backend.api.allocation.dto.TransferStudentRequest;
 import org.teamSmurfs.backend.api.allocation.service.AllocationService;
 import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
@@ -62,6 +63,31 @@ public class AllocationController {
                 .code(HttpStatus.NO_CONTENT.value())
                 .data(true)
                 .message("Successful")
+                .build();
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @PostMapping("/transfer")
+    public ResponseEntity<ApiResponse> transferStudents(
+            @Valid @RequestBody final TransferStudentRequest transferStudentRequest,
+            final HttpServletRequest request
+    ) {
+        log.info("Processing transfer request between Tutor {} and Tutor {}",
+                transferStudentRequest.getFirstTutorId(), transferStudentRequest.getSecondTutorId());
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        this.allocationService.transferStudents(transferStudentRequest);
+
+        log.info("Successfully transferred students between Tutor {} and Tutor {}",
+                transferStudentRequest.getFirstTutorId(), transferStudentRequest.getSecondTutorId());
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(true)
+                .message("Transfer successful")
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
