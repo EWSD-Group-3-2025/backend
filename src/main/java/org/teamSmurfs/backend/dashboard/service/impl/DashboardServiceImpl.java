@@ -10,6 +10,7 @@ import org.teamSmurfs.backend.api.chat.repository.ChatMessageRepository;
 import org.teamSmurfs.backend.api.course.model.Course;
 import org.teamSmurfs.backend.api.course.repository.CourseRepository;
 import org.teamSmurfs.backend.api.student_course.repository.StudentCourseRepository;
+import org.teamSmurfs.backend.api.user.dto.StudentDashBoardDto;
 import org.teamSmurfs.backend.api.user.dto.StudentDto;
 import org.teamSmurfs.backend.api.user.dto.StudentMapper;
 import org.teamSmurfs.backend.api.user.dto.TutorDto;
@@ -20,11 +21,15 @@ import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.StudentRepository;
 import org.teamSmurfs.backend.api.user.repository.TutorRepository;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.api.visit_log.model.VisitLog;
+import org.teamSmurfs.backend.api.visit_log.repository.VisitLogRepository;
 import org.teamSmurfs.backend.dashboard.dto.AdminDashboardDto;
 import org.teamSmurfs.backend.dashboard.service.DashboardService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +47,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final TutorRepository tutorRepository;
     private final StudentRepository studentRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final VisitLogRepository visitLogRepository;
     private final TutorMapper tutorMapper;
     private final StudentMapper studentMapper;
 
@@ -103,7 +109,7 @@ public class DashboardServiceImpl implements DashboardService {
 
 
     @Override
-    public List<StudentDto> getStudentsByTutorId(Long userId) {
+    public List<StudentDashBoardDto> getStudentsByTutorId(Long userId) {
         Optional<Tutor> tutorOpt = tutorRepository.findByUserId(userId);
 
         if (tutorOpt.isEmpty()) {
@@ -125,8 +131,21 @@ public class DashboardServiceImpl implements DashboardService {
                     // Get the student from the allocation and build the StudentDto manually
                     Student student = allocation.getStudent();
                     User user = student.getUser();
-
-                    return StudentDto.builder()
+                    
+                    List<VisitLog> visitedLogs = visitLogRepository.findByUserId(user.getId());                  
+                    boolean isInactive = user.updateInactiveStatus(visitedLogs);
+                    
+                 // Calculate inactive days dynamically
+                    int inactiveDays = 0;
+                    if (isInactive) {
+                        VisitLog latestVisit = visitedLogs.stream()
+                                .max(Comparator.comparing(VisitLog::getCreatedAt))
+                                .orElse(null);
+                        if (latestVisit != null) {
+                            inactiveDays = (int) ChronoUnit.DAYS.between(latestVisit.getCreatedAt(), LocalDateTime.now());
+                        }
+                    }
+                    return StudentDashBoardDto.builder()
                             .studentId(student.getId()) // Student's user ID
                             .id(student.getUser().getId()) // User ID
                             .name(user.getName()) // Student's name
@@ -143,6 +162,8 @@ public class DashboardServiceImpl implements DashboardService {
                                 return course != null ? course.getName() : "No Course";
                             }).orElse("No Course")) // Course name from StudentCourse
                             .allocateTutorId(allocation.getTutor().getUser().getId()) // Allocated tutor's user ID
+                            .inactive(isInactive)
+                            .inactiveDays(inactiveDays)
                             .build();
                 })
                 .collect(Collectors.toList());

@@ -21,7 +21,7 @@ public class UpdateMediaRequest {
     
     private String storedName;
     
-    private Long storedUUID;
+    private String storedUUID;
     
     private String title;
     

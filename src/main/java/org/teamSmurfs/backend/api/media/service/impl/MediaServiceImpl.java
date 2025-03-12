@@ -118,7 +118,7 @@ public class MediaServiceImpl implements MediaService{
         if (media.getId() != null) {
             User users = userRepository.findById(media.getUploadedBy().getId())
                     .orElseThrow(() -> new EntityNotFoundException("User not found for Media ID: " + media.getId()));
-            //mediaDto.setUserId(users.getId());
+            mediaDto.setUserId(users.getId());
         }
         return mediaDto;
     }
