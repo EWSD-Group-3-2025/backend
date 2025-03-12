@@ -7,12 +7,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.teamSmurfs.backend.api.allocation.dto.AllocatedStudentResponse;
 import org.teamSmurfs.backend.api.allocation.dto.CreateAllocationRequest;
 import org.teamSmurfs.backend.api.allocation.dto.TransferStudentRequest;
 import org.teamSmurfs.backend.api.allocation.service.AllocationService;
 import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/allocations")
@@ -88,6 +91,27 @@ public class AllocationController {
                 .code(HttpStatus.OK.value())
                 .data(true)
                 .message("Transfer successful")
+                .build();
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @GetMapping("/tutor/{tutorId}/students")
+    public ResponseEntity<ApiResponse> retrieveStudentsByTutor(
+            @PathVariable("tutorId") Long userId,
+            final HttpServletRequest request
+    ) {
+        log.info("Fetching students allocated to tutor ID: {}", userId);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        List<AllocatedStudentResponse> students = this.allocationService.retrieveStudentsByTutorId(userId);
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(students)
+                .message("Successful")
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
