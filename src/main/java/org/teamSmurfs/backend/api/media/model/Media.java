@@ -47,7 +47,7 @@ public class Media {
 	private String storedName;
 	
     @Column(nullable = false)
-	private Long storedUUID;
+	private String storedUUID;
 	
     @Column(nullable = false)
 	private String title;
@@ -63,7 +63,7 @@ public class Media {
 
     public Media(
             final User uploadedBy,final String userName, final String fileUrl, final LocalDateTime uploadedAt, final Long entityId, final Integer entityType, 
-            final String fileType,final String storedName,final Long storedUUID, final String title, final String description ) {
+            final String fileType,final String storedName,final String storedUUID, final String title, final String description ) {
         this.uploadedBy = uploadedBy;
         this.userName = userName;
         this.fileUrl = fileUrl;

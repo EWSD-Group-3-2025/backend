@@ -11,6 +11,7 @@ import org.teamSmurfs.backend.api.visit_log.model.VisitLog;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
 
@@ -43,5 +44,7 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
         @Param("startDate") LocalDateTime startDate, 
         @Param("endDate") LocalDateTime endDate
     );
+
+	List<VisitLog> findByUserId(Long id);
 
 }
