@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
+import org.teamSmurfs.backend.api.user.dto.StudentDashBoardDto;
 import org.teamSmurfs.backend.api.user.dto.StudentDto;
 import org.teamSmurfs.backend.api.user.dto.TutorDto;
 import org.teamSmurfs.backend.dashboard.dto.AdminDashboardDto;
@@ -73,7 +74,7 @@ public class DashboardController {
     @GetMapping("/tutor/dashboard/{userId}")
     public ResponseEntity<ApiResponse> getStudentsByTutorId(@PathVariable Long userId, HttpServletRequest request) {
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
-        List<StudentDto> students = dashboardService.getStudentsByTutorId(userId);
+        List<StudentDashBoardDto> students = dashboardService.getStudentsByTutorId(userId);
 
         ApiResponse response = ApiResponse.builder()
                 .success(1)
