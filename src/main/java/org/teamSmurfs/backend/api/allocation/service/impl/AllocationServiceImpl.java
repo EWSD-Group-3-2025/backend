@@ -91,6 +91,18 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     @Override
+    public void deallocateStudent(final Long studentId) {
+        final User user = EntityUtil.getEntityById(this.userRepository, studentId);
+        final Student student = this.studentRepository.findByUser(user)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found for user ID: " + user.getId()));
+
+        final Allocation allocation = this.allocationRepository.findByStudentId(student.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Allocation not found for student ID: " + studentId));
+
+        this.allocationRepository.delete(allocation);
+    }
+
+    @Override
     @Transactional
     public void transferStudents(final TransferStudentRequest transferRequest) {
         log.info("Initiating student transfer process...");

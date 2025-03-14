@@ -48,18 +48,32 @@ public class AllocationController {
         return ResponseUtil.buildResponse(request, response, requestStartTime);
     }
 
-    @DeleteMapping("/deallocate-students")
+    @DeleteMapping("/deallocate")
     public ResponseEntity<ApiResponse> deallocateAllStudents(
-            @RequestParam(value = "tutorId") final Long tutorId,
+            @RequestParam(value = "tutorId", defaultValue = "0") final Long tutorId,
+            @RequestParam(value = "studentId", defaultValue = "0") final Long studentId,
             final HttpServletRequest request
     ) {
-        log.info("Processing bulk deallocate all-students request for tutor ID: {}", tutorId);
 
-        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+        final boolean isBulkAllocate = tutorId != 0 && studentId == 0;
 
-        this.allocationService.deallocateAllStudents(tutorId);
+        log.info(isBulkAllocate
+                        ? "Processing bulk deallocate all-students request for tutor ID: {}"
+                        : "Processing deallocate student request for student ID: {}",
+                isBulkAllocate ? tutorId : studentId);
 
-        log.info("Completed deallocate all-students request for tutor ID: {}", tutorId);
+        final double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        final Runnable task = isBulkAllocate
+                ? () -> this.allocationService.deallocateAllStudents(tutorId)
+                : () -> this.allocationService.deallocateStudent(studentId);
+
+        task.run();
+
+        log.info(isBulkAllocate
+                        ? "Completed deallocate all-students request for tutor ID: {}"
+                        : "Completed deallocate student request for student ID: {}",
+                isBulkAllocate ? tutorId : studentId);
 
         ApiResponse response = ApiResponse.builder()
                 .success(1)
