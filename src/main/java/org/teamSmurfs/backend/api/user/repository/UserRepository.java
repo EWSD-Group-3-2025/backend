@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -59,5 +60,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY u.created_at DESC
     """, nativeQuery = true)
     List<User> findUsersWithAdminRole();
+
+
 
 }
