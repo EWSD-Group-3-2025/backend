@@ -48,7 +48,7 @@ jobs:
       - name: Deploy to Z.com VPS
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/team_smurfs_deployment.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            cd /root/backend/
+            cd /root/project/backend/
             git pull --no-rebase origin develop
             docker compose down
             docker compose up --build -d
