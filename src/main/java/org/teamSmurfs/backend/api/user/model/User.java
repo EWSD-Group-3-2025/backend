@@ -17,8 +17,13 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 import org.teamSmurfs.backend.api.role.model.Role;
 import org.teamSmurfs.backend.api.token.model.Token;
+import org.teamSmurfs.backend.api.visit_log.model.VisitLog;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -115,4 +120,22 @@ public class User {
     public String toString() {
         return "User{id=" + id + ", name='" + name + "', username='" + username + "', email='" + email + "', status=" + status + "}";
     }
+    
+    public boolean updateInactiveStatus(List<VisitLog> visitedLogs) {
+        if (visitedLogs == null || visitedLogs.isEmpty()) {
+            return false;
+        }
+        VisitLog latestVisit = visitedLogs.stream()
+                .max(Comparator.comparing(VisitLog::getCreatedAt))
+                .orElse(null);
+
+        if (latestVisit == null) {
+            return false;
+        }
+
+        long daysSinceLastVisit = ChronoUnit.DAYS.between(latestVisit.getCreatedAt(), LocalDateTime.now());
+
+        return daysSinceLastVisit >= 7 && daysSinceLastVisit <= 28;
+    }
+
 }

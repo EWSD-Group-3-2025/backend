@@ -35,6 +35,12 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void create(final CourseRequest createCourseRequest) {
         checkUserExists(createCourseRequest.getStaffId());
+        
+        for (String courseName : createCourseRequest.getNames()) {
+            if (this.repository.existsByName(courseName)) {  // Check if the course name already exists
+                throw new IllegalArgumentException("Course name '" + courseName + "' already exists.");
+            }
+        }
         List<Course> courses = Arrays.stream(createCourseRequest.getNames())
                 .map(name -> new Course(name, createCourseRequest.getStaffId()))
                 .toList();

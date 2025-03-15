@@ -27,7 +27,7 @@ public class CreateMediaRequest {
 	private String storedName;
 	
 	@NotNull(message = "StoreUUID is required.")
-	private Long storedUUID;
+	private String storedUUID;
 	
 	@NotNull(message = "title is required.")
 	private String title;
