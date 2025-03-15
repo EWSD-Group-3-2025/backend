@@ -31,6 +31,11 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public void create(final CreateDepartmentRequest createDepartmentRequest) {
         checkUserExists(createDepartmentRequest.getStaffId());
+        for (String departmentName : createDepartmentRequest.getNames()) {
+            if (this.repository.existsByName(departmentName)) {  // Check if the department name already exists
+                throw new IllegalArgumentException("Department name '" + departmentName + "' already exists.");
+            }
+        }
         List<Department> departments = Arrays.stream(createDepartmentRequest.getNames())
                 .map(name -> new Department(name, createDepartmentRequest.getStaffId()))
                 .toList();

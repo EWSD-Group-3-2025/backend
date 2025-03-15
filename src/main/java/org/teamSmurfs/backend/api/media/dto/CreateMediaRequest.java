@@ -11,6 +11,9 @@ public class CreateMediaRequest {
     @Min(value = 1, message = "User ID must be a positive number.")
 	private Long userId;
 	
+	@NotNull(message = "User Name is required.")
+	private String userName;
+	
 	@NotNull(message="File Url is required.")
 	private String fileUrl ;
 	
@@ -18,5 +21,17 @@ public class CreateMediaRequest {
 	private Integer entityType;
 	
 	@NotNull(message = "File Type is required.")
-	private String fileType;	
+	private String fileType;
+	
+	@NotNull(message = "Store Name is required.")
+	private String storedName;
+	
+	@NotNull(message = "StoreUUID is required.")
+	private String storedUUID;
+	
+	@NotNull(message = "title is required.")
+	private String title;
+	
+	@NotNull(message = "description is required.")
+	private String description;
 }

@@ -31,7 +31,12 @@ public class SpecializationServiceImpl implements SpecializationService {
 
     @Override
     public void create(final CreateSpecializationRequest createSpecializationRequest) {
-        // Create specialization entities using provided names and staffId
+    	
+    	for (String specializationName : createSpecializationRequest.getNames()) {
+            if (this.repository.existsByName(specializationName)) {  // Check if the specialization name already exists
+                throw new IllegalArgumentException("SpecializationName name '" + specializationName + "' already exists.");
+            }
+        }
         List<Specialization> specializations = Arrays.stream(createSpecializationRequest.getNames())
                 .map(name -> new Specialization(name, createSpecializationRequest.getStaffId()))
                 .collect(Collectors.toList());

@@ -81,11 +81,14 @@ public class MediaServiceImpl implements MediaService{
 		            throw new IllegalArgumentException("Invalid mediaType value provided.");
 		        }
 				 existMedia.setEntityType(mediaType.getValue());				
-	        }
+	        } 
+			   existMedia.setUserName(updateMediaRequest.getUserName());
 			   existMedia.setFileType(updateMediaRequest.getFileType());
 			   existMedia.setFileUrl(updateMediaRequest.getFileUrl());
-			  
-			    
+			   existMedia.setStoredName(updateMediaRequest.getStoredName());
+			   existMedia.setStoredUUID(updateMediaRequest.getStoredUUID());
+			   existMedia.setTitle(updateMediaRequest.getTitle());	
+			   existMedia.setDescription(updateMediaRequest.getDescription());
 			    return mapToDto(mediaRepository.save(existMedia));
 			 }catch (Exception e) {
 		            log.error("Unexpected error while updating media with ID: {}", id, e);
@@ -122,11 +125,16 @@ public class MediaServiceImpl implements MediaService{
 	private Media buildMediaEntity(User user, CreateMediaRequest request , Integer mediaTypeValue , Long initialEntityId) {
         return new Media(
             user,
+            request.getUserName(),
             request.getFileUrl(),
             LocalDateTime.now(),
             initialEntityId,
             mediaTypeValue,
-            request.getFileType()
+            request.getFileType(),
+            request.getStoredName(),
+            request.getStoredUUID(),
+            request.getTitle(),
+            request.getDescription()
         );
     }
 }

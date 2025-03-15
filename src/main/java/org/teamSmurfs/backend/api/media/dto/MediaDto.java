@@ -14,18 +14,26 @@ import lombok.NoArgsConstructor;
 public class MediaDto {
 	
 	    private Long id;
-
+	    
 	    private Long userId;
+	    
+	    private String userName;
 
 	    private String fileUrl;
 
 	    private LocalDateTime uploadedAt;
 
-	    private Long entityId;
-
 	    private Integer entityType;
 
 	    private String fileType;
+	    
+	    private String storedName; 
+	    
+	    private String storedUUID; 
+	    
+	    private String title;
+	    
+	    private String description;
 
 	    private LocalDateTime createdAt;
 

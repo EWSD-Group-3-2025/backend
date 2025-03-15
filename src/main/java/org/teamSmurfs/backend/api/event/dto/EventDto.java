@@ -18,6 +18,8 @@ EventDto {
 	
 	private Long tutorId;
 	
+	private String tutorName;
+	
 	private String title;
 	
 	private String description;

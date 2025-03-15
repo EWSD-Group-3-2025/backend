@@ -18,4 +18,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     @Query("SELECT s FROM Student s WHERE s.id NOT IN (SELECT a.student.id FROM Allocation a)")
     List<Student> findStudentsNotInAnyAllocation();
+
+    List<Student> findAllByUserIdIn(List<Long> studentIds);
 }
