@@ -11,6 +11,7 @@ import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.teamSmurfs.backend.api.user.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
