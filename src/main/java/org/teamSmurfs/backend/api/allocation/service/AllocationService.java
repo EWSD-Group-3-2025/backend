@@ -9,6 +9,7 @@ import java.util.List;
 public interface AllocationService {
     void allocate(final CreateAllocationRequest request);
     void deallocateAllStudents(final Long tutorId);
+    void deallocateStudent(final Long studentId);
 
     void transferStudents(final TransferStudentRequest transferStudentRequest);
 
