@@ -143,9 +143,10 @@ public class EventServiceImpl implements EventService{
 	private EventDto mapToDto(final Event event) {
         EventDto eventDto = modelMapper.map(event, EventDto.class);
         if (event.getOrganizer() != null) {
-            User tutor = userRepository.findById(event.getOrganizer().getId())
+            User tutor = userRepository.findById(event.getOrganizer().getUser().getId())
                     .orElseThrow(() -> new EntityNotFoundException("Tutor not found for Event ID: " + eventDto.getTutorId()));
             eventDto.setTutorId(tutor.getId());
+            eventDto.setTutorName(tutor.getName());
         }
         return eventDto;
     }
