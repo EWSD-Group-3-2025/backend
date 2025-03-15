@@ -9,14 +9,11 @@ import org.teamSmurfs.backend.api.meeting.repository.MeetingRepository;
 import org.teamSmurfs.backend.api.meeting.service.MeetingService;
 import org.teamSmurfs.backend.api.role.model.RoleName;
 import org.teamSmurfs.backend.api.user.model.User;
-import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

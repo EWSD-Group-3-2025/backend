@@ -12,7 +12,6 @@ import org.teamSmurfs.backend.api.department.service.DepartmentService;
 import org.teamSmurfs.backend.api.user.model.Staff;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.StaffRepository;
-import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.config.exception.EntityDeletionException;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;

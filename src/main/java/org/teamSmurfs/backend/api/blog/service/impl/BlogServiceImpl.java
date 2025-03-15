@@ -21,7 +21,6 @@ import org.teamSmurfs.backend.api.react.model.ReactEntityType;
 import org.teamSmurfs.backend.api.react.repository.ReactJdbcRepository;
 import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
-import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;

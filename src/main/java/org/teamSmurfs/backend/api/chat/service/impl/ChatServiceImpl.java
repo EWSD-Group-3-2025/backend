@@ -12,7 +12,6 @@ import org.teamSmurfs.backend.api.chat.repository.ChatMessageRepository;
 import org.teamSmurfs.backend.api.chat.repository.ChatRoomRepository;
 import org.teamSmurfs.backend.api.chat.service.ChatService;
 import org.teamSmurfs.backend.api.user.model.User;
-import org.teamSmurfs.backend.api.user.repository.UserRepository;
 
 import java.util.List;
 import java.util.Set;

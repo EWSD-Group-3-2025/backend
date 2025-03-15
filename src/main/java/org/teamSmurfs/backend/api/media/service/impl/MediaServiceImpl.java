@@ -14,7 +14,6 @@ import org.teamSmurfs.backend.api.media.model.MediaType;
 import org.teamSmurfs.backend.api.media.repository.MediaRepository;
 import org.teamSmurfs.backend.api.media.service.MediaService;
 import org.teamSmurfs.backend.api.user.model.User;
-import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 

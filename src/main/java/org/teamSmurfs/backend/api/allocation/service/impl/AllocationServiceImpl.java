@@ -16,7 +16,6 @@ import org.teamSmurfs.backend.api.user.model.Tutor;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.StudentRepository;
 import org.teamSmurfs.backend.api.user.repository.TutorRepository;
-import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.service.MailService;
 import org.teamSmurfs.backend.config.utils.EntityUtil;

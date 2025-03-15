@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import org.teamSmurfs.backend.api.department.repository.DepartmentRepository;
 import org.teamSmurfs.backend.api.user.model.Staff;
 import org.teamSmurfs.backend.api.user.repository.StaffRepository;
-import org.teamSmurfs.backend.api.user.repository.UserRepository;
 
 @Component
 @RequiredArgsConstructor

@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
-import org.teamSmurfs.backend.api.chat.model.ChatMessage;
 import org.teamSmurfs.backend.api.chat.repository.ChatMessageRepository;
 import org.teamSmurfs.backend.api.course.model.Course;
 import org.teamSmurfs.backend.api.course.repository.CourseRepository;
@@ -19,7 +18,6 @@ import org.teamSmurfs.backend.api.user.model.Tutor;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.StudentRepository;
 import org.teamSmurfs.backend.api.user.repository.TutorRepository;
-import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.dashboard.dto.AdminDashboardDto;
 import org.teamSmurfs.backend.dashboard.service.DashboardService;
 
