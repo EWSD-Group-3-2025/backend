@@ -1,10 +1,13 @@
 package org.teamSmurfs.backend.api.react.repository.impl;
 
+import org.hibernate.type.EntityType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.teamSmurfs.backend.api.react.dto.ReactRecord;
 import org.teamSmurfs.backend.api.react.mapper.ReactRowMapper;
+import org.teamSmurfs.backend.api.react.model.ReactEntityType;
 import org.teamSmurfs.backend.api.react.repository.ReactJdbcRepository;
+import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 
 import java.util.List;
 
@@ -51,7 +54,11 @@ public class ReactJdbcRepositoryWrapper implements ReactJdbcRepository {
 
     @Override
     public void undoReaction(final Long authorId, final Long entityId, final Integer entityType) {
-        jdbcTemplate.update(DELETE_REACT_QUERY, authorId, entityId, entityType);
+        int rowsAffected = this.jdbcTemplate.update(DELETE_REACT_QUERY, authorId, entityId, entityType);
+
+        if (rowsAffected == 0) {
+            throw new EntityNotFoundException("No reacts found for " + ReactEntityType.fromInt(entityType).getValue() + " ID: " + entityId);
+        }
     }
 
     @Override
