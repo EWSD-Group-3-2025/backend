@@ -51,7 +51,7 @@ public class BlogController {
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
     }
 
-    @GetMapping("/mine")
+    @GetMapping
     public ResponseEntity<ApiResponse> retrieveBlogs(
             @RequestHeader(value = "Authorization", required = false) final String authHeader,
             @RequestParam(value = "fetchFeed", defaultValue = "false") final boolean fetchFeed,
