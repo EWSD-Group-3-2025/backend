@@ -12,6 +12,7 @@ import org.teamSmurfs.backend.api.specialization.service.SpecializationService;
 import org.teamSmurfs.backend.api.user.model.Tutor;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.TutorRepository;
+import org.teamSmurfs.backend.api.user.repository.UserRepository; // Ensure this repository exists
 import org.teamSmurfs.backend.config.exception.EntityDeletionException;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;

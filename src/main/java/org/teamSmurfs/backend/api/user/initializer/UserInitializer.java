@@ -14,6 +14,7 @@ import org.teamSmurfs.backend.api.token.model.Token;
 import org.teamSmurfs.backend.api.token.repository.TokenRepository;
 import org.teamSmurfs.backend.api.user.model.Gender;
 import org.teamSmurfs.backend.api.user.model.User;
+import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 import org.teamSmurfs.backend.security.utils.AuthUtil;
 

@@ -11,6 +11,7 @@ import org.teamSmurfs.backend.api.course.repository.CourseRepository;
 import org.teamSmurfs.backend.api.course.service.CourseService;
 import org.teamSmurfs.backend.api.student_course.model.StudentCourse;
 import org.teamSmurfs.backend.api.student_course.repository.StudentCourseRepository;
+import org.teamSmurfs.backend.api.user.model.Student;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.StaffRepository;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
