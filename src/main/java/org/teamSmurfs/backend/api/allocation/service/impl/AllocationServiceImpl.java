@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class cAllocationServiceImpl implements AllocationService {
+public class AllocationServiceImpl implements AllocationService {
 
     private final AllocationRepository allocationRepository;
     private final StudentRepository studentRepository;
