@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import org.teamSmurfs.backend.api.comment.dto.CommentRecord;
 import org.teamSmurfs.backend.api.comment.mapper.CommentRowMapper;
 import org.teamSmurfs.backend.api.comment.repository.CommentJdbcRepository;
+import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +52,13 @@ public class CommentJdbcRepositoryWrapper implements CommentJdbcRepository {
             c.id=?
     """;
 
+    private static final String DELETE_BY_BLOG_ID_QUERY = """
+        DELETE FROM 
+            comment
+        WHERE
+            blog_id = ?
+    """;
+
     @Override
     public List<CommentRecord> findByBlogId(Long blogId) {
         return jdbcTemplate.query(FIND_BY_BLOG_ID, COMMENT_ROW_MAPPER, blogId);
@@ -60,5 +68,14 @@ public class CommentJdbcRepositoryWrapper implements CommentJdbcRepository {
     public Optional<CommentRecord> findById(Long id) {
         return jdbcTemplate.query(FIND_BY_ID_QUERY, COMMENT_ROW_MAPPER, id)
                 .stream().findFirst();
+    }
+
+    @Override
+    public void deleteByBlogId(final Long blogId) {
+        int rowsAffected = this.jdbcTemplate.update(DELETE_BY_BLOG_ID_QUERY, blogId);
+
+        if (rowsAffected == 0) {
+            throw new EntityNotFoundException("No comments found for blog ID: " + blogId);
+        }
     }
 }
