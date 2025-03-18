@@ -24,6 +24,7 @@ services:
 
   mysql:
     image: "mysql:8.0"
+    restart: unless-stopped
     environment:
       - "MYSQL_DATABASE=e_tutoring_system_db"
       - "MYSQL_ROOT_PASSWORD=mysql"
