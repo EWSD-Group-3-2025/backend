@@ -24,6 +24,7 @@ import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.api.visit_log.model.VisitLog;
 import org.teamSmurfs.backend.api.visit_log.repository.VisitLogRepository;
 import org.teamSmurfs.backend.dashboard.dto.AdminDashboardDto;
+import org.teamSmurfs.backend.dashboard.dto.TutorDashboardCount;
 import org.teamSmurfs.backend.dashboard.service.DashboardService;
 
 import java.time.LocalDate;
@@ -211,6 +212,11 @@ public class DashboardServiceImpl implements DashboardService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public TutorDashboardCount retrieveDashboardCountByTutorUserId(final Long userId) {
+        return null;
     }
 
 }

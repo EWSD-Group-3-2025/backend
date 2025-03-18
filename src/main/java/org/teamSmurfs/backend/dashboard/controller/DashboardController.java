@@ -21,6 +21,7 @@ import org.teamSmurfs.backend.api.user.dto.StudentDashBoardDto;
 import org.teamSmurfs.backend.api.user.dto.StudentDto;
 import org.teamSmurfs.backend.api.user.dto.TutorDto;
 import org.teamSmurfs.backend.dashboard.dto.AdminDashboardDto;
+import org.teamSmurfs.backend.dashboard.dto.TutorDashboardResponse;
 import org.teamSmurfs.backend.dashboard.service.DashboardService;
 import org.teamSmurfs.backend.security.config.SecurityConfig;
 import org.teamSmurfs.backend.security.utils.JwtUtil;
@@ -74,13 +75,17 @@ public class DashboardController {
     @GetMapping("/tutor/dashboard/{userId}")
     public ResponseEntity<ApiResponse> getStudentsByTutorId(@PathVariable Long userId, HttpServletRequest request) {
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
-        List<StudentDashBoardDto> students = dashboardService.getStudentsByTutorId(userId);
+
+        final TutorDashboardResponse tutorDashboardResponse = new TutorDashboardResponse(
+            dashboardService.getStudentsByTutorId(userId),
+                null
+        );
 
         ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(students.isEmpty() ? Collections.emptyList() : students) // Ensure empty array instead of null
-                .message(students.isEmpty() ? "No students assigned to tutor ID: " + userId :
+                .data(tutorDashboardResponse.getStudents().isEmpty() ? Collections.emptyList() : tutorDashboardResponse.getStudents())
+                .message(tutorDashboardResponse.getStudents().isEmpty() ? "No students assigned to tutor ID: " + userId :
                         "Students retrieved successfully for tutor ID: " + userId)
                 .build();
 
