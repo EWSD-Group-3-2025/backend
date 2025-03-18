@@ -8,13 +8,17 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.media.dto.CreateMediaRequest;
 import org.teamSmurfs.backend.api.media.dto.MediaDto;
+import org.teamSmurfs.backend.api.media.dto.MediaRecord;
 import org.teamSmurfs.backend.api.media.dto.UpdateMediaRequest;
 import org.teamSmurfs.backend.api.media.model.Media;
 import org.teamSmurfs.backend.api.media.model.MediaType;
+import org.teamSmurfs.backend.api.media.repository.MediaJdbcRepository;
 import org.teamSmurfs.backend.api.media.repository.MediaRepository;
 import org.teamSmurfs.backend.api.media.service.MediaService;
+import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.config.exception.EntityNotFoundException;
 import org.teamSmurfs.backend.config.utils.EntityUtil;
 
@@ -28,7 +32,9 @@ public class MediaServiceImpl implements MediaService{
 	
 	private final MediaRepository mediaRepository;
 	private final UserRepository userRepository;
+	private final MediaJdbcRepository jdbcRepository;
 	private final ModelMapper modelMapper;
+	 private final UserUtil userUtil;
 
 	@Override
 	public void uploadMedia(CreateMediaRequest createMediaRequest) {
@@ -137,5 +143,38 @@ public class MediaServiceImpl implements MediaService{
             request.getTitle(),
             request.getDescription()
         );
+    }
+
+	@Override
+	public List<MediaDto> retrieveMediasByThisUser(String authHeader) {
+		
+		UserDto userDto = this.userUtil.getCurrentUserDto(authHeader);
+		
+        User user = EntityUtil.getEntityById(this.userRepository, userDto.getId());
+
+        return this.jdbcRepository.findUploadById(user.getId()).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+	}
+	
+	@Override
+	public List<MediaDto> retrieveMediasForThisUser(String authHeader) {
+        UserDto userDto = this.userUtil.getCurrentUserDto(authHeader);
+		
+        User user = EntityUtil.getEntityById(this.userRepository, userDto.getId());
+
+        return this.jdbcRepository.findMediasForThisUser(user.getId()).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+	}
+	
+	private MediaDto convertToDto(final MediaRecord mediaRecord) {
+        MediaDto mediaDto = modelMapper.map(mediaRecord, MediaDto.class);
+        if (mediaRecord.id() != null) {
+            User users = userRepository.findById(mediaRecord.userId())
+                    .orElseThrow(() -> new EntityNotFoundException("User not found for Media ID: " + mediaRecord.id()));
+            mediaDto.setUserId(users.getId());
+        }
+        return mediaDto;
     }
 }

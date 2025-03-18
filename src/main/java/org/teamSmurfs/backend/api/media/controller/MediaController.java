@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.teamSmurfs.backend.api.media.dto.CreateMediaRequest;
 import org.teamSmurfs.backend.api.media.dto.MediaDto;
@@ -52,12 +54,22 @@ public class MediaController {
 	}
 	
 	@GetMapping
-	public ResponseEntity<ApiResponse> retrieveAllMedia(HttpServletRequest request) throws Exception{
-		
+	public ResponseEntity<ApiResponse> retrieveAllMedia(
+			@RequestHeader(value = "Authorization", required = false) final String authHeader,
+            @RequestParam(value = "shared", defaultValue = "false") final boolean shared,
+			HttpServletRequest request) throws Exception{
+		List<MediaDto> mediaList;
 		log.info("Retrieving all media");
 		 double requestStartTime = RequestUtils.extractRequestStartTime(request);
 		 
-		 List<MediaDto> mediaList = mediaService.retrieveAll();
+		 String maskedAuthHeader = authHeader != null ? authHeader.substring(0, Math.min(10, authHeader.length())) + "***" : "N/A";
+	      log.info("Processing reset password for Authorization: {}", maskedAuthHeader);
+		 
+		 if(shared) {
+			 mediaList = this.mediaService.retrieveMediasForThisUser(authHeader);
+		 }else {
+		     mediaList = this.mediaService.retrieveMediasByThisUser(authHeader);
+		 }
 		 
 		 ApiResponse successResponse = ApiResponse.builder()
 	                .success(1) 

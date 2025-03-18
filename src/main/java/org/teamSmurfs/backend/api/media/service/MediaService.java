@@ -18,4 +18,8 @@ public interface MediaService {
 
 	void deleteMedia(long id);
 
+	List<MediaDto> retrieveMediasByThisUser(String maskedAuthHeader);
+
+	List<MediaDto> retrieveMediasForThisUser(String authHeader);
+
 }
