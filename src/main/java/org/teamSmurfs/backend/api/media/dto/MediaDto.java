@@ -21,7 +21,7 @@ public class MediaDto {
 
 	    private String fileUrl;
 
-	    private LocalDateTime uploadedAt;
+	    private String uploadedAt;
 
 	    private Integer entityType;
 
@@ -35,7 +35,7 @@ public class MediaDto {
 	    
 	    private String description;
 
-	    private LocalDateTime createdAt;
+	    private String createdAt;
 
-	    private LocalDateTime updatedAt;
+	    private String updatedAt;
 }

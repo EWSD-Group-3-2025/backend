@@ -1,11 +1,13 @@
 package org.teamSmurfs.backend.api.event.serviceimpl;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
@@ -38,7 +40,8 @@ public class EventServiceImpl implements EventService{
 	private final AllocationRepository allocationRepository;
 	private final ModelMapper modelMapper;
 	private final MailService mailService;
-	
+	private final RabbitTemplate rabbitTemplate;
+
 	@Override
 	public void createEvent(CreateEventRequest eventRequest) throws Exception {
 	    try{
@@ -61,8 +64,14 @@ public class EventServiceImpl implements EventService{
 	            .orElseThrow(() -> new IllegalArgumentException("Invalid Event request"));	    
 	    
 	    List<Allocation> allocations = allocationRepository.findByTutorId(tutor.getId());
-	    
-	    sendEventEmails(allocations, tutor);
+
+		final Map<String, Object> emailPayload = Map.of(
+				"allocations", allocations,
+				"tutor", tutor
+		);
+
+		this.rabbitTemplate.convertAndSend("eventCreationEmailQueue", emailPayload);
+
 	    }catch(Exception e){
 	    	log.error("Error Creating Event: ", e);
             throw new RuntimeException(e.getMessage());

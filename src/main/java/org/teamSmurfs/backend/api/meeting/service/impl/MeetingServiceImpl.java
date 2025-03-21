@@ -12,7 +12,11 @@ import org.teamSmurfs.backend.api.user.model.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.dashboard.dto.TutorDashboardTodayMeeting;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -167,6 +171,26 @@ public class MeetingServiceImpl implements MeetingService {
         return meetings.stream()
                 .map(this::convertToMeetingResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TutorDashboardTodayMeeting> getTodayMeetingsForTutor(Long tutorId) {
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+
+        List<Meeting> meetings = meetingRepository.findByStartTimeBetweenAndHostId(startOfDay, endOfDay, tutorId);
+
+        return meetings.stream().map(meeting -> new TutorDashboardTodayMeeting(
+                meeting.getId(),
+                meeting.getHost().getName(),
+                meeting.getStartTime(),
+                meeting.getEndTime(),
+                meeting.getDescription(),
+                meeting.getMeetingType(),
+                meeting.getLink(),
+                meeting.getLocation(),
+                meeting.getCreatedAt()
+        )).collect(Collectors.toList());
     }
 
 
