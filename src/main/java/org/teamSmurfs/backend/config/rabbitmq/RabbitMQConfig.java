@@ -20,6 +20,9 @@ public class RabbitMQConfig {
     public Queue userCreationEmailQueue() { return new Queue("userCreationEmailQueue", false); }
 
     @Bean
+    public Queue eventCreationEmailQueue() { return new Queue("eventCreationEmailQueue", false); }
+
+    @Bean
     public Jackson2JsonMessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
