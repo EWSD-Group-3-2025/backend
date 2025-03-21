@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.teamSmurfs.backend.api.meeting.service.MeetingService;
 import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
@@ -37,6 +38,7 @@ import java.util.function.Supplier;
 @Slf4j
 public class DashboardController {
     private final DashboardService dashboardService;
+    private final MeetingService meetingService;
 
     @GetMapping("/admin/dashboard")
     public ResponseEntity<ApiResponse> getDashboardData(final HttpServletRequest request) {
@@ -78,15 +80,15 @@ public class DashboardController {
 
         final TutorDashboardResponse tutorDashboardResponse = new TutorDashboardResponse(
             dashboardService.getStudentsByTutorId(userId),
-                null
+            this.dashboardService.retrieveDashboardCountByTutorUserId(userId),
+            this.meetingService.getTodayMeetingsForTutor(userId)
         );
 
         ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(tutorDashboardResponse.getStudents().isEmpty() ? Collections.emptyList() : tutorDashboardResponse.getStudents())
-                .message(tutorDashboardResponse.getStudents().isEmpty() ? "No students assigned to tutor ID: " + userId :
-                        "Students retrieved successfully for tutor ID: " + userId)
+                .data(tutorDashboardResponse)
+                .message("Successfully retrieved tutor dashboard")
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);

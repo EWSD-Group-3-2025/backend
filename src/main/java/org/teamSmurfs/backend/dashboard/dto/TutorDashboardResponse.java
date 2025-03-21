@@ -15,4 +15,5 @@ import java.util.List;
 public class TutorDashboardResponse {
     private List<StudentDashBoardDto> students;
     private TutorDashboardCount tutorDashboardCount;
+    private List<TutorDashboardTodayMeeting> tutorDashboardTodayMeetings;
 }

@@ -9,6 +9,8 @@ import org.teamSmurfs.backend.api.chat.model.ChatMessage;
 import org.teamSmurfs.backend.api.chat.repository.ChatMessageRepository;
 import org.teamSmurfs.backend.api.course.model.Course;
 import org.teamSmurfs.backend.api.course.repository.CourseRepository;
+import org.teamSmurfs.backend.api.media.repository.MediaRepository;
+import org.teamSmurfs.backend.api.meeting.repository.MeetingRepository;
 import org.teamSmurfs.backend.api.student_course.repository.StudentCourseRepository;
 import org.teamSmurfs.backend.api.user.dto.StudentDashBoardDto;
 import org.teamSmurfs.backend.api.user.dto.StudentDto;
@@ -29,6 +31,7 @@ import org.teamSmurfs.backend.dashboard.service.DashboardService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
@@ -51,6 +54,8 @@ public class DashboardServiceImpl implements DashboardService {
     private final VisitLogRepository visitLogRepository;
     private final TutorMapper tutorMapper;
     private final StudentMapper studentMapper;
+    private final MeetingRepository meetingRepository;
+    private final MediaRepository mediaRepository;
 
     @Override
     public AdminDashboardDto getAdminDashboardData() {
@@ -216,7 +221,14 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public TutorDashboardCount retrieveDashboardCountByTutorUserId(final Long userId) {
-        return null;
+        final int newMessageCountForToday = this.chatMessageRepository.countMessagesForToday(userId, LocalDateTime.now().with(LocalTime.MIN));
+        final int meetingCountForToday = this.meetingRepository.countMeetingsForToday(userId, LocalDateTime.now().with(LocalTime.MIN), LocalDateTime.now().with(LocalTime.MAX));
+        final int documentCountForToday = this.mediaRepository.countDocumentsForToday(userId, LocalDateTime.now().with(LocalTime.MIN), LocalDateTime.now().with(LocalTime.MAX));
+        return new TutorDashboardCount(
+                newMessageCountForToday,
+                meetingCountForToday,
+                documentCountForToday
+        );
     }
 
 }
