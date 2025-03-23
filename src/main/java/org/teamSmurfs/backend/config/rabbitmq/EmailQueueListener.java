@@ -52,25 +52,21 @@ public class EmailQueueListener {
     }
 
     @RabbitListener(queues = "eventCreationEmailQueue")
-    public void eventCreationEmail(Map<String, Object> message) {
+    public void eventCreationEmail(String messageJson) {
         final ObjectMapper objectMapper = new ObjectMapper();
         try {
-            List<Allocation> allocations = objectMapper.convertValue(message.get("allocations"),
-                    new TypeReference<>() {
-                    });
-            Tutor tutor = objectMapper.convertValue(message.get("tutor"), Tutor.class);
 
-            String tutorName = tutor.getUser().getName();
+            final Map<String, Object> message = objectMapper.readValue(messageJson, new TypeReference<>() {});
 
-            String studentNames = allocations.stream()
-                    .map(allocation -> allocation.getStudent().getUser().getName())
-                    .collect(Collectors.joining(", "));
+            final String tutorEmail = (String) message.get("tutorEmail");
+            final String tutorName = (String) message.get("tutorName");
+            final String studentNames = (String) message.get("studentNames");
+            final List<String> studentEmails = objectMapper.convertValue(message.get("studentEmails"), new TypeReference<>() {});
 
-            mailService.sendEventEmail(tutor.getUser().getEmail(), "TUTOR", tutorName, studentNames);
+            this.mailService.sendEventEmail(tutorEmail, "TUTOR", tutorName, studentNames);
 
-            for (Allocation allocation : allocations) {
-                Student student = allocation.getStudent();
-                mailService.sendEventEmail(student.getUser().getEmail(), "STUDENT", tutorName, student.getUser().getName());
+            for (String studentEmail : studentEmails) {
+                this.mailService.sendEventEmail(studentEmail, "STUDENT", tutorName, studentNames);
             }
         } catch (Exception e) {
             log.error("Error processing eventCreationEmailQueue: ", e);
