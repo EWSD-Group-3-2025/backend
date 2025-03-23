@@ -1,5 +1,8 @@
 package org.teamSmurfs.backend.api.event.serviceimpl;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -116,6 +119,13 @@ public class EventServiceImpl implements EventService{
 	            log.error("Unexpected error while updating event with ID: {}", id, e);
 	            throw new Exception("Unexpected error: " + e.getMessage());
 	        }
+	}
+
+	@Override
+	public int getEventCountForToday() {
+		LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+		LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+		return eventRepository.countEventsForToday(startOfDay, endOfDay);
 	}
 
 	@Override

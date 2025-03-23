@@ -5,12 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TutorDashboardCount {
-    private int newMessageCountForToday;
-    private int meetingCountForToday;
-    private int documentCountForToday;
+public class DashboardChatMessage {
+    private String senderUsername;
+    private String content;
+    private LocalDateTime timestamp;
 }

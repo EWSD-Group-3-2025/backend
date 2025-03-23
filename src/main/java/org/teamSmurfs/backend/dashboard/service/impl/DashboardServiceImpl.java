@@ -5,10 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
-import org.teamSmurfs.backend.api.chat.model.ChatMessage;
 import org.teamSmurfs.backend.api.chat.repository.ChatMessageRepository;
 import org.teamSmurfs.backend.api.course.model.Course;
 import org.teamSmurfs.backend.api.course.repository.CourseRepository;
+import org.teamSmurfs.backend.api.event.service.EventService;
 import org.teamSmurfs.backend.api.media.repository.MediaRepository;
 import org.teamSmurfs.backend.api.meeting.repository.MeetingRepository;
 import org.teamSmurfs.backend.api.student_course.repository.StudentCourseRepository;
@@ -26,10 +26,10 @@ import org.teamSmurfs.backend.api.user.repository.UserRepository;
 import org.teamSmurfs.backend.api.visit_log.model.VisitLog;
 import org.teamSmurfs.backend.api.visit_log.repository.VisitLogRepository;
 import org.teamSmurfs.backend.dashboard.dto.AdminDashboardDto;
-import org.teamSmurfs.backend.dashboard.dto.TutorDashboardCount;
+import org.teamSmurfs.backend.dashboard.dto.student.StudentDashboardCount;
+import org.teamSmurfs.backend.dashboard.dto.tutor.TutorDashboardCount;
 import org.teamSmurfs.backend.dashboard.service.DashboardService;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -56,6 +56,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final StudentMapper studentMapper;
     private final MeetingRepository meetingRepository;
     private final MediaRepository mediaRepository;
+    private final EventService eventService;
 
     @Override
     public AdminDashboardDto getAdminDashboardData() {
@@ -228,6 +229,18 @@ public class DashboardServiceImpl implements DashboardService {
                 newMessageCountForToday,
                 meetingCountForToday,
                 documentCountForToday
+        );
+    }
+
+    @Override
+    public StudentDashboardCount retrieveDashboardCountByStudentUserId(Long userId) {
+        final int newMessageCountForToday = this.chatMessageRepository.countMessagesForToday(userId, LocalDateTime.now().with(LocalTime.MIN));
+        final int meetingCountForToday = this.meetingRepository.countMeetingsByStartTimeBetweenAndParticipantsId(LocalDateTime.now().with(LocalTime.MIN), LocalDateTime.now().with(LocalTime.MAX), userId);
+        final int eventCountForToday = this.eventService.getEventCountForToday();
+        return new StudentDashboardCount(
+                newMessageCountForToday,
+                meetingCountForToday,
+                eventCountForToday
         );
     }
 

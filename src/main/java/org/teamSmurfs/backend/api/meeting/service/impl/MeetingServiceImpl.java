@@ -12,7 +12,7 @@ import org.teamSmurfs.backend.api.user.model.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
-import org.teamSmurfs.backend.dashboard.dto.TutorDashboardTodayMeeting;
+import org.teamSmurfs.backend.dashboard.dto.DashboardTodayMeeting;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -174,13 +174,32 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     @Override
-    public List<TutorDashboardTodayMeeting> getTodayMeetingsForTutor(Long tutorId) {
+    public List<DashboardTodayMeeting> getTodayMeetingsForTutor(Long tutorId) {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
 
         List<Meeting> meetings = meetingRepository.findByStartTimeBetweenAndHostId(startOfDay, endOfDay, tutorId);
 
-        return meetings.stream().map(meeting -> new TutorDashboardTodayMeeting(
+        return meetings.stream().map(meeting -> new DashboardTodayMeeting(
+                meeting.getId(),
+                meeting.getHost().getName(),
+                meeting.getStartTime(),
+                meeting.getEndTime(),
+                meeting.getDescription(),
+                meeting.getMeetingType(),
+                meeting.getLink(),
+                meeting.getLocation(),
+                meeting.getCreatedAt()
+        )).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DashboardTodayMeeting> getTodayMeetingsForStudent(final Long studentId) {
+        final LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        final LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+        List<Meeting> meetings = meetingRepository.findByStartTimeBetweenAndParticipantsId(startOfDay, endOfDay, studentId);
+
+        return meetings.stream().map(meeting -> new DashboardTodayMeeting(
                 meeting.getId(),
                 meeting.getHost().getName(),
                 meeting.getStartTime(),
