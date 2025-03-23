@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
     private String emailInProcess;
 
     @Override
-    public ApiResponse authenticateUser(LoginRequest loginRequest) {
+    public ApiResponse authenticateUser(LoginRequest loginRequest, String routeName, String browserName, String pageName) {
         String identifier = loginRequest.getEmail();
         log.info("Authenticating user with identifier: {}", identifier);
 
@@ -150,9 +150,9 @@ public class AuthServiceImpl implements AuthService {
 
         VisitLog visitLog = new VisitLog(
                 user,
-                "AFTER_LOGGED",
-                "something",
-                "pageName"
+                routeName,
+                browserName,
+                pageName
         );
 
         visitLogService.save(visitLog);

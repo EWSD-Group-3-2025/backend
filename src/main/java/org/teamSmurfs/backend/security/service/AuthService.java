@@ -12,7 +12,7 @@ import org.teamSmurfs.backend.security.dto.RefreshTokenData;
 import org.teamSmurfs.backend.security.dto.RegisterRequest;
 
 public interface AuthService {
-    ApiResponse authenticateUser(LoginRequest loginRequest);
+    ApiResponse authenticateUser(LoginRequest loginRequest, String routeName, String browserName, String pageName);
 
     ApiResponse registerUser(RegisterRequest registerRequest);
 
