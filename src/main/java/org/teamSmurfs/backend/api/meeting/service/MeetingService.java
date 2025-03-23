@@ -1,7 +1,7 @@
 package org.teamSmurfs.backend.api.meeting.service;
 import org.teamSmurfs.backend.api.meeting.dto.MeetingDto;
 import org.teamSmurfs.backend.api.meeting.dto.MeetingResponse;
-import org.teamSmurfs.backend.dashboard.dto.TutorDashboardTodayMeeting;
+import org.teamSmurfs.backend.dashboard.dto.DashboardTodayMeeting;
 
 import java.util.List;
 
@@ -11,5 +11,6 @@ public interface MeetingService {
     void delete(Long id);
     MeetingResponse getById(Long id);
     List<MeetingResponse> getAll();  // New method for getting all meetings
-    List<TutorDashboardTodayMeeting> getTodayMeetingsForTutor(Long tutorId);
+    List<DashboardTodayMeeting> getTodayMeetingsForTutor(Long tutorId);
+    List<DashboardTodayMeeting> getTodayMeetingsForStudent(final Long studentId);
 }

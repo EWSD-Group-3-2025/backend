@@ -1,10 +1,11 @@
-package org.teamSmurfs.backend.dashboard.dto;
+package org.teamSmurfs.backend.dashboard.dto.tutor;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.teamSmurfs.backend.api.user.dto.StudentDashBoardDto;
+import org.teamSmurfs.backend.dashboard.dto.DashboardTodayMeeting;
 
 import java.util.List;
 
@@ -15,5 +16,5 @@ import java.util.List;
 public class TutorDashboardResponse {
     private List<StudentDashBoardDto> students;
     private TutorDashboardCount tutorDashboardCount;
-    private List<TutorDashboardTodayMeeting> tutorDashboardTodayMeetings;
+    private List<DashboardTodayMeeting> dashboardTodayMeetings;
 }
