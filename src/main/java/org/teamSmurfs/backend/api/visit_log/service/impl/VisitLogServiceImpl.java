@@ -33,7 +33,7 @@ public class VisitLogServiceImpl implements VisitLogService {
         log.info("Retrieving Visit Logs");
 
         return visitLogRepository.findAll().stream()
-                .map(v -> new VisitLogDto(v.getRouteName(), v.getBrowserName(), v.getUser().getUsername()))
+                .map(v -> new VisitLogDto(v.getRouteName(), v.getBrowserName(), v.getUser().getUsername(), v.getPageName()))
                 .collect(Collectors.toList());
     }
 

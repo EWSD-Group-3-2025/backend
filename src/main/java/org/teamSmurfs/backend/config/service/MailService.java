@@ -18,4 +18,5 @@ public interface MailService {
 
 	void sendEventEmail(String email, String role, String tutorName, String studentName);
 
+    void sendEmailForResetPassword(final String email, final String newPassword);
 }

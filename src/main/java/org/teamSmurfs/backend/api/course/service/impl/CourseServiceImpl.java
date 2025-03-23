@@ -35,6 +35,12 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void create(final CourseRequest createCourseRequest) {
         checkUserExists(createCourseRequest.getStaffId());
+        
+        for (String courseName : createCourseRequest.getNames()) {
+            if (this.repository.existsByName(courseName)) {  // Check if the course name already exists
+                throw new IllegalArgumentException("Course name '" + courseName + "' already exists.");
+            }
+        }
         List<Course> courses = Arrays.stream(createCourseRequest.getNames())
                 .map(name -> new Course(name, createCourseRequest.getStaffId()))
                 .toList();
@@ -43,7 +49,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<CourseDto> retrieveAll() {
-        return repository.findAll().stream()
+        return repository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::mapToDto)
                 .toList();
     }
@@ -88,7 +94,7 @@ public class CourseServiceImpl implements CourseService {
 
     private CourseDto mapToDto(final Course course) {
         CourseDto courseDto = modelMapper.map(course, CourseDto.class);
-        courseDto.setCreated_by(EntityUtil.getEntityById(this.userRepository, course.getCreatedBy()).getName());
+        courseDto.setStaffName(EntityUtil.getEntityById(this.userRepository, course.getCreatedBy()).getName());
         return courseDto;
     }
 }

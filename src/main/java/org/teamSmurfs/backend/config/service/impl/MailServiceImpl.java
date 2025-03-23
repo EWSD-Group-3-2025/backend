@@ -185,7 +185,7 @@ public class MailServiceImpl implements MailService {
         """, email, password);
     }
 
-    @Scheduled(cron = "0 00 01 * * ?")  // Runs daily at 12:24 AM - Adjust if needed
+    @Scheduled(cron = "0 00 00 * * ?")  // Runs daily at 12:24 AM - Adjust if needed
     public void notifyInactiveUsers() {
         LocalDateTime cutoffDate = LocalDateTime.now().minus(28, ChronoUnit.DAYS);
         List<User> inactiveUsers = visitLogRepository.findInactiveUsers(cutoffDate);
@@ -273,8 +273,77 @@ public class MailServiceImpl implements MailService {
 	            throw new RuntimeException("Failed to send event email", e);
 	        }	
 	}
-	
-	 private String EventEmailBody(String role, String tutorName, String studentName) {
+
+    @Override
+    public void sendEmailForResetPassword(final String email, final String newPassword) {
+        try {
+            String subject = "Password Reset Request - Team Smurfs E-Tutoring";
+            String emailBody = buildResetPasswordEmailBody(email, newPassword);
+            this.sendMail(email, subject, emailBody);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email: {}", e.getMessage());
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
+    }
+
+    private String buildResetPasswordEmailBody(String email, String newPassword) {
+        return String.format("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Password Reset - Team Smurfs E-Tutoring</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333; background-color: #f4f4f4; padding: 0; margin: 0;">
+            <table width="100%%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                <tr>
+                    <td style="background-color: #3b82f6; text-align: center; padding: 30px 20px; color: #ffffff;">
+                        <h1 style="margin: 0; font-size: 24px;">Password Reset Request</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 30px 20px;">
+                        <p>Hello,</p>
+                        <p>We have received a request to reset your password. Below are your new temporary login credentials:</p>
+
+                        <table width="100%%" cellpadding="10" cellspacing="0" style="background-color: #f8f9fa; border-radius: 8px; text-align: left;">
+                            <tr>
+                                <td><strong>Email:</strong> %s</td>
+                            </tr>
+                            <tr>
+                                <td><strong>New Temporary Password:</strong> %s</td>
+                            </tr>
+                        </table>
+
+                        <p style="background-color: #fff7ed; padding: 15px; border-left: 4px solid #fbbf24; border-radius: 4px;">
+                            <strong>🔐 Important Security Notice:</strong> Please change your password immediately after logging in to ensure your account's security.
+                        </p>
+
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="https://ewsd-frontend-app.vercel.app/login" 
+                               style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 6px;">
+                                Reset Your Password
+                            </a>
+                        </div>
+
+                        <p>If you did not request this password reset, please ignore this email or contact support immediately.</p>
+                        <p>Best regards,<br><strong>Team Smurfs E-Tutoring System</strong></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background-color: #f8f9fa; text-align: center; padding: 20px; font-size: 12px; color: #666666;">
+                        <p>This is an automated message, please do not reply.</p>
+                        <p>© 2025 Team Smurfs E-Tutoring System. All rights reserved.</p>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+    """, email, newPassword);
+    }
+
+    private String EventEmailBody(String role, String tutorName, String studentName) {
 	        String roleSpecificContent = role.equals("TUTOR")
 	                ? String.format("You have been assigned to the following student(s) for the event: %s.", studentName)
 	                : String.format("You have been assigned to a new tutor for the event: %s.", tutorName);

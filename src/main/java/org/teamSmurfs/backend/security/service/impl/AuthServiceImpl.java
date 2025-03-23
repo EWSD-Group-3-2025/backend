@@ -70,14 +70,26 @@ public class AuthServiceImpl implements AuthService {
     private String emailInProcess;
 
     @Override
-    public ApiResponse authenticateUser(LoginRequest loginRequest) {
-        log.info("Authenticating user with email: {}", loginRequest.getEmail());
+    public ApiResponse authenticateUser(LoginRequest loginRequest, String routeName, String browserName, String pageName) {
+        String identifier = loginRequest.getEmail();
+        log.info("Authenticating user with identifier: {}", identifier);
 
-        User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> {
-                    log.warn("User not found: {}", loginRequest.getEmail());
-                    return new UnauthorizedException("Invalid email or password");
-                });
+        Optional<User> userOpt = this.userRepository.findByEmail(identifier)
+                .or(() -> this.userRepository.findByUsername(identifier));
+
+        User user = userOpt.orElseThrow(() -> {
+            log.warn("User not found with identifier: {}", identifier);
+            return new UnauthorizedException("Invalid email/username or password");
+        });
+
+        if (!user.isStatus()) {
+            log.warn("User is inactive: {}", loginRequest.getEmail());
+            return ApiResponse.builder()
+                    .success(0)
+                    .code(HttpStatus.UNAUTHORIZED.value())
+                    .message("Your account has been locked. Please contact your administrator.")
+                    .build();
+        }
 
         String roleName = user.getRoles().stream()
                 .findFirst()
@@ -95,9 +107,20 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("User authenticated successfully: {}", loginRequest.getEmail());
 
+        boolean firstTimeLogin = false;
+
+        if(user.isLoginFirstTime()) {
+            firstTimeLogin = true;
+            user.setLoginFirstTime(false);
+            this.userRepository.save(user);
+            log.info("User {} logged in for the first time.", user.getUsername());
+        }
+
+
         UserDto userDto = DtoUtil.map(user, UserDto.class, modelMapper);
 
         userDto.setRoleName(roleName);
+        userDto.setFirstTimeLogin(firstTimeLogin);
 
         Token refreshToken;
         Optional<Token> refreshTokenOptional = tokenRepository.findByUserAndExpiredAtAfter(user, Instant.now());
@@ -127,8 +150,9 @@ public class AuthServiceImpl implements AuthService {
 
         VisitLog visitLog = new VisitLog(
                 user,
-                "AFTER_LOGGED",
-                "something"
+                routeName,
+                browserName,
+                pageName
         );
 
         visitLogService.save(visitLog);
@@ -269,14 +293,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ApiResponse getCurrentUser(final String authHeader, final String routeName, final String browserName) {
+    public ApiResponse getCurrentUser(final String authHeader, final String routeName, final String browserName,
+                                      final String pageName) {
         UserDto userDto = userUtil.getCurrentUserDto(authHeader);
         User user = EntityUtil.getEntityById(userRepository, userDto.getId());
 
         VisitLog visitLog = new VisitLog(
                 user,
                 routeName,
-                browserName
+                browserName,
+                pageName
         );
 
         visitLogService.save(visitLog);

@@ -60,7 +60,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/tutor/**").access(hasRole(ROLE_TUTOR))
                 .requestMatchers("/api/v1/staff/**").access(hasRole(ROLE_STAFF))
                 .requestMatchers("/api/v1/admin/**").access(hasRole(ROLE_ADMIN))
-
                 .anyRequest().authenticated();
     }
 

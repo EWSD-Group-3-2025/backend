@@ -42,12 +42,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "WHERE r.name = :roleName ORDER BY u.created_at DESC", nativeQuery = true)
     List<User> findByRoleName(String roleName);
     
-    List<User> findByUsername(String staff1);
+    Optional<User> findByUsername(String staff1);
     
-    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
+    @EntityGraph(attributePaths = {"roles", "student", "staff", "tutor"})
     List<User> findAllByOrderByCreatedAtDesc();
     
-    @EntityGraph(attributePaths = {"roles", "token", "student", "staff", "tutor"})
+    @EntityGraph(attributePaths = {"roles", "student", "staff", "tutor"})
     Optional<User> findById(Long id);
 
     @Query(value = """
@@ -59,5 +59,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY u.created_at DESC
     """, nativeQuery = true)
     List<User> findUsersWithAdminRole();
+
+    @Query(value = """
+            SELECT COUNT(*) FROM user u 
+            WHERE YEAR(u.created_at) = YEAR(CURRENT_DATE()) 
+            AND MONTH(u.created_at) = MONTH(CURRENT_DATE())
+        """, nativeQuery = true)
+        long thisMothIncreaseCnt();
 
 }

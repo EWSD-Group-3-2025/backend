@@ -3,6 +3,10 @@ package org.teamSmurfs.backend.api.specialization.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.teamSmurfs.backend.api.specialization.model.Specialization;
 
-public interface SpecializationRepository extends JpaRepository<Specialization, Long> {
+import java.util.List;
 
+public interface SpecializationRepository extends JpaRepository<Specialization, Long> {
+    List<Specialization> findAllByOrderByCreatedAtDesc();
+
+	boolean existsByName(String specializationName);
 }

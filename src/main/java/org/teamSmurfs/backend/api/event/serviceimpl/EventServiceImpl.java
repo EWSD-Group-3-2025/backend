@@ -1,11 +1,16 @@
 package org.teamSmurfs.backend.api.event.serviceimpl;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.allocation.model.Allocation;
 import org.teamSmurfs.backend.api.allocation.repository.AllocationRepository;
@@ -38,7 +43,8 @@ public class EventServiceImpl implements EventService{
 	private final AllocationRepository allocationRepository;
 	private final ModelMapper modelMapper;
 	private final MailService mailService;
-	
+	private final RabbitTemplate rabbitTemplate;
+
 	@Override
 	public void createEvent(CreateEventRequest eventRequest) throws Exception {
 	    try{
@@ -61,8 +67,14 @@ public class EventServiceImpl implements EventService{
 	            .orElseThrow(() -> new IllegalArgumentException("Invalid Event request"));	    
 	    
 	    List<Allocation> allocations = allocationRepository.findByTutorId(tutor.getId());
-	    
-	    sendEventEmails(allocations, tutor);
+
+		final Map<String, Object> emailPayload = Map.of(
+				"allocations", allocations,
+				"tutor", tutor
+		);
+
+		this.rabbitTemplate.convertAndSend("eventCreationEmailQueue", emailPayload);
+
 	    }catch(Exception e){
 	    	log.error("Error Creating Event: ", e);
             throw new RuntimeException(e.getMessage());
@@ -110,6 +122,13 @@ public class EventServiceImpl implements EventService{
 	}
 
 	@Override
+	public int getEventCountForToday() {
+		LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+		LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+		return eventRepository.countEventsForToday(startOfDay, endOfDay);
+	}
+
+	@Override
 	public void deleteEvent(long id) {
 	try {
 		log.info("Deleting Event with Tutor ID: {}", id);
@@ -143,9 +162,10 @@ public class EventServiceImpl implements EventService{
 	private EventDto mapToDto(final Event event) {
         EventDto eventDto = modelMapper.map(event, EventDto.class);
         if (event.getOrganizer() != null) {
-            User tutor = userRepository.findById(event.getOrganizer().getId())
+            User tutor = userRepository.findById(event.getOrganizer().getUser().getId())
                     .orElseThrow(() -> new EntityNotFoundException("Tutor not found for Event ID: " + eventDto.getTutorId()));
             eventDto.setTutorId(tutor.getId());
+            eventDto.setTutorName(tutor.getName());
         }
         return eventDto;
     }

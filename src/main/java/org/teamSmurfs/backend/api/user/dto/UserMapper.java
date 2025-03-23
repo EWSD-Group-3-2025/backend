@@ -17,6 +17,11 @@ public class UserMapper {
     private final ModelMapper modelMapper;
 
     public Object mapToDto(User user) {
+
+        if (user.getRoles().stream().anyMatch(r -> r.getName().name().equalsIgnoreCase("ROLE_ADMIN"))) {
+            return staffMapper.mapToDto(user);
+        }
+
         if (user.getRoles().stream().anyMatch(r -> r.getName().name().equalsIgnoreCase("ROLE_STAFF"))) {
             return staffMapper.mapToDto(user);
         }

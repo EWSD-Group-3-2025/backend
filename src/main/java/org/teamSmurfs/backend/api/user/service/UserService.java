@@ -27,4 +27,6 @@ public interface UserService {
 	boolean deleteUserById(Long id);
 
     int retrieveUserNameCount(String name);
+
+    void resetPassword(final Long id);
 }
