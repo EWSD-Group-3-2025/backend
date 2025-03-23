@@ -35,12 +35,18 @@ public class AuthController {
     public final JwtService jwtService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> login(
+            @RequestBody LoginRequest loginRequest,
+            HttpServletRequest request,
+            @RequestParam(required = false) final String routeName,
+            @RequestParam(required = false) final String browserName,
+            @RequestParam(required = false) final String pageName
+    ) {
         log.info("Received login attempt for email: {}", loginRequest.getEmail());
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        ApiResponse response = authService.authenticateUser(loginRequest);
+        ApiResponse response = authService.authenticateUser(loginRequest, routeName, browserName, pageName);
 
         if (response.getSuccess() == 1) {
             log.info("Login successful for user: {}", loginRequest.getEmail());
