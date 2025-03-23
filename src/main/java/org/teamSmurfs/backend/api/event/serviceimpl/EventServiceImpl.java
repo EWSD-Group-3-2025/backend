@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -45,41 +46,55 @@ public class EventServiceImpl implements EventService{
 	private final MailService mailService;
 	private final RabbitTemplate rabbitTemplate;
 
-	@Override
-	public void createEvent(CreateEventRequest eventRequest) throws Exception {
-	    try{
-	    	log.info("Creating Event with Tutor ID: {}", eventRequest.getTutorId());
-	    
-	    User user = EntityUtil.getEntityById(this.userRepository, eventRequest.getTutorId());
-	    
-	    Tutor tutor = tutorRepository.findByUser(user)
-                .orElseThrow(() -> new EntityNotFoundException("Tutor not found for User ID: " +user.getId()));
-	    
-	    Optional.ofNullable(eventRequest)
-	            .map(event -> new Event(
-	            		tutor,
-	            		event.getTitle(),
-	            		event.getDescription(),
-	            		event.getStartdate(),
-	            		event.getEnddate()
-	            ))
-	            .map(eventRepository::save)
-	            .orElseThrow(() -> new IllegalArgumentException("Invalid Event request"));	    
-	    
-	    List<Allocation> allocations = allocationRepository.findByTutorId(tutor.getId());
+		@Override
+		public void createEvent(CreateEventRequest eventRequest) throws Exception {
+			try{
+				log.info("Creating Event with Tutor ID: {}", eventRequest.getTutorId());
 
-		final Map<String, Object> emailPayload = Map.of(
-				"allocations", allocations,
-				"tutor", tutor
-		);
+			User user = EntityUtil.getEntityById(this.userRepository, eventRequest.getTutorId());
 
-		this.rabbitTemplate.convertAndSend("eventCreationEmailQueue", emailPayload);
+			Tutor tutor = tutorRepository.findByUser(user)
+					.orElseThrow(() -> new EntityNotFoundException("Tutor not found for User ID: " +user.getId()));
 
-	    }catch(Exception e){
-	    	log.error("Error Creating Event: ", e);
-            throw new RuntimeException(e.getMessage());
-	    }
-	}
+			Optional.ofNullable(eventRequest)
+					.map(event -> new Event(
+							tutor,
+							event.getTitle(),
+							event.getDescription(),
+							event.getStartdate(),
+							event.getEnddate()
+					))
+					.map(eventRepository::save)
+					.orElseThrow(() -> new IllegalArgumentException("Invalid Event request"));
+
+			List<Allocation> allocations = allocationRepository.findByTutorId(tutor.getId());
+
+			final String tutorEmail = tutor.getUser().getEmail();
+			final String tutorName = tutor.getUser().getName();
+			final String studentNames = allocations.stream()
+					.map(allocation -> allocation.getStudent().getUser().getName())
+					.collect(Collectors.joining(", "));
+			final List<String> studentEmails = allocations.stream()
+					.map(allocation -> allocation.getStudent().getUser().getEmail())
+					.toList();
+
+			final Map<String, Object> emailPayload = Map.of(
+					"tutorEmail", tutorEmail,
+					"tutorName", tutorName,
+					"studentNames", studentNames,
+					"studentEmails", studentEmails
+			);
+
+			final ObjectMapper objectMapper = new ObjectMapper();
+			final String emailPayloadJson = objectMapper.writeValueAsString(emailPayload);
+
+			this.rabbitTemplate.convertAndSend("eventCreationEmailQueue", emailPayloadJson);
+
+			}catch(Exception e){
+				log.error("Error Creating Event: ", e);
+				throw new RuntimeException(e.getMessage());
+			}
+		}
 
 	@Override
     public List<EventDto> retrieveAll() {
