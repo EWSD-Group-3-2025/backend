@@ -21,4 +21,5 @@ public class DashboardTodayMeeting {
     private String link;
     private String location;
     private LocalDateTime createdAt;
+    private boolean isDone;
 }

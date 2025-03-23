@@ -57,6 +57,9 @@ public class Meeting {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Column(name = "is_done", nullable = false)
+    private boolean isDone = false;
+
     public Meeting(
         final User host, final Set<User> participants, final LocalDateTime startTime, final LocalDateTime endTime, final String description, final Integer meetingType, final String link, final String location
     ) {

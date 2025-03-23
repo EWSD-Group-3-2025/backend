@@ -80,7 +80,7 @@ public class MeetingController {
 
         ApiResponse successResponse = ApiResponse.builder()
                 .success(1)
-                .code(HttpStatus.OK.value())
+                .code(HttpStatus.NO_CONTENT.value())
                 .data(true)
                 .message("Meeting deleted successfully")
                 .build();
@@ -91,13 +91,14 @@ public class MeetingController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getMeetingById(
             @PathVariable Long id,
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestHeader("Authorization") String authHeader
     ) {
         log.info("Retrieving meeting with ID: {}", id);
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        MeetingResponse meeting = meetingService.getById(id);
+        MeetingResponse meeting = meetingService.getById(id, authHeader);
 
         log.info("Retrieved meeting: {}", meeting);
 
@@ -113,13 +114,14 @@ public class MeetingController {
 
     @GetMapping
     public ResponseEntity<ApiResponse> getAllMeetings(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestHeader("Authorization") String authHeader
     ) {
         log.info("Retrieving all meetings");
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
 
-        List<MeetingResponse> meetings = meetingService.getAll();
+        List<MeetingResponse> meetings = meetingService.getAll(authHeader);
 
         log.info("Retrieved meetings: {}", meetings);
 
@@ -132,4 +134,24 @@ public class MeetingController {
 
         return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
     }
+
+    @PatchMapping("/{id}/mark-done")
+    public ResponseEntity<ApiResponse> markMeetingAsDone(@PathVariable Long id,
+                                                    HttpServletRequest request) {
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        meetingService.markMeetingAsDone(id);
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(true)
+                .message("Meeting marked as done successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+
+    }
+
 }
