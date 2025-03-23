@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TutorDashboardTodayMeeting {
+public class DashboardTodayMeeting {
     private Long id;
     private String hostName;
     private LocalDateTime startTime;

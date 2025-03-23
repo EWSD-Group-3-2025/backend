@@ -18,4 +18,5 @@ public interface EventService {
 
 	EventDto update(Long id, UpdateEventRequest updateEventRequest) throws Exception;
 
+	public int getEventCountForToday();
 }

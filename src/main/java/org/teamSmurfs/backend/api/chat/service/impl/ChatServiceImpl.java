@@ -13,6 +13,7 @@ import org.teamSmurfs.backend.api.chat.repository.ChatRoomRepository;
 import org.teamSmurfs.backend.api.chat.service.ChatService;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.dashboard.dto.DashboardChatMessage;
 
 import java.util.List;
 import java.util.Set;
@@ -101,6 +102,11 @@ public class ChatServiceImpl implements ChatService {
                     chatRoom.getId()
             );
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DashboardChatMessage> retrieveLastThreeChatMessagesByReceiverId(final Long receiverId) {
+        return chatMessageRepository.retrieveLastThreeChatMessagesByReceiverId(receiverId);
     }
 
     private User getUserById(Long userId) {

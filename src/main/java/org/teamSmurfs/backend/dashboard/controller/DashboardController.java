@@ -5,32 +5,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authorization.AuthorizationDecision;
-import org.springframework.security.authorization.AuthorizationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.teamSmurfs.backend.api.chat.service.ChatService;
 import org.teamSmurfs.backend.api.meeting.service.MeetingService;
 import org.teamSmurfs.backend.api.request.RequestUtils;
 import org.teamSmurfs.backend.api.response.dto.ApiResponse;
 import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
-import org.teamSmurfs.backend.api.user.dto.StudentDashBoardDto;
 import org.teamSmurfs.backend.api.user.dto.StudentDto;
 import org.teamSmurfs.backend.api.user.dto.TutorDto;
-import org.teamSmurfs.backend.dashboard.dto.AdminDashboardDto;
-import org.teamSmurfs.backend.dashboard.dto.TutorDashboardResponse;
+import org.teamSmurfs.backend.dashboard.dto.student.StudentDashboardResponse;
+import org.teamSmurfs.backend.dashboard.dto.tutor.TutorDashboardResponse;
 import org.teamSmurfs.backend.dashboard.service.DashboardService;
-import org.teamSmurfs.backend.security.config.SecurityConfig;
-import org.teamSmurfs.backend.security.utils.JwtUtil;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/${api.base.path}")
@@ -39,6 +30,7 @@ import java.util.function.Supplier;
 public class DashboardController {
     private final DashboardService dashboardService;
     private final MeetingService meetingService;
+    private final ChatService chatService;
 
     @GetMapping("/admin/dashboard")
     public ResponseEntity<ApiResponse> getDashboardData(final HttpServletRequest request) {
@@ -61,14 +53,19 @@ public class DashboardController {
             @PathVariable Long userId, final HttpServletRequest request) {
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
-        TutorDto tutorDto = dashboardService.getTutorByStudentId(userId);
+
+        final StudentDashboardResponse studentDashboardResponse = new StudentDashboardResponse(
+                this.dashboardService.getTutorByStudentId(userId),
+                this.meetingService.getTodayMeetingsForStudent(userId),
+                this.dashboardService.retrieveDashboardCountByStudentUserId(userId),
+                this.chatService.retrieveLastThreeChatMessagesByReceiverId(userId)
+        );
 
         ApiResponse response = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(tutorDto != null ? tutorDto : Collections.emptyMap()) // Return empty object if no tutor is found
-                .message(tutorDto != null ? "Tutor details retrieved successfully" :
-                        "No active tutor found for user ID: " + userId)
+                .data(studentDashboardResponse)
+                .message("Successfully retrieved student dashboard")
                 .build();
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);
