@@ -8,10 +8,12 @@ import org.teamSmurfs.backend.api.meeting.model.Meeting;
 import org.teamSmurfs.backend.api.meeting.repository.MeetingRepository;
 import org.teamSmurfs.backend.api.meeting.service.MeetingService;
 import org.teamSmurfs.backend.api.role.model.RoleName;
+import org.teamSmurfs.backend.api.user.dto.UserDto;
 import org.teamSmurfs.backend.api.user.model.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.teamSmurfs.backend.api.user.repository.UserRepository;
+import org.teamSmurfs.backend.api.user.utils.UserUtil;
 import org.teamSmurfs.backend.dashboard.dto.DashboardTodayMeeting;
 
 import java.time.LocalDate;
@@ -30,6 +32,7 @@ public class MeetingServiceImpl implements MeetingService {
     private final MeetingRepository meetingRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final UserUtil userUtil;
 
 
     @Override
@@ -158,16 +161,39 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     @Override
-    public MeetingResponse getById(Long id) {
+    public MeetingResponse getById(Long id, String authHeader) {
+        // Get the current user
+        UserDto currentUser = userUtil.getCurrentUserDto(authHeader);
+
+        // Fetch meeting
         Meeting meeting = meetingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Meeting not found"));
+
+        // Check if the user is either the tutor (host) or a participant (student)
+        boolean isHost = meeting.getHost().getId().equals(currentUser.getId());
+        boolean isParticipant = meeting.getParticipants().stream()
+                .anyMatch(p -> p.getId().equals(currentUser.getId()));
+
+        if (!isHost && !isParticipant) {
+            throw new RuntimeException("You are not authorized to view this meeting.");
+        }
 
         return convertToMeetingResponse(meeting);
     }
 
+
     @Override
-    public List<MeetingResponse> getAll() {
-        List<Meeting> meetings = meetingRepository.findAll();
+    public List<MeetingResponse> getAll(String authHeader) {
+        // Get the current user
+        UserDto currentUser = userUtil.getCurrentUserDto(authHeader);
+
+        // Fetch only meetings where the user is either the host or a participant
+        List<Meeting> meetings = meetingRepository.findAll().stream()
+                .filter(meeting -> meeting.getHost().getId().equals(currentUser.getId()) ||
+                        meeting.getParticipants().stream().anyMatch(p -> p.getId().equals(currentUser.getId())))
+                .filter(meeting -> !meeting.isDone())
+                .toList();
+
         return meetings.stream()
                 .map(this::convertToMeetingResponse)
                 .collect(Collectors.toList());
@@ -189,7 +215,8 @@ public class MeetingServiceImpl implements MeetingService {
                 meeting.getMeetingType(),
                 meeting.getLink(),
                 meeting.getLocation(),
-                meeting.getCreatedAt()
+                meeting.getCreatedAt(),
+                meeting.isDone()
         )).collect(Collectors.toList());
     }
 
@@ -208,7 +235,8 @@ public class MeetingServiceImpl implements MeetingService {
                 meeting.getMeetingType(),
                 meeting.getLink(),
                 meeting.getLocation(),
-                meeting.getCreatedAt()
+                meeting.getCreatedAt(),
+                meeting.isDone()
         )).collect(Collectors.toList());
     }
 
@@ -249,7 +277,18 @@ public class MeetingServiceImpl implements MeetingService {
                 .meetingType(meeting.getMeetingType())
                 .link(meeting.getLink())
                 .location(meeting.getLocation())
+                .isDone(meeting.isDone())
                 .build();
     }
+
+    @Override
+    public void markMeetingAsDone(Long id) {
+        Meeting meeting = meetingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Meeting not found"));
+
+        meeting.setDone(true);
+        meetingRepository.save(meeting);
+    }
+
 
 }

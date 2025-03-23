@@ -62,4 +62,6 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
 
 	List<VisitLog> findByUserId(Long id);
 
+	List<VisitLog> findAllByOrderByIdDesc();
+
 }

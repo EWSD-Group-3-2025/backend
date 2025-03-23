@@ -22,6 +22,7 @@ public class MeetingDto {
     private Integer meetingType;
     private String link;
     private String location;
+    private boolean isDone;
 
     // Getters and Setters
 }
