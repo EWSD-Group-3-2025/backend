@@ -7,11 +7,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.teamSmurfs.backend.api.request.RequestUtils;
-import org.teamSmurfs.backend.api.response.dto.ApiResponse;
-import org.teamSmurfs.backend.api.response.utils.ResponseUtil;
-
-import java.time.Instant;
+import org.teamSmurfs.backend.features.request.RequestUtils;
+import org.teamSmurfs.backend.features.response.dto.ApiResponse;
+import org.teamSmurfs.backend.features.response.utils.ResponseUtil;
 
 @Component
 public class DeprecatedRouteInterceptor implements HandlerInterceptor {
