@@ -23,7 +23,11 @@ public enum BookCategory {
     public static BookCategory fromInt(final Integer value) {
         return switch (value) {
             case 0 -> INVALID;
-            case 1 -> PROGRAMMING;
+            case 1 -> COMPUTER_SCIENCE;
+            case 2 -> PROGRAMMING;
+            case 3 -> PROJECT_MANAGEMENT;
+            case 4 -> DATABASE;
+            case 5 -> OPERATION_SYSTEM;
             default -> throw new IllegalStateException("Unexpected value: " + value);
         };
     }
