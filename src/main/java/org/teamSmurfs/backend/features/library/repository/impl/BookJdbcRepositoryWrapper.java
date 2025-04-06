@@ -37,11 +37,11 @@ public class BookJdbcRepositoryWrapper implements BookJdbcRepository {
 
     private static final String FIND_BY_ID_QUERY = """
         SELECT 
-            b.id, b.name, b.url, b.category_id, b.difficulty_level, b.rating, b.organization_name, b.organization_url, b.uploader_id, u.name AS uploader_name, b.created_at, b.updated_at
+            b.id, b.name, b.url, b.category_id, b.difficulty_level, b.rating, b.organization_name, b.organization_url, b.description, b.uploader_id, u.name AS uploader_name, b.created_at, b.updated_at        
+        FROM
+            book b
         LEFT JOIN
             user u ON u.id = b.uploader_id
-        FROM 
-            book b 
         where 
             b.id = ?
     """;
