@@ -2,7 +2,11 @@ package org.teamSmurfs.backend.features.library.model;
 
 public enum BookCategory {
     INVALID(0, "Invalid"),
-    PROGRAMMING(1, "Programming"),;
+    COMPUTER_SCIENCE(1, "Computer Science"),
+    PROGRAMMING(2, "Programming"),
+    PROJECT_MANAGEMENT(3, "Project Management"),
+    DATABASE(4, "Database"),
+    OPERATION_SYSTEM(5, "Operating System");
 
     private final Integer value;
     private final String code;
@@ -29,4 +33,10 @@ public enum BookCategory {
     }
 
     public boolean isProgramming() { return value.equals(BookCategory.PROGRAMMING.getValue()); }
+
+    public boolean isProjectManagement() { return value.equals(BookCategory.PROJECT_MANAGEMENT.getValue()); }
+
+    public boolean isDatabase() { return value.equals(BookCategory.DATABASE.getValue()); }
+
+    public boolean isOperationSystem() { return value.equals(BookCategory.OPERATION_SYSTEM.getValue()); }
 }
