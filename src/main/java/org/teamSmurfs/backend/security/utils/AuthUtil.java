@@ -3,7 +3,7 @@ package org.teamSmurfs.backend.security.utils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.teamSmurfs.backend.api.user.model.User;
+import org.teamSmurfs.backend.features.user.model.User;
 import org.teamSmurfs.backend.security.service.JwtService;
 
 import java.util.Map;

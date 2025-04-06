@@ -1,0 +1,285 @@
+/*
+ * @Author : Thant Htoo Aung
+ * @Date : 1/14/2025
+ * @Time : 12:00 AM
+ */
+package org.teamSmurfs.backend.features.user.controller;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.teamSmurfs.backend.features.request.RequestUtils;
+import org.teamSmurfs.backend.features.response.dto.ApiResponse;
+import org.teamSmurfs.backend.features.response.utils.ResponseUtil;
+import org.teamSmurfs.backend.features.user.dto.ChangePasswordRequest;
+import org.teamSmurfs.backend.features.user.dto.CreateUserRequest;
+import org.teamSmurfs.backend.features.user.dto.UpdateUserRequest;
+import org.teamSmurfs.backend.features.user.dto.UserDto;
+import org.teamSmurfs.backend.features.user.service.UserService;
+import org.teamSmurfs.backend.features.user.utils.PasswordValidatorUtil;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.teamSmurfs.backend.config.deprecated.DeprecatedRoute;
+import org.teamSmurfs.backend.config.service.MailService;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/${api.base.path}/users")
+@RequiredArgsConstructor
+@Slf4j
+public class UserController {
+
+    private final UserService userService;
+
+    private final MailService mailService;
+
+    /**
+     * Creates a new user with the provided details.
+     *
+     * @param createUserRequest the request payload containing user details.
+     * @param request           the HTTP servlet request for additional context.
+     * @return a ResponseEntity containing the result of the user creation process.
+     */
+    @PostMapping
+    public ResponseEntity<ApiResponse> createUser(
+            @Validated @RequestBody CreateUserRequest createUserRequest,
+            HttpServletRequest request
+    ) throws Exception {
+
+        log.info("Creating new user with email: {}", createUserRequest.getEmail());
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        userService.createUser(createUserRequest);
+
+        log.info("User created successfully: {}", createUserRequest.getEmail());
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.CREATED.value())
+                .data(true)
+                .message("User created successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse> updateUser(
+            @PathVariable Long id,
+            @Validated @RequestBody UpdateUserRequest updateUserRequest,
+            HttpServletRequest request
+    ) throws Exception {
+
+        log.info("Updating user with ID: {}", id);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        // Call the service to update the user
+        userService.updateUser(id, updateUserRequest);
+
+        log.info("User updated successfully with ID: {}", id);
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(true)
+                .message("User updated successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+    }
+
+    /**
+     * Retrieves all users.
+     *
+     * @param request the HTTP servlet request for additional context.
+     * @return a ResponseEntity containing the list of users.
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse> retrieveUsers(
+            HttpServletRequest request,
+            @RequestParam(value = "role", defaultValue = "all") final String role
+    ) throws Exception {
+
+        log.info("Retrieving all users with role: {}.", role);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        List<Object> users = userService.retrieveUsers(role);
+
+        log.info("Retrieved {} users successfully", (users != null) ? users.size() : 0);
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(users != null ? users : Collections.emptyList())
+                .message("Users retrieved successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse> changePassword(
+            @Valid @RequestBody ChangePasswordRequest changePasswordRequest,
+            HttpServletRequest request,
+            @RequestHeader("Authorization") String authHeader) throws Exception {
+
+        log.info("Password change request received for authenticated user.");
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        if (!PasswordValidatorUtil.isValid(changePasswordRequest.getNewPassword())) {
+            log.warn("Password change failed: Weak password attempt.");
+            return ResponseUtil.buildResponse(request, ApiResponse.builder()
+                    .success(0)
+                    .code(HttpStatus.BAD_REQUEST.value())
+                    .data(false)
+                    .message("New password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.")
+                    .build(), requestStartTime);
+        }
+
+        userService.changePassword(changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword(), authHeader);
+
+        log.info("Password changed successfully.");
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(true)
+                .message("Password changed successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+    }
+
+    @GetMapping("/exists")
+    public ResponseEntity<ApiResponse> checkUsernameExists(
+            @RequestParam("username") String username, HttpServletRequest request) {
+
+        log.info("Checking existence of username: {}", username);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+        boolean exists = userService.usernameExists(username);
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(Map.of("username", username, "exists", exists))
+                .message(exists ? "Username already taken" : "Username available")
+                .build();
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> retrieveUserById(
+            @PathVariable("id") final Long id, HttpServletRequest request) {
+
+        log.info("Retrieving user with id: {}", id);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+        Object userDto = userService.retrieveOne(id);
+
+        if (userDto instanceof UserDto user) {
+            log.info("User retrieved successfully: {}", user.getUsername());
+        } 
+
+        ApiResponse successResponse = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(userDto)
+                .message("User retrieved successfully")
+                .build();
+
+        return ResponseUtil.buildResponse(request, successResponse, requestStartTime);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteUserById(
+        @PathVariable Long id ,HttpServletRequest request) {
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+        boolean statusUpdated = userService.deleteUserById(id);
+
+        if (statusUpdated) {
+            ApiResponse response = ApiResponse.builder()
+                    .success(1)
+                    .code(HttpStatus.OK.value())
+                    .data(true)
+                    .message("User Status Updated Successfully")
+                    .build();
+            return ResponseUtil.buildResponse(request, response, requestStartTime);
+        } else {
+            ApiResponse response = ApiResponse.builder()
+                    .success(0)
+                    .code(HttpStatus.BAD_REQUEST.value())
+                    .data(false)
+                    .message("User Status Update Fail")
+                    .build();
+            return ResponseUtil.buildResponse(request, response, requestStartTime);
+        }
+    }
+
+    @GetMapping("/name-exists")
+    public ResponseEntity<ApiResponse> retrieveUserNameCount(
+            HttpServletRequest request,
+            @RequestParam(value = "name") final String name
+    ) {
+        log.info("Retrieving user name count for : {}", name);
+
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        int userCount = userService.retrieveUserNameCount(name);
+
+        log.info("User count retrieved successfully: {}", userCount);
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(
+                    Map.of("count", userCount)
+                )
+                .message("User count retrieved Successfully")
+                .build();
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @PostMapping("/mail")
+    @DeprecatedRoute(message = "This endpoint is deprecated. Use /new-endpoint instead.")
+    public ResponseEntity<String> testNotifyInactiveUsers() {
+        mailService.notifyInactiveUsers(); // Call the scheduled method manually
+        return ResponseEntity.ok("Inactive user notification test triggered successfully.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse> resetPassword(
+            final HttpServletRequest request,
+            @RequestParam(value = "userId") final Long userId
+    ) {
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        log.info("Password reset request received for user with ID {}.", userId);
+
+        this.userService.resetPassword(userId);
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(true)
+                .message("Password reset successfully")
+                .build();
+
+        log.info("Password reset request completed successfully. Execution Time: {} ms",
+                (System.currentTimeMillis() - requestStartTime));
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+}
