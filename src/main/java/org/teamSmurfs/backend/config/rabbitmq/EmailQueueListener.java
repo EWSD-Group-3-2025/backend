@@ -6,15 +6,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
-import org.teamSmurfs.backend.api.allocation.dto.EmailRequest;
-import org.teamSmurfs.backend.api.allocation.model.Allocation;
-import org.teamSmurfs.backend.api.user.model.Student;
-import org.teamSmurfs.backend.api.user.model.Tutor;
+import org.teamSmurfs.backend.features.allocation.dto.EmailRequest;
 import org.teamSmurfs.backend.config.service.MailService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor

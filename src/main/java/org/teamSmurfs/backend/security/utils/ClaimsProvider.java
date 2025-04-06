@@ -5,7 +5,7 @@
  */
 package org.teamSmurfs.backend.security.utils;
 
-import org.teamSmurfs.backend.api.user.model.User;
+import org.teamSmurfs.backend.features.user.model.User;
 
 import java.util.HashMap;
 import java.util.Map;

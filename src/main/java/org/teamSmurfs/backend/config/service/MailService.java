@@ -5,8 +5,6 @@
  */
 package org.teamSmurfs.backend.config.service;
 
-import org.teamSmurfs.backend.api.user.model.User;
-
 public interface MailService {
     void sendMail(String to, String subject, String body);
 
