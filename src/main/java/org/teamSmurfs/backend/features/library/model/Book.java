@@ -1,4 +1,4 @@
-package org.teamSmurfs.backend.features.react.model;
+package org.teamSmurfs.backend.features.library.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,36 +16,41 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class React {
+public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+    @Column(nullable = false)
+    private String name;
 
     @Column(nullable = false)
-    private String react;
+    private String url;
 
     @Column(nullable = false)
-    private Long entityId;
+    private Integer categoryId;
 
     @Column(nullable = false)
-    private Integer entityType;
+    private String difficultyLevel;
+
+    @Column(nullable = false)
+    private Integer rating;
+
+    @Column(nullable = false)
+    private String organizationName;
+
+    @Column(nullable = false)
+    private String organizationUrl;
+
+    @Column(nullable = false)
+    private String description;
+
+    @Column(nullable = false)
+    private Long uploaderId;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    public React(
-            final User author, final String react, final Long entityId, final Integer entityType
-    ) {
-        this.author = author;
-        this.react = react;
-        this.entityId = entityId;
-        this.entityType = entityType;
-    }
 }
