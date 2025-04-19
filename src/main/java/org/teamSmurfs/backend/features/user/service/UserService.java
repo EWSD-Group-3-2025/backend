@@ -28,4 +28,6 @@ public interface UserService {
     int retrieveUserNameCount(String name);
 
     void resetPassword(final Long id);
+
+    void changeStatus(final Long id);
 }

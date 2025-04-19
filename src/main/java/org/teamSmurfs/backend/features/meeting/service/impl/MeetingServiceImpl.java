@@ -190,7 +190,10 @@ public class MeetingServiceImpl implements MeetingService {
         // Fetch only meetings where the user is either the host or a participant
         List<Meeting> meetings = meetingRepository.findAll().stream()
                 .filter(meeting -> meeting.getHost().getId().equals(currentUser.getId()) ||
-                        meeting.getParticipants().stream().anyMatch(p -> p.getId().equals(currentUser.getId())))
+                        meeting.getParticipants().stream().anyMatch(p -> p.getId().equals(currentUser.getId())) ||
+                        currentUser.getRoleName().equalsIgnoreCase("tutor") ||
+                        currentUser.getRoleName().equalsIgnoreCase("admin")
+                )
                 .filter(meeting -> !meeting.isDone())
                 .toList();
 
