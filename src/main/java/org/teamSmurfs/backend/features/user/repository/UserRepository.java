@@ -18,10 +18,10 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-	@Query(value = "SELECT * FROM user u LIMIT :limit OFFSET :offset", nativeQuery = true)
+	@Query(value = "SELECT * FROM user u WHERE u.deleted_at IS NULL LIMIT :limit OFFSET :offset", nativeQuery = true)
     List<User> findUsersWithPagination(@Param("offset") int offset, @Param("limit") int limit);
 	
-    @Query("SELECT COUNT(u) FROM User u")
+    @Query("SELECT COUNT(u) FROM User u WHERE u.deletedAt IS NULL")
     long countUsers();
 	
     Optional<User> findByEmail(String email);
@@ -39,15 +39,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "SELECT u.* FROM user u " +
             "JOIN user_roles ur ON u.id = ur.user_id " +
             "JOIN role r ON ur.role_id = r.id " +
-            "WHERE r.name = :roleName ORDER BY u.created_at DESC", nativeQuery = true)
+            "WHERE r.name = :roleName AND u.deleted_at IS NULL ORDER BY u.created_at DESC", nativeQuery = true)
     List<User> findByRoleName(String roleName);
     
     Optional<User> findByUsername(String staff1);
     
     @EntityGraph(attributePaths = {"roles", "student", "staff", "tutor"})
+    @Query("SELECT u FROM User u WHERE u.deletedAt IS NULL ORDER BY u.createdAt DESC")
     List<User> findAllByOrderByCreatedAtDesc();
     
     @EntityGraph(attributePaths = {"roles", "student", "staff", "tutor"})
+    @Query("SELECT u FROM User u WHERE u.id = :id AND u.deletedAt IS NULL")
     Optional<User> findById(Long id);
 
     @Query(value = """
@@ -56,6 +58,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         LEFT JOIN user_roles ur ON ur.user_id = u.id   
         LEFT JOIN role r ON r.id = ur.role_id
         WHERE s.is_admin = true AND r.name = 'ROLE_ADMIN'
+        AND u.deleted_at IS NULL
         ORDER BY u.created_at DESC
     """, nativeQuery = true)
     List<User> findUsersWithAdminRole();
@@ -67,4 +70,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
         """, nativeQuery = true)
         long thisMothIncreaseCnt();
 
+    @Query("SELECT COUNT(u) FROM User u WHERE u.deletedAt IS NULL")
+    long countAllByDeletedAtIsNull();
 }

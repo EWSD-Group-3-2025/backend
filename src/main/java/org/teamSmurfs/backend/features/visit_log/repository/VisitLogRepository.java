@@ -19,6 +19,7 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
     AND v.createdAt < :cutoffDate
     AND v.user.inactive = false
     AND v.user.status = true
+    AND v.user.deletedAt IS NULL
 """)
     List<User> findInactiveUsers(LocalDateTime cutoffDate);
 
@@ -31,10 +32,10 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
     List<VisitLogDto> findAllVisitLogsWithUsername();
 
 
-    @Query("SELECT v.user FROM VisitLog v GROUP BY v.user ORDER BY COUNT(v) DESC LIMIT 20")
+    @Query("SELECT v.user FROM VisitLog v WHERE v.user.deletedAt IS NULL GROUP BY v.user ORDER BY COUNT(v) DESC LIMIT 20")
     List<User> getMostVisitedUsers(); // for get only 20 most visited user count 
 
-    @Query("SELECT v.user, COUNT(v) FROM VisitLog v GROUP BY v.user ORDER BY COUNT(v) DESC")
+    @Query("SELECT v.user, COUNT(v) FROM VisitLog v WHERE v.user.deletedAt IS NULL GROUP BY v.user ORDER BY COUNT(v) DESC")
 	List<User> getMostActiveUsers(Pageable pageable);
 
     /*@Query("SELECT v.user FROM VisitLog v WHERE v.createdAt BETWEEN :startDate AND :endDate GROUP BY v.user")
@@ -49,6 +50,7 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
     	        SELECT MAX(v2.createdAt) FROM VisitLog v2 WHERE v2.user = v.user
     	    ) 
     	    AND v.createdAt BETWEEN :startDate AND :endDate
+    	    AND v.user.deletedAt IS NULL
     	""")
     	List<User> findInactiveUsersBetweenDates(
     	    @Param("startDate") LocalDateTime startDate, 

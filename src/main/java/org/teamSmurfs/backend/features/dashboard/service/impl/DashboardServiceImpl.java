@@ -61,7 +61,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public AdminDashboardDto getAdminDashboardData() {
         try {
-            long totalUsers = userRepository.count();
+            long totalUsers = userRepository.countAllByDeletedAtIsNull();
             long assignedStudents = allocationRepository.countAssignedStudents();
             long activeTutors = tutorRepository.countActiveTutors();
             long totalMessages = chatMessageRepository.count();           
@@ -191,6 +191,7 @@ public class DashboardServiceImpl implements DashboardService {
         List<Student> unassignedStudents = allStudents.stream()
                 .filter(student -> !assignedStudentIds.contains(student.getId()))  // Ensure the student is unassigned
                 .filter(student -> student.getUser().isStatus()) // Ensure the student is active
+                .filter(student -> student.getUser().getDeletedAt() == null)
                 .collect(Collectors.toList());
 
         // Map unassigned students to StudentDto using builder pattern
