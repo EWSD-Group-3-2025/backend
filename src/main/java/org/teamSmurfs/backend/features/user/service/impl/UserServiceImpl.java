@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.teamSmurfs.backend.features.allocation.repository.AllocationRepository;
 import org.teamSmurfs.backend.features.course.model.Course;
 import org.teamSmurfs.backend.features.course.repository.CourseRepository;
 import org.teamSmurfs.backend.features.department.model.Department;
@@ -40,6 +41,7 @@ import org.teamSmurfs.backend.config.utils.EntityUtil;
 import org.teamSmurfs.backend.security.utils.AuthUtil;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,6 +68,7 @@ public class UserServiceImpl implements UserService {
     private final CourseRepository courseRepository;
     private final MailService mailService;
     private final RabbitTemplate rabbitTemplate;
+    private final AllocationRepository allocationRepository;
 
     @Override
     public List<Object> retrieveUsers(final String role) throws Exception {
@@ -189,13 +192,13 @@ public class UserServiceImpl implements UserService {
                     .expiredAt(expiredAt)
                     .build();
 
-            tokenRepository.save(token);
+            this.tokenRepository.save(token);
 
             Map<String, String> emailPayload = Map.of(
                     "email", newUser.getEmail(),
                     "password", rawPassword
             );
-            rabbitTemplate.convertAndSend("userCreationEmailQueue", emailPayload);
+            this.rabbitTemplate.convertAndSend("userCreationEmailQueue", emailPayload);
 
             log.info("User credentials sent to email.");
 
@@ -326,27 +329,39 @@ public class UserServiceImpl implements UserService {
         return userDto;
     }
 
-    public boolean deleteUserById(Long id){
-        try {
-            log.info("Attempting to delete (deactivate) user with ID: {}", id);
+    @Override
+    public boolean deleteUserById(final Long id) {
+        log.info("Attempting to delete user with ID: {}", id);
 
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> {
-                        log.warn("User not found: {}", id);
-                        return new RuntimeException("User not found");
-                    });
-            if(user==null) {
-            	log.warn("User with ID: {} does not exist in the system.", id);
-                return false;
+        final User user = EntityUtil.getEntityById(this.userRepository, id);
+
+        validateUserDeletion(user);
+
+        user.setDeletedAt(LocalDateTime.now());
+        this.userRepository.save(user);
+
+        log.info("User with ID: {} soft-deleted at {}", id, user.getDeletedAt());
+        return true;
+    }
+
+    private void validateUserDeletion(User user) {
+        if (hasRole(user, RoleName.ROLE_TUTOR)) {
+            boolean hasStudents = this.allocationRepository.existsByTutorUserIdAndActiveTrue(user.getId());
+            if (hasStudents) {
+                throw new IllegalStateException("This tutor is associated with one or more students. Please deallocate or transfer students first.");
             }
-            user.setStatus(false);
-            userRepository.save(user);
-            log.info("User with ID: {} status updated to DELETED", id);
-            return true;
-        } catch (Exception e) {
-            log.error("Error updating user status for user ID: {} - {}", id, e.getMessage());
-            throw new RuntimeException("Error updating user status: " + e.getMessage());
         }
+
+        if (hasRole(user, RoleName.ROLE_STUDENT)) {
+            boolean hasTutor = this.allocationRepository.existsByStudentUserIdAndActiveTrue(user.getId());
+            if (hasTutor) {
+                throw new IllegalStateException("This student is associated with a tutor. Please deallocate the tutor first.");
+            }
+        }
+    }
+
+    private boolean hasRole(User user, RoleName roleName) {
+        return user.getRoles().stream().anyMatch(role -> role.getName().equals(roleName));
     }
 
     @Override
@@ -374,5 +389,18 @@ public class UserServiceImpl implements UserService {
         this.mailService.sendEmailForResetPassword(user.getEmail(), randomPassword);
 
         log.info("Password reset confirmation email sent to {}", user.getEmail());
+    }
+
+    @Override
+    public void changeStatus(final Long id) {
+        log.info("Changing status for user with ID: {}.", id);
+
+        final User user = EntityUtil.getEntityById(this.userRepository, id);
+
+        user.setStatus(!user.isStatus());
+
+        this.userRepository.save(user);
+
+        log.info("User with ID: {} status updated to {}", id, user.isStatus() ? "ENABLED" : "DISABLED");
     }
 }

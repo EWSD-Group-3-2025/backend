@@ -15,8 +15,10 @@ public interface AllocationRepository extends JpaRepository<Allocation, Long> {
 
 	List<Allocation> findByTutorId(Long tutorId);
 
-    @Query("SELECT COUNT(DISTINCT a.student.user.id) FROM Allocation a WHERE a.student.user.status = true")
+    @Query("SELECT COUNT(DISTINCT a.student.user.id) FROM Allocation a WHERE a.student.user.status = true AND a.student.user.deletedAt IS NULL")
     long countAssignedStudents();
 
+    boolean existsByTutorUserIdAndActiveTrue(Long tutorUserId);
 
+    boolean existsByStudentUserIdAndActiveTrue(Long studentUserId);
 }

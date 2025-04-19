@@ -214,7 +214,7 @@ public class UserController {
                     .success(1)
                     .code(HttpStatus.OK.value())
                     .data(true)
-                    .message("User Status Updated Successfully")
+                    .message("User Deleted Successfully")
                     .build();
             return ResponseUtil.buildResponse(request, response, requestStartTime);
         } else {
@@ -222,7 +222,7 @@ public class UserController {
                     .success(0)
                     .code(HttpStatus.BAD_REQUEST.value())
                     .data(false)
-                    .message("User Status Update Fail")
+                    .message("User Delete Fail")
                     .build();
             return ResponseUtil.buildResponse(request, response, requestStartTime);
         }
@@ -278,6 +278,30 @@ public class UserController {
                 .build();
 
         log.info("Password reset request completed successfully. Execution Time: {} ms",
+                (System.currentTimeMillis() - requestStartTime));
+
+        return ResponseUtil.buildResponse(request, response, requestStartTime);
+    }
+
+    @PostMapping("/change-status/{id}")
+    public ResponseEntity<ApiResponse> changeStatus(
+            final HttpServletRequest request,
+            final @PathVariable Long id
+    ) {
+        double requestStartTime = RequestUtils.extractRequestStartTime(request);
+
+        log.info("Change status request received for user with ID {}.", id);
+
+        this.userService.changeStatus(id);
+
+        ApiResponse response = ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(true)
+                .message("Change status successfully")
+                .build();
+
+        log.info("Change status request completed successfully. Execution Time: {} ms",
                 (System.currentTimeMillis() - requestStartTime));
 
         return ResponseUtil.buildResponse(request, response, requestStartTime);

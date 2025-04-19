@@ -23,14 +23,14 @@ public class UserDto {
     private String roleName;
     private Long roleId;
 
-    private String department;
+    private String departmentName;
     private Long departmentId;
 
-    private String specialization;
+    private String specializationName;
     private Long specializationId;
 
     private Long courseId;
-    private String course;
+    private String courseName;
 
     private boolean status;
     private boolean firstTimeLogin;
