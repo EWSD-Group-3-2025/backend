@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.teamSmurfs.backend.config.exception.EntityDeletionException;
 import org.teamSmurfs.backend.features.allocation.repository.AllocationRepository;
 import org.teamSmurfs.backend.features.course.model.Course;
 import org.teamSmurfs.backend.features.course.repository.CourseRepository;
@@ -348,14 +349,14 @@ public class UserServiceImpl implements UserService {
         if (hasRole(user, RoleName.ROLE_TUTOR)) {
             boolean hasStudents = this.allocationRepository.existsByTutorUserIdAndActiveTrue(user.getId());
             if (hasStudents) {
-                throw new IllegalStateException("This tutor is associated with one or more students. Please deallocate or transfer students first.");
+                throw new EntityDeletionException("This tutor is associated with one or more students. Please deallocate or transfer students first.");
             }
         }
 
         if (hasRole(user, RoleName.ROLE_STUDENT)) {
             boolean hasTutor = this.allocationRepository.existsByStudentUserIdAndActiveTrue(user.getId());
             if (hasTutor) {
-                throw new IllegalStateException("This student is associated with a tutor. Please deallocate the tutor first.");
+                throw new EntityDeletionException("This student is associated with a tutor. Please deallocate the tutor first.");
             }
         }
     }
