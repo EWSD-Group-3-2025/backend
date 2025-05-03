@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+//import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.teamSmurfs.backend.features.meeting.dto.MeetingResponse;
 import org.teamSmurfs.backend.features.request.RequestUtils;
@@ -25,6 +26,7 @@ public class MeetingController {
     private final MeetingService meetingService;
 
     @PostMapping
+//    @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<ApiResponse> createMeeting(
             @RequestBody MeetingDto meetingDto,
             HttpServletRequest request
@@ -46,6 +48,7 @@ public class MeetingController {
     }
 
     @PutMapping("/{id}")
+//    @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<ApiResponse> updateMeeting(
             @PathVariable Long id,
             @RequestBody MeetingDto meetingDto,
@@ -68,6 +71,7 @@ public class MeetingController {
     }
 
     @DeleteMapping("/{id}")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     public ResponseEntity<ApiResponse> deleteMeeting(
             @PathVariable Long id,
             HttpServletRequest request
@@ -89,6 +93,7 @@ public class MeetingController {
     }
 
     @GetMapping("/{id}")
+//    @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<ApiResponse> getMeetingById(
             @PathVariable Long id,
             HttpServletRequest request,
@@ -113,6 +118,7 @@ public class MeetingController {
     }
 
     @GetMapping
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('TUTOR') or hasRole('STUDENT')")
     public ResponseEntity<ApiResponse> getAllMeetings(
             HttpServletRequest request,
             @RequestHeader("Authorization") String authHeader
@@ -136,6 +142,7 @@ public class MeetingController {
     }
 
     @PatchMapping("/{id}/mark-done")
+//    @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<ApiResponse> markMeetingAsDone(@PathVariable Long id,
                                                     HttpServletRequest request) {
 

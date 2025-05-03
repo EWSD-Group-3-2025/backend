@@ -24,4 +24,5 @@ public class TutorDto {
     private Boolean status;
     private LocalDateTime createdAt;
     private Integer gender;
+    private String genderName;
 }

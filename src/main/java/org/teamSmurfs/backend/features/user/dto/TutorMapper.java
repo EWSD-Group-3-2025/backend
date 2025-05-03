@@ -1,6 +1,7 @@
 package org.teamSmurfs.backend.features.user.dto;
 
 import org.springframework.stereotype.Component;
+import org.teamSmurfs.backend.features.user.model.Gender;
 import org.teamSmurfs.backend.features.user.model.Tutor;
 import org.teamSmurfs.backend.features.user.model.User;
 
@@ -22,6 +23,7 @@ public class TutorMapper {
                 .status(user.isStatus())
                 .createdAt(user.getCreatedAt())
                 .gender(user.getGender())
+                .genderName(Gender.fromInt(user.getGender()).getCode())
                 .build();
 
         user.getRoles().stream().findFirst().ifPresent(roleEntity -> {
