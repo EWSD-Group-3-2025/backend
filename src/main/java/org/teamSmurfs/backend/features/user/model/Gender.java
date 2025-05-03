@@ -2,9 +2,9 @@ package org.teamSmurfs.backend.features.user.model;
 
 public enum Gender {
     INVALID(0, "gender.invalid"),
-    MALE(1, "gender.male"),
-    FEMALE(2, "gender.female"),
-    OTHER(3, "gender.other");
+    MALE(1, "Male"),
+    FEMALE(2, "Female"),
+    OTHER(3, "Other");
 
     private final Integer value;
     private final String code;
