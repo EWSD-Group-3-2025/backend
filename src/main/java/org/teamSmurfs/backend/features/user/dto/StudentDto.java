@@ -25,4 +25,5 @@ public class StudentDto {
 	 private LocalDateTime createdAt;
 	 private Long allocateTutorId;
 	 private Integer gender;
+	 private String genderName;
 }

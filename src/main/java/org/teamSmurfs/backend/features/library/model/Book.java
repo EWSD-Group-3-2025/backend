@@ -34,7 +34,7 @@ public class Book {
     private String difficultyLevel;
 
     @Column(nullable = false)
-    private Integer rating;
+    private Double rating;
 
     @Column(nullable = false)
     private String organizationName;
