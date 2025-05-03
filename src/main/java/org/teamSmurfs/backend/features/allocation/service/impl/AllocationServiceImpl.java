@@ -180,6 +180,12 @@ public class AllocationServiceImpl implements AllocationService {
         if (!updatedAllocations.isEmpty()) {
             this.allocationRepository.saveAll(updatedAllocations);
             log.info("{} students successfully transferred to Tutor {}", updatedAllocations.size(), toTutor.getId());
+
+            updatedAllocations.forEach(allocation -> {
+                Long tutorId = allocation.getTutor().getUser().getId();
+                Long studentId = allocation.getStudent().getUser().getId();
+                chatService.createOrGetChatRoom(tutorId, studentId);
+            });
         }
     }
 
