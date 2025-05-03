@@ -1,6 +1,7 @@
 package org.teamSmurfs.backend.features.user.dto;
 
 import org.springframework.stereotype.Component;
+import org.teamSmurfs.backend.features.user.model.Gender;
 import org.teamSmurfs.backend.features.user.model.Staff;
 import org.teamSmurfs.backend.features.user.model.User;
 
@@ -33,6 +34,7 @@ public class StaffMapper {
 	                .departmentId(staff.getDepartment() != null ? staff.getDepartment().getId() : null)
 					.admin(staff.isAdmin())
 					.gender(user.getGender())
+					.genderName(Gender.fromInt(user.getGender()).getCode())
 	                .build();
 	        
 	        return staffDto;

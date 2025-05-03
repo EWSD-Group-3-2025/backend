@@ -9,6 +9,7 @@ import org.teamSmurfs.backend.features.course.model.Course;
 import org.teamSmurfs.backend.features.course.repository.CourseRepository;
 import org.teamSmurfs.backend.features.student_course.model.StudentCourse;
 import org.teamSmurfs.backend.features.student_course.repository.StudentCourseRepository;
+import org.teamSmurfs.backend.features.user.model.Gender;
 import org.teamSmurfs.backend.features.user.model.Student;
 import org.teamSmurfs.backend.features.user.model.User;
 
@@ -39,6 +40,7 @@ public class StudentMapper {
                 .status(user.isStatus())
                 .createdAt(user.getCreatedAt())
                 .gender(user.getGender())
+                .genderName(Gender.fromInt(user.getGender()).getCode())
                 .build();
 
         user.getRoles().stream().findFirst().ifPresent(roleEntity -> {

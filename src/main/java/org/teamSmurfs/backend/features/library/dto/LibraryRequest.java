@@ -25,7 +25,7 @@ public class LibraryRequest {
 
     @NotNull(message = "Role ID is required.")
     @Min(value = 1, message = "Role ID must be a positive number.")
-    private Integer rating;
+    private Double rating;
 
     @NotBlank(message = "Organization Name is required.")
     private String organizationName;
