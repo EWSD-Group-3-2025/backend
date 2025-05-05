@@ -48,7 +48,7 @@ public class UserInitializer implements CommandLineRunner {
                     .name("Admin Staff")
                     .username("staff-1")
                     .email("teamsmurfs@gmail.com")
-                    .password(passwordEncoder.encode("password123"))
+                    .password(passwordEncoder.encode("Password123!"))
                     .gender(Gender.MALE.getValue())
                     .roles(Set.of(adminRole))
                     .build();
