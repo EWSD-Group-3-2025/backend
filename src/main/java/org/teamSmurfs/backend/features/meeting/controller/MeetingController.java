@@ -121,20 +121,26 @@ public class MeetingController {
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('TUTOR') or hasRole('STUDENT')")
     public ResponseEntity<ApiResponse> getAllMeetings(
             HttpServletRequest request,
-            @RequestHeader("Authorization") String authHeader
+            @RequestHeader(value = "Authorization", required = false) final String authHeader,
+            @RequestParam(value = "fetchFeed", defaultValue = "false") final boolean fetchFeed
     ) {
-        log.info("Retrieving all meetings");
+        log.info("Retrieving all meetings for authenticated user");
 
         double requestStartTime = RequestUtils.extractRequestStartTime(request);
+        List<MeetingResponse> meetings;
+        if (fetchFeed) {
+            meetings = meetingService.getAll(authHeader);
+        } else {
+            meetings = meetingService.getAll(authHeader);
+        }
 
-        List<MeetingResponse> meetings = meetingService.getAll(authHeader);
-
-        log.info("Retrieved meetings: {}", meetings);
+        log.info("Retrieved {} meetings for authenticated user successfully",
+                (meetings != null) ? meetings.size() : 0);
 
         ApiResponse successResponse = ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(meetings)
+                .data(meetings != null ? meetings : Collections.emptyList())
                 .message("Meetings retrieved successfully")
                 .build();
 
