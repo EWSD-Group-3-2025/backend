@@ -187,20 +187,27 @@ public class MeetingServiceImpl implements MeetingService {
         // Get the current user
         UserDto currentUser = userUtil.getCurrentUserDto(authHeader);
 
-        // Fetch only meetings where the user is either the host or a participant
-        List<Meeting> meetings = meetingRepository.findAll().stream()
-                .filter(meeting -> meeting.getHost().getId().equals(currentUser.getId()) ||
-                        meeting.getParticipants().stream().anyMatch(p -> p.getId().equals(currentUser.getId())) ||
-                        currentUser.getRoleName().equalsIgnoreCase("tutor") ||
-                        currentUser.getRoleName().equalsIgnoreCase("admin")
-                )
-                .filter(meeting -> !meeting.isDone())
-                .toList();
+        List<Meeting> meetings;
+
+        // Only admins can see all active meetings
+        if (currentUser.getRoleName().equalsIgnoreCase("admin")) {
+            meetings = meetingRepository.findAll().stream()
+                    .filter(meeting -> !meeting.isDone())
+                    .toList();
+        } else {
+            // Tutors and other roles see only meetings they host or participate in
+            meetings = meetingRepository.findAll().stream()
+                    .filter(meeting -> !meeting.isDone() &&
+                            (meeting.getHost().getId().equals(currentUser.getId()) ||
+                                    meeting.getParticipants().stream().anyMatch(p -> p.getId().equals(currentUser.getId()))))
+                    .toList();
+        }
 
         return meetings.stream()
                 .map(this::convertToMeetingResponse)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public List<DashboardTodayMeeting> getTodayMeetingsForTutor(Long tutorId) {
